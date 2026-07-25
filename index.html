@@ -1,0 +1,2915 @@
+<!DOCTYPE html>
+<!--
+  Nivelo: jurnal personal de diabet
+  © 2026 Constantin Enache (hello.nivelo@gmail.com). Toate drepturile rezervate.
+  Autor și titular unic al drepturilor: Constantin Enache, hello.nivelo@gmail.com.
+  Versiunea originală: https://github.com/costi1622/nivelo-beta-stabil
+  Cod proprietar, oferit gratuit pentru uz personal și necomercial.
+  Utilizarea comercială (vânzare, abonament, reclame etc.), copierea,
+  modificarea sau republicarea sub alt nume sunt INTERZISE fără acordul
+  scris al autorului. Detalii în fișierul LICENSE.
+-->
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12242E">
+<!-- Politica de securitate a conținutului. Rolul principal aici NU e blocarea
+     scripturilor injectate (asta o face escaparea, iar handlerele inline din
+     aplicație cer oricum 'unsafe-inline'), ci ALTCEVA, mai important pentru
+     Nivelo: `connect-src 'self'` înseamnă că browserul însuși refuză orice
+     încercare a paginii de a trimite date către un server, oriunde ar fi el.
+     Promisiunea „datele nu pleacă de pe telefon" încetează să mai fie o
+     chestiune de încredere în cod și devine o regulă impusă din afara lui.
+     `form-action 'none'` oprește trimiterea prin formulare, `base-uri 'none'`
+     oprește rescrierea adreselor relative, `object-src 'none'` oprește plugin-urile.
+     Notă: `frame-ancestors` nu are efect într-un meta, doar ca antet HTTP, iar
+     GitHub Pages nu permite antete; de aceea nu e inclus. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Nivelo: jurnal de diabet</title>
+<style>
+html[data-theme="dark"]{
+  --ink:#E8EEF1; --ink-soft:#9CB0BA; --paper:#0F1B22; --card:#17262F;
+  --line:#2A3B45; --petrol:#33ADA9; --petrol-soft:#123A3A;
+  --low:#F06A6A; --ok:#3FBF85; --high:#E8AC3F; --vhigh:#E06A48;
+  --shadow:0 1px 3px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.28);
+}
+html[data-theme="dark"] .chip{background:var(--card)}
+html[data-theme="dark"] .inp{background:var(--card)}
+html[data-theme="dark"] #banner{background:#3A3216; border-color:#6B5A1E; color:#EAD79A}
+html[data-theme="dark"] #topbar{background:#0A141A; border-bottom:1px solid var(--line)}
+:root{
+  --fs:1;
+  --ink:#12242E;          /* albastru-cerneală profund */
+  --ink-soft:#3C5260;
+  --paper:#F2F6F7;        /* porțelan rece */
+  --card:#FFFFFF;
+  --line:#DDE6E9;
+  --petrol:#0E7C7B;       /* accent principal */
+  --petrol-soft:#E0F0EF;
+  --low:#D64545;          /* hipo */
+  --ok:#2E9E6B;           /* în țintă */
+  --high:#DF9A22;         /* peste țintă */
+  --vhigh:#C94F30;        /* mult peste */
+  --r:16px;
+  --shadow:0 1px 3px rgba(18,36,46,.08), 0 4px 14px rgba(18,36,46,.06);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+html,body{margin:0; padding:0; background:var(--paper); color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; font-size:calc(16px*var(--fs)); line-height:1.45}
+button{font:inherit; color:inherit; background:none; border:none; cursor:pointer}
+input,select,textarea{font:inherit; color:var(--ink)}
+h1,h2,h3{margin:0; line-height:1.2}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- cadru ---------- */
+#topbar{position:sticky; top:0; z-index:30; background:var(--ink); color:#fff;
+  padding:calc(10px + env(safe-area-inset-top)) 18px 10px; display:flex; align-items:baseline; justify-content:space-between}
+#topbar .brand{font-weight:800; letter-spacing:.3px; font-size:17px}
+#topbar .brand span{color:#7FD1C8}
+#topbar .who{font-size:13px; opacity:.85}
+main{max-width:560px; margin:0 auto; padding:14px 14px calc(96px + env(safe-area-inset-bottom))}
+.view{display:none}
+.view.on{display:block}
+
+#tabs{position:fixed; bottom:0; left:0; right:0; z-index:30; background:var(--card);
+  border-top:1px solid var(--line); display:flex; padding-bottom:env(safe-area-inset-bottom)}
+#tabs button{flex:1; padding:9px 2px 8px; font-size:11.5px; color:var(--ink-soft); display:flex; flex-direction:column; align-items:center; gap:3px}
+#tabs button .ico{font-size:20px; line-height:1}
+#tabs button.on{color:var(--petrol); font-weight:700}
+
+/* ---------- carduri ---------- */
+.card{background:var(--card); border-radius:var(--r); box-shadow:var(--shadow); padding:16px; margin-bottom:12px}
+.card h2{font-size:calc(13px*var(--fs)); text-transform:uppercase; letter-spacing:.8px; color:var(--ink-soft); margin-bottom:10px; font-weight:700}
+.muted{color:var(--ink-soft); font-size:calc(13px*var(--fs))}
+.card p.muted{text-align:left; line-height:1.55; font-size:calc(12.5px*var(--fs)); letter-spacing:.1px}
+.stat span{line-height:1.3}
+.spread{display:flex; justify-content:space-between; align-items:center; gap:10px}
+
+/* ---------- eroul „Acum" ---------- */
+#heroCard{padding:13px 14px}
+#hero{display:flex; gap:14px; align-items:center}
+#dial{position:relative; width:104px; height:104px; flex:none}
+#dial svg{transform:rotate(-90deg)}
+#dial .v{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center}
+#dial .v b{font-size:30px; font-weight:800; letter-spacing:-1px}
+#dial .v small{font-size:10px; color:var(--ink-soft); margin-top:-2px}
+#hero .side{flex:1}
+#hero .delta{font-size:calc(14px*var(--fs)); font-weight:700; margin-bottom:2px}
+#hero .ago{font-size:calc(13px*var(--fs)); color:var(--ink-soft)}
+.mini3{display:flex; gap:7px; margin-top:11px}
+.mini3 div{flex:1; background:var(--paper); border-radius:12px; padding:7px 5px; text-align:center}
+.mini3 b{display:block; font-size:calc(16px*var(--fs)); font-weight:800}
+.mini3 span{font-size:calc(10px*var(--fs)); color:var(--ink-soft); text-transform:uppercase; letter-spacing:.3px}
+#spark{margin-top:11px}
+#spark svg{width:100%; height:68px; display:block}
+
+/* ---------- butoane adăugare ---------- */
+#quick{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:2px 0 14px}
+#quick button{background:var(--card); border-radius:14px; box-shadow:var(--shadow);
+  padding:12px 4px; display:flex; flex-direction:column; align-items:center; gap:5px; font-size:calc(12px*var(--fs)); font-weight:600; min-height:66px}
+#quick button .ico{width:30px; height:30px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:calc(17px*var(--fs)); color:#fff}
+.i-gluc{background:var(--petrol)} .i-meal{background:#B0672E} .i-ins{background:#3F5E8C} .i-note{background:#6B7A85}
+
+/* ---------- cronologie ---------- */
+.daypart{margin:16px 4px 8px; font-size:calc(12px*var(--fs)); font-weight:800; letter-spacing:1px; text-transform:uppercase; color:var(--ink-soft);
+  display:flex; align-items:center; gap:10px}
+.daypart::after{content:""; flex:1; height:1px; background:var(--line)}
+.ev{background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:11px 13px; margin-bottom:8px;
+  display:flex; gap:11px; align-items:flex-start; width:100%; text-align:left}
+.ev .t{font-size:calc(12.5px*var(--fs)); color:var(--ink-soft); flex:none; width:44px; padding-top:2px; font-weight:600}
+.ev .body{flex:1; min-width:0}
+.ev .hl{font-weight:700; font-size:calc(15px*var(--fs))}
+.ev .sub{font-size:calc(13px*var(--fs)); color:var(--ink-soft); margin-top:1px; overflow-wrap:anywhere}
+.pill{display:inline-block; padding:1px 9px; border-radius:99px; font-size:calc(12.5px*var(--fs)); font-weight:800; color:#fff}
+.p-low{background:var(--low)} .p-ok{background:var(--ok)} .p-high{background:var(--high)} .p-vhigh{background:var(--vhigh)}
+/* ---------- lista de pornire (dispare când e completă sau la închidere) ---------- */
+#quickstart{margin:12px 0}
+#quickstart .card{padding:14px 14px 10px}
+#quickstart .qs-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:8px}
+#quickstart h2{font-size:calc(15px*var(--fs)); margin:0}
+#quickstart .qs-close{color:var(--ink-soft); font-size:calc(18px*var(--fs)); padding:0 4px; line-height:1}
+#quickstart .qs-hint{font-size:calc(12px*var(--fs)); color:var(--ink-soft); margin:2px 0 10px}
+#quickstart ul{list-style:none; padding:0; margin:0}
+#quickstart li{display:flex; align-items:center; gap:10px; padding:8px 0; border-top:1px solid var(--line); font-size:calc(14px*var(--fs))}
+#quickstart li:first-child{border-top:none}
+#quickstart li .mk{width:22px; height:22px; border-radius:99px; border:1.5px solid var(--line); flex:none; display:flex; align-items:center; justify-content:center; color:#fff; background:transparent; font-weight:800}
+#quickstart li.done .mk{background:var(--ok); border-color:var(--ok)}
+#quickstart li.done{color:var(--ink-soft)}
+#quickstart li.done .lbl{text-decoration:line-through}
+#quickstart li .go{margin-left:auto; color:var(--petrol); font-weight:700; font-size:calc(13px*var(--fs))}
+.empty{padding:26px 14px; text-align:center; color:var(--ink-soft); font-size:calc(14px*var(--fs))}
+.empty .ei{display:block; font-size:calc(36px*var(--fs)); line-height:1; margin-bottom:10px; opacity:.9}
+.empty b{display:block; font-size:calc(15.5px*var(--fs)); color:var(--ink); margin-bottom:5px}
+.empty .hint{display:block; font-size:calc(13px*var(--fs)); line-height:1.5; max-width:300px; margin:0 auto}
+.empty .act{display:inline-block; margin-top:14px; background:var(--petrol); color:#fff;
+  padding:9px 18px; border-radius:99px; font-size:calc(14px*var(--fs)); font-weight:700}
+.bkline{display:flex; align-items:center; justify-content:center; gap:7px; margin:18px 4px 2px;
+  font-size:calc(12.5px*var(--fs)); color:var(--ink-soft)}
+.bkline i{width:7px; height:7px; border-radius:9px; background:var(--ok); flex:none; font-style:normal}
+.bkline.warn i{background:var(--high)} .bkline.bad i{background:var(--low)}
+.bkline b{font-weight:700; color:var(--ink-soft)}
+.bkline button{color:var(--petrol); font-weight:700; font-size:calc(12.5px*var(--fs)); text-decoration:underline}
+.mealsum{display:flex; align-items:center; gap:8px; margin:-2px 0 8px 55px; padding:7px 13px;
+  background:var(--petrol-soft); border-radius:11px; font-size:calc(13.5px*var(--fs)); color:#0B5C5B; font-weight:700}
+.mealsum .lbl{font-weight:600; color:#3C6B6A}
+.mealsum b{font-size:calc(15px*var(--fs))}
+
+/* ---------- formulare / foi ---------- */
+#veil{position:fixed; inset:0; background:rgba(18,36,46,.45); z-index:40; display:none}
+#veil.on{display:block}
+body.noscroll{position:fixed; left:0; right:0; width:100%; overflow:hidden}
+#sheet{position:fixed; left:0; right:0; bottom:0; z-index:41; background:var(--card);
+  border-radius:22px 22px 0 0; padding:18px 18px calc(18px + env(safe-area-inset-bottom));
+  max-height:88vh; overflow-y:auto; transform:translateY(105%); transition:transform .22s ease}
+#sheet.on{transform:none}
+/* foaia secundară: identică vizual, dar peste prima (ex. gramele peste masă) */
+#veil2{position:fixed; inset:0; background:rgba(18,36,46,.45); z-index:42; display:none}
+#veil2.on{display:block}
+#sheet2{position:fixed; left:0; right:0; bottom:0; z-index:43; background:var(--card);
+  border-radius:22px 22px 0 0; padding:18px 18px calc(18px + env(safe-area-inset-bottom));
+  max-height:88vh; overflow-y:auto; transform:translateY(105%); transition:transform .22s ease}
+#sheet2.on{transform:none}
+#sheet2 h3{font-size:calc(18px*var(--fs)); font-weight:800; margin-bottom:14px}
+#sheet h3{font-size:calc(18px*var(--fs)); font-weight:800; margin-bottom:14px}
+.frow{margin-bottom:13px}
+.frow label{display:block; font-size:calc(12.5px*var(--fs)); font-weight:700; color:var(--ink-soft); margin-bottom:5px; text-transform:uppercase; letter-spacing:.5px}
+.inp{width:100%; border:1.5px solid var(--line); border-radius:12px; padding:11px 12px; font-size:calc(16px*var(--fs)); background:#fff}
+.inp:focus{outline:none; border-color:var(--petrol)}
+/* Navigarea cu tastatura (sau cu switch access) trebuie să se vadă. :focus-visible
+   apare doar la tastatură, deci nu adaugă contur la atingere sau la click. */
+:focus-visible{outline:3px solid var(--petrol); outline-offset:2px; border-radius:6px}
+.inp:focus-visible{outline:3px solid var(--petrol); outline-offset:1px}
+/* Rezumatul graficului: discret, dar la un tap distanță pentru oricine îl vrea. */
+/* Întrebări pliabile din „Cum se face": lista trebuie să se poată parcurge din
+   priviri, deci răspunsurile stau strânse până sunt cerute. */
+.qagroup{font-size:calc(11px*var(--fs)); font-weight:800; letter-spacing:.7px; text-transform:uppercase;
+  color:var(--petrol); margin:16px 0 6px}
+.qagroup:first-of-type{margin-top:6px}
+.qa{border:1px solid var(--line); border-radius:11px; background:var(--card); margin-bottom:7px}
+.qa summary{list-style:none; cursor:pointer; padding:11px 13px; font-weight:700;
+  font-size:calc(14px*var(--fs)); line-height:1.45; display:flex; gap:9px; align-items:flex-start}
+.qa summary::-webkit-details-marker{display:none}
+.qa summary::before{content:"+"; flex:none; color:var(--petrol); font-weight:800;
+  font-size:calc(16px*var(--fs)); line-height:1.25; width:14px}
+.qa[open] summary::before{content:"−"}
+.qa[open] summary{padding-bottom:4px}
+.qa > div{padding:0 13px 11px 36px; color:var(--ink-soft); font-size:calc(13.5px*var(--fs))}
+.qa > div p{margin:0 0 7px}
+.qa > div p:last-child{margin:0}
+.sparksum{margin-top:4px}
+.sparksum summary{list-style:none; cursor:pointer; color:var(--petrol); font-weight:700; font-size:calc(11.5px*var(--fs)); padding:3px 0}
+.sparksum summary::-webkit-details-marker{display:none}
+.sparksum summary::before{content:"› "; font-weight:800}
+.sparksum[open] summary::before{content:"⌄ "}
+.sparksum p{margin:2px 0 4px; color:var(--ink-soft); font-size:calc(12px*var(--fs)); line-height:1.5}
+#dial .v .state{display:block; font-weight:800; font-size:calc(10.5px*var(--fs)); letter-spacing:.2px; margin-top:-1px}
+.bignum{font-size:calc(30px*var(--fs)); font-weight:800; text-align:center; letter-spacing:-.5px}
+.rowflex{display:flex; gap:8px}
+.rowflex>*{flex:1}
+.chips{display:flex; gap:7px; flex-wrap:wrap}
+.chip{border:1.5px solid var(--line); border-radius:99px; padding:7px 14px; font-size:calc(14px*var(--fs)); font-weight:600; background:#fff}
+.chip.on{background:var(--petrol); border-color:var(--petrol); color:#fff}
+.btn{display:block; width:100%; padding:14px; border-radius:14px; font-size:calc(16px*var(--fs)); font-weight:800; text-align:center}
+.btn-p{background:var(--petrol); color:#fff}
+.btn-g{background:var(--paper); color:var(--ink); margin-top:8px}
+.btn-d{background:none; color:var(--low); margin-top:6px; font-weight:700; font-size:calc(14px*var(--fs))}
+.btn-danger{background:var(--low); color:#fff}
+.btn[disabled]{opacity:.45}
+
+/* compunere masă */
+#mitems .mi{display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px dashed var(--line)}
+#mitems .mi b{flex:1; font-size:calc(14.5px*var(--fs)); font-weight:600}
+#mitems .mi .hc{font-weight:800; color:#B0672E}
+#mitems .mi button{color:var(--low); font-size:calc(17px*var(--fs)); padding:2px 6px}
+#mtotal{text-align:right; font-size:calc(17px*var(--fs)); font-weight:800; margin:8px 0 4px; color:#B0672E}
+.foodhit{display:flex; justify-content:space-between; width:100%; padding:11px 4px; border-bottom:1px solid var(--line); text-align:left; font-size:calc(15px*var(--fs))}
+.foodhit small{color:var(--ink-soft)}
+
+/* alimente */
+.fooditem{display:flex; align-items:center; gap:10px; padding:12px 2px; border-bottom:1px solid var(--line); width:100%; text-align:left}
+.fooditem .star{font-size:calc(19px*var(--fs)); color:#D9A400; flex:none}
+.fooditem .txt{flex:1; min-width:0}
+.fooditem .n{display:block; font-weight:600; font-size:calc(15px*var(--fs))}
+.fooditem .d{display:block; font-size:calc(12.5px*var(--fs)); color:var(--ink-soft); margin-top:2px}
+
+/* istoric */
+#hsearch{position:sticky; top:calc(46px + env(safe-area-inset-top)); z-index:20; background:var(--paper); padding:6px 0 10px}
+.dayhead{margin:14px 4px 6px; font-weight:800; font-size:calc(14px*var(--fs)); display:flex; justify-content:space-between; align-items:baseline}
+.dayhead .muted{font-weight:600}
+
+/* statistici */
+.statgrid{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+.stat{background:var(--paper); border-radius:12px; padding:11px; text-align:center}
+.stat{min-width:0; overflow:hidden}
+.stat b{display:block; font-size:calc(22px*var(--fs)); font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-.3px}
+.stat b .u{font-size:calc(11.5px*var(--fs)); font-weight:700; color:var(--ink-soft); letter-spacing:0; margin-left:3px}
+.stat span{font-size:calc(11px*var(--fs)); color:var(--ink-soft); text-transform:uppercase; letter-spacing:.4px; display:block; overflow-wrap:anywhere}
+.tirbar{display:flex; height:26px; border-radius:8px; overflow:hidden; margin:10px 0 4px}
+.tirbar div{display:flex; align-items:center; justify-content:center; color:#fff; font-size:calc(11.5px*var(--fs)); font-weight:800; min-width:3px; overflow:hidden}
+.tirbar div span{white-space:nowrap; padding:0 2px}
+.tirlegend{display:flex; gap:8px; margin-top:6px; flex-wrap:wrap}
+.tirlegend div{display:flex; align-items:center; gap:5px; font-size:calc(12px*var(--fs)); color:var(--ink-soft)}
+.tirlegend i{width:11px; height:11px; border-radius:3px; flex:none}
+.tirlegend b{color:var(--ink); font-weight:800}
+.bars{display:flex; gap:12px; align-items:flex-end; height:70px; margin-top:8px; padding:0 4px}
+.bars .b{flex:1; display:flex; flex-direction:column; align-items:center; gap:4px}
+.bars .b i{width:100%; max-width:52px; min-height:22px; border-radius:7px 7px 0 0; background:var(--petrol); font-style:normal; display:flex; align-items:flex-start; justify-content:center; color:#fff; font-size:calc(12px*var(--fs)); font-weight:800; padding-top:3px}
+.bars .b span{font-size:calc(10.5px*var(--fs)); color:var(--ink-soft); text-transform:uppercase}
+#mediiCard{padding:14px 15px 13px}
+
+/* meniu */
+.mrow{display:flex; align-items:center; gap:12px; width:100%; text-align:left; padding:14px 4px; border-bottom:1px solid var(--line); font-size:calc(15px*var(--fs)); font-weight:600}
+.mrow .ico{font-size:calc(19px*var(--fs)); width:28px; text-align:center}
+.mrow small{display:block; font-weight:400; color:var(--ink-soft); font-size:calc(12.5px*var(--fs))}
+
+#savefail{background:#FBE4DC; border:1px solid #E0A491; color:#8A3418; border-radius:14px; padding:12px 14px; font-size:calc(13.5px*var(--fs)); margin-bottom:12px; display:none}
+html[data-theme="dark"] #savefail{background:#3E2018; border-color:#7A3A28; color:#F0B9A8}
+#savefail b{display:block; margin-bottom:2px}
+#savefail button{color:var(--petrol); font-weight:800; padding:6px 0 0}
+html[data-theme="dark"] #savefail button{color:#7FD6D3}
+#quotawarn{background:#FFF4DE; border:1px solid #EAD199; color:#7A5B12; border-radius:14px; padding:12px 14px; font-size:calc(13.5px*var(--fs)); margin-bottom:12px; display:none}
+html[data-theme="dark"] #quotawarn{background:#3A3216; border-color:#6B5A1E; color:#EAD79A}
+#quotawarn b{display:block; margin-bottom:2px}
+#quotawarn button{color:var(--petrol); font-weight:800; padding:6px 0 0}
+html[data-theme="dark"] #quotawarn button{color:#7FD6D3}
+#banner{background:#FFF4DE; border:1px solid #EAD199; color:#7A5B12; border-radius:14px; padding:12px 14px; font-size:calc(13.5px*var(--fs)); margin-bottom:12px; display:none}
+#banner.urgent{background:#FBE4DC; border-color:#E0A491; color:#8A3418}
+html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28; color:#F0B9A8}
+#banner b{display:block; margin-bottom:2px}
+#banner button{color:var(--petrol); font-weight:800; padding:6px 0 0}
+
+#toast{position:fixed; bottom:calc(84px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%) translateY(20px);
+  background:#12242E; color:#fff; padding:10px 18px; border-radius:99px; font-size:14px; font-weight:600; opacity:0; transition:.25s; z-index:60; pointer-events:none; white-space:nowrap}
+#toast.on{opacity:1; transform:translateX(-50%)}
+#undobar{position:fixed; left:12px; right:12px; bottom:calc(80px + env(safe-area-inset-bottom));
+  background:#12242E; color:#fff; border:1px solid rgba(255,255,255,.16); border-radius:14px;
+  padding:11px 8px 11px 15px; display:none; align-items:center; justify-content:space-between; gap:10px;
+  font-size:13.5px; z-index:59; box-shadow:0 6px 24px rgba(0,0,0,.3)}
+#undobar.on{display:flex}
+#undobar b{font-weight:700}
+#undobar button{color:#7FD1C8; font-weight:800; font-size:14px; white-space:nowrap; padding:6px 12px; flex:none}
+/* Bara de versiune nouă. Stă puțin mai sus decât cea de anulare, ca să nu se
+   acopere una pe alta dacă apar amândouă. */
+#updbar{position:fixed; left:12px; right:12px; bottom:calc(80px + env(safe-area-inset-bottom));
+  background:var(--petrol); color:#fff; border-radius:14px;
+  padding:11px 8px 11px 15px; display:none; align-items:center; justify-content:space-between; gap:10px;
+  font-size:calc(13.5px*var(--fs)); z-index:58; box-shadow:0 6px 24px rgba(0,0,0,.3)}
+#updbar.on{display:flex}
+#updbar button{color:#fff; font-weight:800; font-size:calc(14px*var(--fs)); white-space:nowrap; padding:6px 12px; flex:none; text-decoration:underline}
+/* ---------- fereastra „Ce e nou" ---------- */
+.wn-card{padding:14px 15px}
+.wn-ver{display:inline-block; background:var(--petrol); color:#fff; font-weight:800;
+  font-size:calc(11.5px*var(--fs)); padding:3px 11px; border-radius:99px; letter-spacing:.4px}
+.wn-list{list-style:none; padding:0; margin:11px 0 0}
+.wn-list li{display:flex; gap:10px; align-items:flex-start; margin-top:10px; font-size:calc(14px*var(--fs)); line-height:1.5}
+.wn-list li:first-child{margin-top:0}
+.wn-list i{flex:none; width:7px; height:7px; border-radius:99px; background:var(--petrol); margin-top:calc(8px*var(--fs)); font-style:normal}
+.wn-foot{background:var(--paper); border-left:3px solid var(--petrol); border-radius:0 10px 10px 0;
+  padding:11px 13px; margin-top:14px; font-size:calc(13px*var(--fs)); color:var(--ink-soft)}
+#undobar.on ~ #updbar.on{bottom:calc(140px + env(safe-area-inset-bottom))}
+
+/* raport medic: doar la tipărire */
+#report{display:none}
+@media print{
+  body>*{display:none !important}
+  body{background:#fff}
+  #report{display:block !important; font-size:calc(12px*var(--fs)); color:#000; padding:6mm}
+  #report h1{font-size:calc(20px*var(--fs)); margin-bottom:2px}
+  #report h2{font-size:calc(14px*var(--fs)); margin:14px 0 6px; border-bottom:2px solid #000; padding-bottom:3px}
+  #report table{width:100%; border-collapse:collapse; margin-top:4px}
+  #report th,#report td{border:1px solid #999; padding:3px 6px; text-align:left; vertical-align:top}
+  #report th{background:#eee}
+  #report .rmeta{color:#444; margin-bottom:8px}
+}
+@media (prefers-reduced-motion:reduce){ #sheet{transition:none} #toast{transition:opacity .1s} }
+/* ---------- ecran culcat (landscape) ---------- */
+@media (orientation:landscape) and (max-height:540px){
+  #topbar{padding:calc(5px + env(safe-area-inset-top)) 18px 5px}
+  #topbar .brand{font-size:calc(15px*var(--fs))}
+  main{padding:10px 14px calc(74px + env(safe-area-inset-bottom))}
+  #tabs button{padding:5px 2px 4px; font-size:calc(10.5px*var(--fs)); gap:1px}
+  #tabs button .ico{font-size:calc(17px*var(--fs))}
+  #dial{width:94px; height:94px}
+  #dial .v b{font-size:calc(27px*var(--fs))}
+  #spark svg{height:58px}
+  #quick button{min-height:56px; padding:9px 4px}
+  .statgrid{grid-template-columns:repeat(3,1fr)}
+  .bars{height:76px}
+  #sheet{max-height:94vh; border-radius:16px 16px 0 0}
+}
+</style>
+</head>
+<body>
+
+<header id="topbar">
+  <div class="brand">Nive<span>lo</span></div>
+  <div class="who" id="whoami"></div>
+</header>
+
+<main>
+  <div id="savefail" role="alert" aria-live="assertive"></div>
+  <div id="quotawarn" role="status" aria-live="polite"></div>
+  <div id="banner" role="status" aria-live="polite"></div>
+  <div id="storagewarn"></div>
+
+  <!-- AZI -->
+  <section class="view on" id="v-today">
+    <div class="card" id="heroCard">
+      <div id="hero"></div>
+      <div class="mini3" id="mini3"></div>
+      <div id="spark"></div>
+    </div>
+    <div id="quick">
+      <button onclick="shGluc()"><span class="ico i-gluc">◉</span>Glicemie</button>
+      <button onclick="shMeal()"><span class="ico i-meal">🍽</span>Masă</button>
+      <button onclick="shIns()"><span class="ico i-ins">💉</span>Insulină</button>
+      <button onclick="shNote()"><span class="ico i-note">✎</span>Altele</button>
+    </div>
+    <div id="quickstart"></div>
+    <div id="timeline"></div>
+    <div id="bkline"></div>
+  </section>
+
+  <!-- ISTORIC -->
+  <section class="view" id="v-hist">
+    <div id="hsearch">
+      <input class="inp" id="q" aria-label="Caută în istoric" placeholder="Caută: aliment, notă, insulină…" oninput="renderHist()">
+    </div>
+    <div id="histbody"></div>
+  </section>
+
+  <!-- ALIMENTE -->
+  <section class="view" id="v-foods">
+    <button class="btn btn-p" onclick="shFood()">+ Aliment nou</button>
+    <div class="card" style="margin-top:12px">
+      <input class="inp" id="fq" aria-label="Caută în biblioteca de alimente" placeholder="Caută în biblioteca ta…" oninput="renderFoods()">
+      <div id="foodlist"></div>
+    </div>
+  </section>
+
+  <!-- STATISTICI -->
+  <section class="view" id="v-stats">
+    <div class="chips" id="periodChips" style="margin-bottom:12px"></div>
+    <div id="statsbody"></div>
+  </section>
+
+  <!-- MAI MULT -->
+  <section class="view" id="v-more">
+    <div class="card">
+      <h2>Date & siguranță</h2>
+      <button class="mrow" onclick="backupNow()"><span class="ico">🛟</span><span>Backup acum<small id="bkinfo">Salvează tot jurnalul într-un fișier</small></span></button>
+      <button class="mrow" onclick="exportXLSX()"><span class="ico">📗</span><span>Export Excel (.xlsx)<small>Fișier Excel cu două foi: jurnalul și biblioteca de alimente</small></span></button>
+      <button class="mrow" onclick="exportCSV()"><span class="ico">📊</span><span>Export CSV<small>Tabel simplu, bun pentru reimport în Nivelo</small></span></button>
+      <button class="mrow" onclick="document.getElementById('impfile').click()"><span class="ico">📥</span><span>Import<small>Backup Nivelo (.json) sau tabel CSV</small></span></button>
+      <input type="file" id="impfile" aria-label="Alege fișierul de backup" accept=".json,.csv" style="display:none" onchange="importFile(this)">
+      <button class="mrow" onclick="shDelDay()"><span class="ico">🧹</span><span>Șterge o zi din jurnal<small>Util dacă o zi a ajuns dublată (Excel + aplicație)</small></span></button>
+    </div>
+    <div class="card">
+      <h2>Pentru medic</h2>
+      <button class="mrow" onclick="shReport()"><span class="ico">🩺</span><span>Raport pentru doctor<small>Imagine macro pe perioade, opțional cu jurnal detaliat · PDF din tipărire</small></span></button>
+    </div>
+    <div class="card">
+      <h2>Setări</h2>
+      <button class="mrow" onclick="shSettings()"><span class="ico">⚙️</span><span>Profil & ținte<small id="setSummary"></small></span></button>
+    </div>
+    <div class="card">
+      <h2>Despre & informații legale</h2>
+      <button class="mrow" onclick="shAbout()"><span class="ico">ℹ️</span><span>Ce este (și ce nu este) Nivelo<small>Citește înainte de utilizare</small></span></button>
+      <button class="mrow" onclick="shPromises()"><span class="ico">🤝</span><span>Promisiunile mele<small>Ce garantez și ce nu, spus deschis</small></span></button>
+      <button class="mrow" onclick="shPrivacy()"><span class="ico">🔒</span><span>Confidențialitate<small>Unde îți sunt datele</small></span></button>
+      <button class="mrow" onclick="shGuide()"><span class="ico">📖</span><span>Ghid rapid<small>Cele 5 secțiuni pe scurt. Bun de recitit oricând.</small></span></button>
+      <button class="mrow" onclick="shHelp()"><span class="ico">❓</span><span>Cum se face<small>Răspunsuri scurte la întrebările care apar des</small></span></button>
+      <button class="mrow" onclick="sendFeedback()"><span class="ico">✉️</span><span>Trimite feedback<small>Ai găsit o problemă sau ai o idee? Scrie-i autorului.</small></span></button>
+      <button class="mrow" onclick="shDiag()"><span class="ico">🩺</span><span>Diagnostic tehnic<small>Starea instalării, util dacă ceva nu merge</small></span></button>
+    </div>
+    <p class="muted" style="padding:0 6px">Nivelo v1.43 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
+      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v1.43%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
+  </section>
+</main>
+
+<nav id="tabs">
+  <button class="on" data-v="today" onclick="go('today')"><span class="ico">☀️</span>Azi</button>
+  <button data-v="hist" onclick="go('hist')"><span class="ico">🔍</span>Istoric</button>
+  <button data-v="foods" onclick="go('foods')"><span class="ico">🥖</span>Alimente</button>
+  <button data-v="stats" onclick="go('stats')"><span class="ico">📈</span>Statistici</button>
+  <button data-v="more" onclick="go('more')"><span class="ico">☰</span>Mai mult</button>
+</nav>
+
+<div id="veil" onclick="closeSheet()"></div>
+<div id="sheet"></div>
+<div id="veil2" onclick="closeSheet2()"></div>
+<div id="sheet2"></div>
+<div id="undobar"></div>
+<div id="updbar" role="status" aria-live="polite"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="report"></div>
+
+
+<script>
+/* ================= STOCARE ================= */
+const APP_VER='v1.43';
+const KEY='glucolog_v1';
+/* ATENȚIE la ordine: `RESCUE_KEY` și `LOAD_PROBLEM` sunt folosite din interiorul
+   `load()`, iar `load()` se apelează chiar mai jos. Declarate cu const/let DUPĂ
+   acel apel, ar fi în „zona morta temporală" și accesul ar arunca eroare, omorând
+   tot scriptul exact pe calea de avarie pe care voiam s-o tratăm. Deci: aici, sus. */
+const RESCUE_KEY = KEY+'_avariat';
+let LOAD_PROBLEM = null;   // null | 'ilizibil' | 'structura'
+let S = load();
+/* Citirea datelor poate eșua chiar dacă datele EXISTĂ: text trunchiat de o scriere
+   întreruptă, bug de browser, sau o structură neașteptată. Varianta veche prindea
+   eroarea și pornea cu jurnal gol, fără să spună nimic: utilizatorul deschidea
+   aplicația și o vedea ca la prima instalare, iar PRIMA salvare suprascria octeții
+   originali, făcând recuperarea imposibilă. Acum: dacă datele există dar nu se pot
+   folosi, punem deoparte textul original sub altă cheie ÎNAINTE de orice scriere,
+   ridicăm un semnal și explicăm situația la pornire.
+   (`RESCUE_KEY` și `LOAD_PROBLEM` sunt declarate sus, lângă `KEY`.) */
+function freshState(){
+  return { settings:{name:'', low:70, high:180, insulins:['Fiasp','Tresiba'], basal:'Tresiba', lastBackup:0},
+           foods:seedFoods(), events:[] };
+}
+function load(){
+  let raw=null;
+  try{ raw=localStorage.getItem(KEY); }catch(e){}
+  if(!raw) return freshState();          // chiar prima pornire: nimic salvat
+  let d=null, lizibil=true;
+  try{ d=JSON.parse(raw); }catch(e){ lizibil=false; }
+  if(lizibil && d && Array.isArray(d.events)) return d;   // cazul normal
+  LOAD_PROBLEM = lizibil ? 'structura' : 'ilizibil';
+  // Prima copie de salvare câștigă: e cea mai apropiată de datele reale.
+  try{ if(!localStorage.getItem(RESCUE_KEY)) localStorage.setItem(RESCUE_KEY, raw); }catch(e){}
+  return freshState();
+}
+function rescueSize(){
+  try{ return (localStorage.getItem(RESCUE_KEY)||'').length; }catch(e){ return 0; }
+}
+/* ================= A DOUA COPIE LOCALĂ (IndexedDB) =================
+   localStorage e un singur loc: dacă textul de acolo se strică, jurnalul e pierdut,
+   chiar dacă tratăm avaria elegant. Ținem o oglindă în IndexedDB, un depozit
+   separat din același browser. NU înlocuiește backupul în fișier (acela pleacă de
+   pe telefon și supraviețuiește dezinstalării), dar salvează exact cazul cel mai
+   probabil: datele din localStorage devenite necitibile.
+   Reguli: totul e best-effort și complet tăcut la erori. Dacă IndexedDB nu merge
+   sau e blocat, aplicația funcționează exact ca înainte. */
+const IDB_NAME='nivelo_oglinda', IDB_STORE='stare', IDB_ROW='curent';
+/* Rând separat pentru jurnalul dinainte de o restaurare. Stă în IndexedDB, nu în
+   localStorage, fiindcă acolo spațiul e generos și nu concurează cu jurnalul.
+   Nu expiră după câteva minute: cineva poate realiza abia peste o oră că a pus
+   backupul greșit. Se înlocuiește la următoarea restaurare și poate fi ștearsă
+   din „Datele mele pe acest telefon". */
+const IDB_PREV='inainte_de_restaurare';
+function idbOpen(){
+  return new Promise((res,rej)=>{
+    try{
+      const r=indexedDB.open(IDB_NAME,1);
+      r.onupgradeneeded=()=>{ try{ r.result.createObjectStore(IDB_STORE); }catch(e){} };
+      r.onsuccess=()=>res(r.result);
+      r.onerror=()=>rej(r.error);
+    }catch(e){ rej(e); }
+  });
+}
+async function idbSave(text, row){
+  try{
+    const db=await idbOpen();
+    await new Promise((res,rej)=>{
+      const tx=db.transaction(IDB_STORE,'readwrite');
+      tx.objectStore(IDB_STORE).put({ts:Date.now(), text}, row||IDB_ROW);
+      tx.oncomplete=res; tx.onerror=()=>rej(tx.error); tx.onabort=()=>rej(tx.error);
+    });
+    db.close();
+    return true;
+  }catch(e){ return false; }
+}
+async function idbDelete(row){
+  try{
+    const db=await idbOpen();
+    await new Promise((res,rej)=>{
+      const tx=db.transaction(IDB_STORE,'readwrite');
+      tx.objectStore(IDB_STORE).delete(row);
+      tx.oncomplete=res; tx.onerror=()=>rej(tx.error); tx.onabort=()=>rej(tx.error);
+    });
+    db.close();
+    return true;
+  }catch(e){ return false; }
+}
+async function idbLoad(row){
+  try{
+    const db=await idbOpen();
+    const r=await new Promise((res,rej)=>{
+      const tx=db.transaction(IDB_STORE,'readonly');
+      const q=tx.objectStore(IDB_STORE).get(row||IDB_ROW);
+      q.onsuccess=()=>res(q.result); q.onerror=()=>rej(q.error);
+    });
+    db.close();
+    if(!r || !r.text) return null;
+    const d=JSON.parse(r.text);
+    if(!d || !Array.isArray(d.events)) return null;
+    return {data:d, ts:r.ts, n:d.events.length};
+  }catch(e){ return null; }
+}
+/* Oglindirea se face rar, nu la fiecare tastă: strângem scrierile într-o singură
+   operațiune după o pauză de 4 secunde, ca să nu încărcăm telefonul degeaba. */
+let MIRROR_T=null;
+function mirrorSoon(){
+  if(MIRROR_T) clearTimeout(MIRROR_T);
+  MIRROR_T=setTimeout(()=>{ MIRROR_T=null; try{ idbSave(JSON.stringify(S)); }catch(e){} }, 4000);
+}
+/* Oferta de recuperare din oglindă, folosită când localStorage nu se poate citi
+   sau e gol deși oglinda are date. */
+async function offerMirror(reason){
+  const m=await idbLoad();
+  if(!m || !m.n) return false;
+  const cand=m.data;
+  const cat = m.ts ? dNice(m.ts)+' '+tHM(m.ts) : 'necunoscut';
+  MIRROR_CAND=cand;
+  openSheet(`<h3>Am găsit o copie de siguranță în telefon</h3>
+    <p>${reason}</p>
+    <p style="margin-top:10px">Aplicația păstrează în telefon o a doua copie a jurnalului, actualizată automat. Cea găsită are <b>${nUnit(m.n,'intrări','o intrare')}</b> și e din <b>${cat}</b>.</p>
+    <p style="margin-top:10px">O pot pune la loc acum. Dacă între timp ai notat ceva, acele notări se înlocuiesc cu ce e în copie.</p>
+    <button class="btn btn-p" onclick="useMirror()">Pune la loc copia (${nUnit(m.n,'intrări','o intrare')})</button>
+    <button class="btn btn-g" onclick="closeSheet()">Nu acum</button>`);
+  return true;
+}
+let MIRROR_CAND=null;
+function useMirror(){
+  if(!MIRROR_CAND){ closeSheet(); return; }
+  S=MIRROR_CAND; MIRROR_CAND=null;
+  sortEv();
+  if(save()){
+    // Jurnalul e recuperat, deci datele puse deoparte după avarie nu mai au rost:
+    // le ștergem, ca să nu rămână o copie veche pe telefon fără motiv.
+    try{ localStorage.removeItem(RESCUE_KEY); }catch(e){}
+    closeSheet();
+    renderToday(); renderHist(); renderFoods(); renderStats(); renderMore();
+    bannerCheck(); renderBkLine(); renderQuickStart();
+    toast('Jurnalul a fost pus la loc');
+  }
+}
+async function downloadRescue(){
+  let raw='';
+  try{ raw=localStorage.getItem(RESCUE_KEY)||''; }catch(e){}
+  if(!raw){ toast('Nu mai găsesc fișierul avariat'); return; }
+  const name='Nivelo_date_avariate_'+dKey(Date.now())+'.txt';
+  await downloadOrShare(name, 'text/plain', raw);
+}
+function shLoadProblem(){
+  const kb=Math.max(1, Math.round(rescueSize()/1024));
+  const cauza = LOAD_PROBLEM==='ilizibil'
+    ? 'Textul salvat pe telefon pare întrerupt la jumătate.'
+    : 'Datele salvate nu au forma pe care o aștept.';
+  openSheet(`<h3>Nu am putut citi jurnalul</h3>
+    <p>Am găsit date salvate pe telefon, dar nu am reușit să le deschid. ${cauza}</p>
+    <p style="margin-top:10px"><b>Jurnalul apare gol, dar nu am șters nimic.</b> Am pus deoparte o copie a datelor originale (${kb} KB), ca să nu se piardă la prima salvare.</p>
+    <p style="margin-top:10px">Cel mai simplu e să pui la loc ultimul backup. Dacă nu ai unul, salvează copia de mai jos: din ea se pot recupera manual o parte din date.</p>
+    <button class="btn btn-p" onclick="closeSheet(); $('impfile').click()">Pune la loc un backup</button>
+    <button class="btn btn-g" onclick="closeSheet(); offerMirror('Caut a doua copie din telefon.').then(g=>{ if(!g) toast('Nu am găsit o a doua copie'); })">Caută o copie în telefon</button>
+    <button class="btn btn-g" onclick="downloadRescue()">Salvează copia datelor originale</button>
+    <button class="btn btn-g" onclick="sendFeedback('citire')">Scrie-i autorului ce s-a întâmplat</button>
+    <button class="btn btn-g" onclick="closeSheet()">Continui cu jurnal gol</button>`);
+}
+/* Scrierea în localStorage POATE eșua: spațiu plin (pe iOS cota e mult mai mică
+   decât pe Android), mod privat, sau storage blocat de browser. Dacă nu prindem
+   eroarea, intrarea rămâne doar în memorie: pe ecran pare salvată, dar dispare la
+   următoarea deschidere. Pierdere silențioasă, cu falsă siguranță. Deci: prindem
+   eroarea, marcăm starea și avertizăm apăsat, îndemnând la export imediat. */
+let SAVE_FAILED=false;
+function save(){
+  try{
+    localStorage.setItem(KEY, JSON.stringify(S));
+    if(SAVE_FAILED){ SAVE_FAILED=false; const el=$('savefail'); if(el) el.style.display='none'; }
+    mirrorSoon();   // a doua copie locală, scrisă rar și fără să blocheze nimic
+    return true;
+  }catch(e){
+    SAVE_FAILED=true;
+    try{ showSaveFail(); }catch(_){}
+    return false;
+  }
+}
+function showSaveFail(){
+  const el=$('savefail');
+  if(el){
+    el.innerHTML='<b>⚠ Nu am reușit să salvez pe telefon.</b>'
+      +'Ultimele intrări sunt încă pe ecran, dar <b>se pierd dacă închizi aplicația</b>. '
+      +'Cel mai probabil s-a umplut spațiul din memoria telefonului. '
+      +'Salvează acum o copie, apoi eliberează spațiu (șterge poze sau alte aplicații).'
+      +'<br><button onclick="backupNow()">Salvează o copie acum →</button>'
+      +'<button onclick="sendFeedback(\'salvare\')" style="margin-left:8px">Scrie-i autorului</button>';
+    el.style.display='block';
+  }
+  // Apelantul afișează imediat după un toast de succes („Glicemie salvată"), care ar
+  // acoperi avertismentul și ar minți utilizatorul. Îl reafirmăm după ce se golește
+  // stiva, ca ultimul mesaj de pe ecran să fie cel adevărat.
+  toast('Nu am reușit să salvez! Fă o copie acum.');
+  setTimeout(()=>{ if(SAVE_FAILED) toast('Nu am reușit să salvez! Fă o copie acum.'); }, 0);
+}
+function seedFoods(){
+  const f=(name,mode,val,fav)=>({id:uid(),name,mode,val,fav:!!fav,uses:0});
+  return [
+    f('Roll Kebab Mesopotamia (porție 300g)','portie',60.3,true),
+    f('Iaurt Activia căpșuni cu cereale','portie',27.5,true),
+    f('Pâine boierească neagră','per100',46,true),
+    f('Pâine grâu întreg Vel Pitar','per100',35,true),
+    f('Pâine pavé Auchan','per100',56.6),
+    f('Mâncare de cartofi','per100',20,true),
+    f('Piure de cartofi','per100',20,true),
+    f('Cartofi prăjiți (casă)','per100',38,true),
+    f('Banană (fără coajă)','per100',20,true),
+    f('Măr','per100',10),
+    f('Înghețată mică pe băț','portie',13,true),
+    f('Ciocolată Sweet & Safe','portie',10),
+    f('Ciorbă de perișoare (bol)','portie',10),
+    f('Chiflă Lidl cu cartofi','per100',49),
+    f('Mazăre Edenia','per100',10)
+  ];
+}
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+
+/* ================= UTILITARE ================= */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const two=n=>String(n).padStart(2,'0');
+const MS_D=86400000;
+function dKey(ts){ const d=new Date(ts); return d.getFullYear()+'-'+two(d.getMonth()+1)+'-'+two(d.getDate()); }
+function tHM(ts){ const d=new Date(ts); return two(d.getHours())+':'+two(d.getMinutes()); }
+const LUNI=['ian','feb','mar','apr','mai','iun','iul','aug','sep','oct','nov','dec'];
+const ZILE=['Duminică','Luni','Marți','Miercuri','Joi','Vineri','Sâmbătă'];
+function dNice(ts){ const d=new Date(ts); return ZILE[d.getDay()]+', '+d.getDate()+' '+LUNI[d.getMonth()]+' '+d.getFullYear(); }
+function daypart(ts){ const h=new Date(ts).getHours();
+  if(h<11) return 'Dimineața'; if(h<17) return 'Prânz'; if(h<21) return 'Cină'; return 'Seara / noaptea'; }
+function rangeClass(v){ const s=S.settings;
+  if(v<s.low) return 'p-low'; if(v<=s.high) return 'p-ok'; if(v<=250) return 'p-high'; return 'p-vhigh'; }
+function rangeColor(v){ const s=S.settings;
+  if(v<s.low) return 'var(--low)'; if(v<=s.high) return 'var(--ok)'; if(v<=250) return 'var(--high)'; return 'var(--vhigh)'; }
+/* Starea glicemiei în cuvinte. Culoarea singură nu ajunge: la retinopatie sau
+   daltonism, verde și roșu pot fi imposibil de deosebit, iar un cititor de ecran
+   nu vede deloc culoarea. Perechea culoare + text acoperă ambele cazuri. */
+function rangeWord(v){ const s=S.settings;
+  if(v<s.low) return 'jos'; if(v<=s.high) return 'în țintă'; if(v<=250) return 'sus'; return 'foarte sus'; }
+function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(t._x); t._x=setTimeout(()=>t.classList.remove('on'),1900); }
+function sortEv(){ S.events.sort((a,b)=>a.ts-b.ts); }
+function evOfDay(key){ return S.events.filter(e=>dKey(e.ts)===key); }
+/* Zecimalele se scriu cu VIRGULĂ în română. `fmtHC` făcea asta doar pentru
+   carbohidrați, iar restul cifrelor cu zecimale (doze de insulină, greutate,
+   HbA1c estimat, măsurători pe zi) ajungeau la utilizator cu punct: „5.5U" lângă
+   „26 HC". Acum toate trec prin același formator. NU se folosește la câmpurile
+   <input type="number">, care cer punct, nici la coordonatele din grafice. */
+function fmtN(x){ return (Math.round(x*10)/10).toString().replace('.',','); }
+function fmtHC(x){ return fmtN(x); }
+/* Acordul numeral–substantiv în română: substantivul urmează direct numeralul
+   până la 19 („15 zile"), dar cere „de" de la 20 în sus și la sutele rotunde
+   („25 de zile", „100 de zile"). Regula se uită la ultimele două cifre, deci
+   „115 zile" e corect fără „de". Al treilea argument dă forma de singular. */
+function nUnit(n, plural, singular){
+  n=Math.round(n);
+  if(n===1 && singular) return singular;
+  const t=Math.abs(n)%100;
+  return n+((t===0||t>=20)?' de ':' ')+plural;
+}
+function median(a){ if(!a.length) return 0; const b=[...a].sort((x,y)=>x-y); const m=Math.floor(b.length/2);
+  return b.length%2 ? b[m] : (b[m-1]+b[m])/2; }
+function med(vals){ const v=vals.filter(x=>x>0); return v.length? Math.round(median(v)) : '—'; }
+function computeICR(evs){
+  // perechem fiecare masă (HC>0) cu bolusul cel mai apropiat de tip 'bolus' (±25 min)
+  const meals=evs.filter(e=>e.type==='meal'&&(e.meal.hc||0)>0);
+  const bol=evs.filter(e=>e.type==='ins'&&e.ins.kind==='bolus');
+  const used=new Set(), byPart={};
+  meals.forEach(m=>{
+    let best=-1, bd=26*60000;
+    bol.forEach((b,i)=>{ if(used.has(i))return; const d=Math.abs(b.ts-m.ts); if(d<bd){bd=d;best=i;} });
+    if(best>=0 && bd<=25*60000){ const u=bol[best].ins.u; used.add(best);
+      if(u>0 && m.meal.hc>=5 && m.meal.hc<=200){ const p=daypart(m.ts).replace(' / noaptea','');
+        (byPart[p]=byPart[p]||[]).push(m.meal.hc/u); } }
+  });
+  return byPart;
+}
+function computeISF(evs){
+  const gl=evs.filter(e=>e.type==='gluc');
+  const corr=evs.filter(e=>e.type==='ins'&&e.ins.kind==='corectie');
+  const vals=[]; let clean=0, dirty=0;
+  corr.forEach(c=>{
+    const before=gl.filter(g=>c.ts-g.ts>=0 && c.ts-g.ts<=30*60000);
+    const after=gl.filter(g=>g.ts-c.ts>=2*3600000 && g.ts-c.ts<=4*3600000);
+    if(!before.length||!after.length) return;
+    const gb=before.reduce((a,b)=>c.ts-a.ts<c.ts-b.ts?a:b).gluc.v;
+    const aft=after.reduce((a,b)=>a.ts<b.ts?a:b);
+    const ga=aft.gluc.v;
+    const food=evs.some(e=>e.ts>c.ts&&e.ts<aft.ts&&e.type==='meal');
+    const ins=evs.some(e=>e.ts>c.ts&&e.ts<=aft.ts&&e.type==='ins');
+    if(food||ins){ dirty++; return; }
+    const drop=gb-ga;
+    if(c.ins.u>0 && drop>0){ vals.push(drop/c.ins.u); clean++; }
+  });
+  return {vals, clean, dirty, total:corr.length};
+}
+function pctl(a,p){
+  if(!a.length) return 0;
+  const b=[...a].sort((x,y)=>x-y), i=(b.length-1)*p, lo=Math.floor(i), hi=Math.ceil(i);
+  return lo===hi ? b[lo] : b[lo]+(b[hi]-b[lo])*(i-lo);
+}
+/* Un rând de statistică pentru raport. Min–max singur e înșelător: e dominat de
+   extreme (o zi de post, o zi de sărbătoare). Arătăm tipicul (mediana), jumătatea
+   din mijloc a zilelor (P25–P75) și, separat, extremele — plus câte zile stau în spate. */
+function statRow(label, vals, unit){
+  const v=vals.filter(x=>x!=null && isFinite(x));
+  if(!v.length) return `<tr><td>${label}</td><td colspan="4">—</td></tr>`;
+  const r=fmtN;   // virgulă zecimală, ca peste tot în aplicație
+  return `<tr><td>${label}</td>`
+    + `<td><b>${r(median(v))}${unit}</b></td>`
+    + `<td>${r(pctl(v,.25))}–${r(pctl(v,.75))}${unit}</td>`
+    + `<td>${r(Math.min(...v))}–${r(Math.max(...v))}${unit}</td>`
+    + `<td>${v.length}</td></tr>`;
+}
+function rangeLabel(dailyVals, unit){
+  const v=dailyVals.filter(x=>x>0);
+  if(!v.length) return '—';
+  const mn=Math.min(...v), mx=Math.max(...v), md=Math.round(median(v));
+  if(mn===mx) return fmtN(mn)+(unit||'');
+  return fmtN(mn)+'–'+fmtN(mx)+(unit||'')+' · tipic '+md;
+}
+function histLastDose(name){
+  for(let i=S.events.length-1;i>=0;i--){ const e=S.events[i];
+    if(e.type==='ins'&&e.ins.name===name) return e.ins.u; }
+  return ''; }
+
+/* ================= NAVIGARE ================= */
+function go(v){
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));
+  $('v-'+v).classList.add('on');
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on', b.dataset.v===v));
+  if(v==='today') renderToday();
+  if(v==='hist') renderHist();
+  if(v==='foods') renderFoods();
+  if(v==='stats') renderStats();
+  if(v==='more') renderMore();
+  window.scrollTo(0,0);
+  // ținem minte unde ești, ca un refresh să te lase pe aceeași pagină.
+  // sessionStorage: se pierde la închiderea aplicației, deci o redeschidere pornește de la Azi.
+  try{ sessionStorage.setItem('nivelo_view', v); }catch(e){}
+}
+
+/* ================= FOAIE (bottom sheet) ================= */
+/* Cât timp o foaie e deschisă, pagina de dedesubt nu trebuie să se miște.
+   Folosim position:fixed (nu doar overflow:hidden, care pe iOS nu ține)
+   și restaurăm poziția exactă la închidere. */
+let SCROLL_Y=0;
+function lockScroll(on){
+  const b=document.body;
+  if(on){
+    if(b.classList.contains('noscroll')) return;
+    SCROLL_Y=window.scrollY||window.pageYOffset||0;
+    b.style.top=(-SCROLL_Y)+'px';
+    b.classList.add('noscroll');
+  }else{
+    if(!b.classList.contains('noscroll')) return;
+    b.classList.remove('noscroll');
+    b.style.top='';
+    window.scrollTo(0,SCROLL_Y);
+  }
+}
+function syncLock(){
+  lockScroll($('veil').classList.contains('on') || $('veil2').classList.contains('on'));
+}
+/* Butonul „înapoi" al telefonului trebuie să închidă fereastra deschisă, nu să
+   scoată omul din aplicație. Cât timp e ceva deschis ținem o intrare în istoricul
+   navigării; apăsarea pe „înapoi" o consumă, iar noi închidem foaia de deasupra.
+   Dacă rămâne una dedesubt, punem intrarea la loc, ca următorul „înapoi" s-o
+   închidă și pe aceea. Închiderea din buton trece prin aceeași funcție, deci
+   istoricul rămâne curat în ambele cazuri. */
+let HIST_ON=false, IGNORE_POP=false;
+function anySheet(){ return $('veil').classList.contains('on') || $('veil2').classList.contains('on'); }
+function syncHist(){
+  const open=anySheet();
+  if(open && !HIST_ON){ HIST_ON=true; try{ history.pushState({nv:1},''); }catch(e){ HIST_ON=false; } }
+  else if(!open && HIST_ON){ HIST_ON=false; IGNORE_POP=true; try{ history.back(); }catch(e){ IGNORE_POP=false; } }
+}
+window.addEventListener('popstate', ()=>{
+  if(IGNORE_POP){ IGNORE_POP=false; return; }
+  if($('veil2').classList.contains('on')) closeSheet2UI();
+  else if($('veil').classList.contains('on')) closeSheetUI();
+  else { HIST_ON=false; return; }              // nimic deschis: lăsăm sistemul să facă ce vrea
+  if(anySheet()){ try{ history.pushState({nv:1},''); }catch(e){ HIST_ON=false; } }
+  else HIST_ON=false;
+});
+function closeSheetUI(){ $('sheet').classList.remove('on'); $('veil').classList.remove('on'); syncLock(); }
+function closeSheet2UI(){ $('sheet2').classList.remove('on'); $('veil2').classList.remove('on'); syncLock(); }
+function openSheet(html){ $('sheet').innerHTML=html; $('veil').classList.add('on'); syncLock(); syncHist(); requestAnimationFrame(()=>$('sheet').classList.add('on')); }
+function closeSheet(){ closeSheetUI(); syncHist(); }
+function openSheet2(html){ $('sheet2').innerHTML=html; $('veil2').classList.add('on'); syncLock(); syncHist(); requestAnimationFrame(()=>$('sheet2').classList.add('on')); }
+function closeSheet2(){ closeSheet2UI(); syncHist(); }
+let CONFIRM_CB=null;
+function shConfirm(msg, cb, opts){
+  opts=opts||{};
+  CONFIRM_CB=cb;
+  openSheet2(`<h3>${esc(opts.title||'Ești sigur?')}</h3>
+    <p style="margin-bottom:18px">${msg}</p>
+    <button class="btn btn-danger" onclick="runConfirm()">${esc(opts.confirmLabel||'Șterge')}</button>
+    <button class="btn btn-g" onclick="closeSheet2()">Anulează</button>`);
+}
+function runConfirm(){ const cb=CONFIRM_CB; CONFIRM_CB=null; closeSheet2(); closeSheet(); if(cb) cb(); }
+function shAlert(msg, opts){
+  opts=opts||{};
+  const ic=opts.ic?`<div style="font-size:calc(34px*var(--fs)); text-align:center; margin-bottom:6px">${opts.ic}</div>`:'';
+  const alt=opts.alt?`<button class="btn btn-d" onclick="${opts.alt.go}">${esc(opts.alt.t)}</button>`:'';
+  openSheet2(`${ic}<h3 style="text-align:center">${esc(opts.title||'Info')}</h3>
+    <p style="margin-bottom:18px; text-align:center; white-space:pre-line">${esc(msg)}</p>
+    <button class="btn btn-p" onclick="closeSheet2()">${esc(opts.ok||'Am înțeles')}</button>${alt}`);
+}
+function timeRow(id, ts){
+  const d=new Date(ts||Date.now());
+  return `<div class="rowflex">
+    <div class="frow"><label>Data</label><input class="inp" type="date" id="${id}d" value="${dKey(d.getTime())}"></div>
+    <div class="frow"><label>Ora</label><input class="inp" type="time" id="${id}t" value="${tHM(d.getTime())}"></div>
+  </div>`;
+}
+function readTime(id){
+  const dv=$(''+id+'d').value, tv=$(''+id+'t').value;
+  if(!dv||!tv) return null;
+  return new Date(dv+'T'+tv).getTime();
+}
+
+/* ================= GLICEMIE ================= */
+function shGluc(ev){
+  const e=ev||{gluc:{v:'',src:S.settings.defSrc||'deget'}};
+  openSheet(`<h3>${ev?'Modifică glicemia':'Glicemie'}</h3>
+    <div class="frow"><input class="inp bignum num" id="gv" type="number" inputmode="numeric" placeholder="—" value="${e.gluc.v}"></div>
+    <div class="frow"><label>Sursă</label><div class="chips" id="gsrc">
+      <button class="chip ${e.gluc.src==='deget'?'on':''}" data-v="deget">Din deget</button>
+      <button class="chip ${e.gluc.src==='senzor'?'on':''}" data-v="senzor">Senzor</button>
+    </div></div>
+    ${timeRow('g', e.ts)}
+    <button class="btn btn-p" onclick="okGluc('${ev?ev.id:''}')">Salvează</button>
+    ${ev?'<button class="btn btn-d" onclick="delEv(\''+ev.id+'\')">Șterge intrarea</button>':''}`);
+  chipify('gsrc');
+  if(!ev) setTimeout(()=>{ const g=$('gv'); if(g) g.focus(); },250);
+}
+function chipify(id){ $(''+id).querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ $(''+id).querySelectorAll('.chip').forEach(x=>x.classList.remove('on')); c.classList.add('on'); }); }
+function chipVal(id){ const c=$(''+id).querySelector('.chip.on'); return c?c.dataset.v:null; }
+function okGluc(id){
+  const v=parseFloat($('gv').value), ts=readTime('g');
+  if(!v||v<20||v>900){ toast('Introdu o valoare validă'); return; }
+  if(!ts){ toast('Verifică data și ora'); return; }
+  if(id){ const e=S.events.find(x=>x.id===id); e.ts=ts; e.gluc={v,src:chipVal('gsrc')}; }
+  else S.events.push({id:uid(), ts, type:'gluc', gluc:{v, src:chipVal('gsrc')}});
+  sortEv(); save(); closeSheet(); renderToday(); toast('Glicemie salvată');
+}
+
+/* ================= INSULINĂ ================= */
+function shIns(ev){
+  const s=S.settings;
+  const e=ev||{ins:{u:'', name:s.insulins[0], kind:'bolus'}};
+  const insChips=s.insulins.map(n=>`<button class="chip ${e.ins.name===n?'on':''}" data-v="${esc(n)}">${esc(n)}</button>`).join('');
+  openSheet(`<h3>${ev?'Modifică insulina':'Insulină'}</h3>
+    <div class="frow"><label>Insulină</label><div class="chips" id="iname">${insChips}</div></div>
+    <div class="frow"><label>Unități</label>
+      <input class="inp bignum num" id="uv" type="number" step="0.5" min="0.5" max="80" inputmode="decimal" placeholder="—" value="${e.ins.u}"></div>
+    <div class="frow"><label>Scop</label><div class="chips" id="ikind">
+      <button class="chip ${e.ins.kind==='bolus'?'on':''}" data-v="bolus">La masă</button>
+      <button class="chip ${e.ins.kind==='corectie'?'on':''}" data-v="corectie">Corecție</button>
+      <button class="chip ${e.ins.kind==='bazala'?'on':''}" data-v="bazala">Bazală</button>
+    </div></div>
+    ${timeRow('i', e.ts)}
+    <button class="btn btn-p" onclick="okIns('${ev?ev.id:''}')">Salvează</button>
+    ${ev?'<button class="btn btn-d" onclick="delEv(\''+ev.id+'\')">Șterge intrarea</button>':''}`);
+  chipify('iname'); chipify('ikind');
+  const setChip=(gid,v)=>{ const c=$(''+gid).querySelector(`.chip[data-v="${v}"]`);
+    if(c){ $(''+gid).querySelectorAll('.chip').forEach(x=>x.classList.remove('on')); c.classList.add('on'); } };
+  // Tresiba <-> Bazală, în ambele sensuri; dozele uzuale se pre-completează la intrări noi
+  $('iname').querySelectorAll('.chip').forEach(c=>{ const base=c.onclick; c.onclick=()=>{ base();
+    const nm=c.dataset.v;
+    setChip('ikind', nm===s.basal ? 'bazala' : (chipVal('ikind')==='bazala' ? 'bolus' : chipVal('ikind')));
+    if(!ev) $('uv').value = nm===s.basal ? ((s.lastU||{})[nm] || histLastDose(nm) || '') : '';
+  }; });
+  $('ikind').querySelectorAll('.chip').forEach(c=>{ const base=c.onclick; c.onclick=()=>{ base();
+    if(c.dataset.v==='bazala'){ setChip('iname', s.basal); if(!ev) $('uv').value=(s.lastU||{})[s.basal] || histLastDose(s.basal) || ''; }
+    else if(chipVal('iname')===s.basal){ setChip('iname', s.insulins[0]); if(!ev) $('uv').value=''; }
+  }; });
+  if(!ev) setTimeout(()=>{ const u=$('uv'); if(u) u.focus(); },250);
+}
+function okIns(id){
+  const u=parseFloat(String($('uv').value).replace(',','.')), ts=readTime('i');
+  if(!u||u<=0||u>80){ toast('Introdu unitățile de insulină'); return; }
+  if(!ts){ toast('Verifică data și ora'); return; }
+  const rec={u, name:chipVal('iname'), kind:chipVal('ikind')};
+  S.settings.lastU=Object.assign(S.settings.lastU||{}, {[rec.name]:u});
+  if(id){ const e=S.events.find(x=>x.id===id); e.ts=ts; e.ins=rec; }
+  else S.events.push({id:uid(), ts, type:'ins', ins:rec});
+  sortEv(); save(); closeSheet(); renderToday(); toast('Insulină salvată');
+}
+
+/* ================= MASĂ ================= */
+let M=null; // masă în lucru
+function shMeal(ev){
+  M = ev ? JSON.parse(JSON.stringify(ev.meal)) : {items:[], note:''};
+  M._edit = ev?ev.id:'';
+  M._ts = ev?ev.ts:Date.now();
+  openSheet(`<h3>${ev?'Modifică masa':'Masă'}</h3>
+    <div class="frow"><label>Adaugă aliment</label>
+      <input class="inp" id="msrch" placeholder="Scrie 2-3 litere… (ex: pâine)" oninput="mealHits()">
+      <div id="mhits"></div></div>
+    <div class="frow"><label>Rapide</label><div class="chips" id="mfav"></div></div>
+    <div id="mitems"></div>
+    <div id="mtotal"></div>
+    <div class="frow"><label>Notă (opțional)</label><input class="inp" id="mnote" value="${esc(M.note||'')}" placeholder="ex: mâncat în oraș"></div>
+    ${timeRow('m', M._ts)}
+    <button class="btn btn-p" onclick="okMeal()">Salvează masa</button>
+    ${ev?'<button class="btn btn-d" onclick="delEv(\''+ev.id+'\')">Șterge intrarea</button>':''}`);
+  drawFavChips(); drawMealItems();
+}
+function foodLabel(f){ return f.mode==='per100' ? fmtHC(f.val)+' HC / 100g' : fmtHC(f.val)+' HC / porție'; }
+function drawFavChips(){
+  const favs=[...S.foods].sort((a,b)=>(b.fav-a.fav)||(b.uses-a.uses)).slice(0,6);
+  $('mfav').innerHTML=favs.map(f=>`<button class="chip" onclick="pickFood('${f.id}')">${esc(f.name.split('(')[0].trim())}</button>`).join('')||'<span class="muted">Marchează favorite în tabul Alimente</span>';
+}
+function mealHits(){
+  const q=$('msrch').value.trim().toLowerCase();
+  if(q.length<2){ $('mhits').innerHTML=''; return; }
+  const hits=S.foods.filter(f=>f.name.toLowerCase().includes(q)).slice(0,6);
+  let h=hits.map(f=>`<button class="foodhit" onclick="pickFood('${f.id}')"><span>${esc(f.name)}</span><small>${foodLabel(f)}</small></button>`).join('');
+  h+=`<button class="foodhit" onclick="quickNewFood()"><span>➕ Adaugă „${esc($('msrch').value.trim())}" ca aliment nou</span></button>`;
+  $('mhits').innerHTML=h;
+}
+function quickNewFood(){ shFood(null, $('msrch').value.trim(), true); }
+function pickFood(fid){
+  const f=S.foods.find(x=>x.id===fid);
+  if(f.mode==='portie'){ addItem(f.name, null, f.val, fid); }
+  else{ askGrams(f); }
+}
+function askGrams(f){
+  openSheet2(`<h3>Câte grame?</h3>
+    <p class="muted" style="margin:-4px 0 12px">${esc(f.name)} · ${fmtHC(f.val)} HC / 100 g</p>
+    <input class="inp bignum num" id="gramin" type="number" inputmode="numeric" placeholder="—" step="1" min="1" style="text-align:center; font-size:calc(26px*var(--fs)); font-weight:800">
+    <div class="hcprev" id="grampv" style="text-align:center; font-size:calc(14px*var(--fs)); color:#B0672E; font-weight:700; min-height:20px; margin-top:10px"></div>
+    <button class="btn btn-p" style="margin-top:14px" onclick="okGrams('${f.id}')">Adaugă la masă</button>
+    <button class="btn btn-g" onclick="closeSheet2()">Anulează</button>`);
+  const inp=$('gramin');
+  inp.oninput=()=>{ const gr=parseFloat(String(inp.value).replace(',','.'));
+    $('grampv').textContent = gr>0 ? '= '+fmtHC(gr*f.val/100)+' HC' : ''; };
+  inp.onkeydown=(e)=>{ if(e.key==='Enter') okGrams(f.id); };
+  setTimeout(()=>inp.focus(),250);
+}
+function okGrams(fid){
+  const f=S.foods.find(x=>x.id===fid);
+  const gr=parseFloat(String($('gramin').value).replace(',','.'));
+  if(!gr||gr<=0){ toast('Introdu gramajul'); return; }
+  addItem(f.name, gr, gr*f.val/100, fid);
+  closeSheet2();
+}
+function addItem(name, grams, hc, fid){
+  M.items.push({name, grams, hc:Math.round(hc*10)/10, fid});
+  if($('msrch')){ $('msrch').value=''; $('mhits').innerHTML=''; }
+  drawMealItems();
+}
+function drawMealItems(){
+  const tot=M.items.reduce((a,i)=>a+(i.hc||0),0);
+  $('mitems').innerHTML=M.items.map((i,ix)=>
+    `<div class="mi"><b>${esc(i.name)}${i.grams?' · '+i.grams+' g':''}</b><span class="hc num">${fmtHC(i.hc)} HC</span><button onclick="M.items.splice(${ix},1);drawMealItems()">✕</button></div>`).join('')
+    || '<div class="muted" style="padding:6px 0">Nimic adăugat încă. Caută un aliment sau folosește butoanele rapide.</div>';
+  $('mtotal').textContent='Total: '+fmtHC(tot)+' HC';
+}
+function okMeal(){
+  const ts=readTime('m');
+  if(!ts){ toast('Verifică data și ora'); return; }
+  M.note=$('mnote').value.trim();
+  if(!M.items.length && !M.note){ toast('Adaugă cel puțin un aliment sau o notă'); return; }
+  M.hc=Math.round(M.items.reduce((a,i)=>a+(i.hc||0),0)*10)/10;
+  M.items.forEach(i=>{ const f=S.foods.find(x=>x.id===i.fid); if(f) f.uses++; });
+  const rec={items:M.items, hc:M.hc, note:M.note};
+  if(M._edit){ const e=S.events.find(x=>x.id===M._edit); e.ts=ts; e.meal=rec; }
+  else S.events.push({id:uid(), ts, type:'meal', meal:rec});
+  sortEv(); save(); closeSheet(); renderToday(); toast('Masă salvată');
+}
+
+/* ================= NOTE / ACTIVITATE / GREUTATE ================= */
+function shNote(ev){
+  const e=ev||{type:'note', note:{text:''}};
+  const isKg=e.type==='kg';
+  openSheet(`<h3>${ev?'Modifică':'Adaugă'}</h3>
+    <div class="frow"><label>Tip</label><div class="chips" id="ntype">
+      <button class="chip ${e.type==='note'?'on':''}" data-v="note">Notă</button>
+      <button class="chip ${e.type==='act'?'on':''}" data-v="act">Activitate</button>
+      <button class="chip ${isKg?'on':''}" data-v="kg">Greutate</button>
+    </div></div>
+    <div class="frow" id="ntextrow" style="display:${isKg?'none':'block'}"><label>Text</label>
+      <textarea class="inp" id="ntext" rows="3" placeholder="ex: plimbare 1h / condus / răcit">${esc(e.note?e.note.text:'')}</textarea></div>
+    <div class="frow" id="nkgrow" style="display:${isKg?'block':'none'}"><label>Kg</label>
+      <input class="inp bignum num" id="nkg" type="number" step="0.1" inputmode="decimal" value="${isKg?e.kg.v:''}"></div>
+    ${timeRow('n', e.ts)}
+    <button class="btn btn-p" onclick="okNote('${ev?ev.id:''}')">Salvează</button>
+    ${ev?'<button class="btn btn-d" onclick="delEv(\''+ev.id+'\')">Șterge intrarea</button>':''}`);
+  chipify('ntype');
+  $('ntype').querySelectorAll('.chip').forEach(c=>{ const old=c.onclick; c.onclick=()=>{ old();
+    const kg=c.dataset.v==='kg'; $('ntextrow').style.display=kg?'none':'block'; $('nkgrow').style.display=kg?'block':'none'; }; });
+}
+function okNote(id){
+  const ts=readTime('n'); if(!ts){ toast('Verifică data și ora'); return; }
+  const tp=chipVal('ntype');
+  let rec;
+  if(tp==='kg'){ const v=parseFloat($('nkg').value); if(!v){ toast('Introdu greutatea'); return; } rec={type:'kg', kg:{v}}; }
+  else{ const tx=$('ntext').value.trim(); if(!tx){ toast('Scrie ceva mai întâi'); return; } rec={type:tp, note:{text:tx}}; }
+  if(id){ const e=S.events.find(x=>x.id===id); e.ts=ts; e.type=rec.type;
+    if(rec.type==='kg'){ e.kg=rec.kg; delete e.note; } else { e.note=rec.note; delete e.kg; } }
+  else S.events.push({id:uid(), ts, ...rec});
+  sortEv(); save(); closeSheet(); renderToday(); toast('Salvat');
+}
+
+/* ================= ȘTERGERE / EDITARE ================= */
+function delEv(id){
+  shConfirm('Vei putea anula imediat după, dacă te răzgândești.', ()=>{
+    const gone=S.events.filter(e=>e.id===id);
+    S.events=S.events.filter(e=>e.id!==id); save();
+    setUndo({op:'del', items:gone, label:'Intrare ștearsă', undone:'Intrarea a revenit'});
+    renderToday(); renderHist();
+  }, {title:'Ștergi această intrare?', confirmLabel:'Șterge intrarea'});
+}
+function editEv(id){
+  const e=S.events.find(x=>x.id===id); if(!e) return;
+  if(e.type==='gluc') shGluc(e); else if(e.type==='ins') shIns(e);
+  else if(e.type==='meal') shMeal(e); else shNote(e);
+}
+</script>
+
+<script>
+/* ================= RANDARE: AZI ================= */
+function eventCard(e){
+  const t=`<span class="t num">${tHM(e.ts)}</span>`;
+  let body='';
+  if(e.type==='gluc'){
+    body=`<div class="hl"><span class="pill ${rangeClass(e.gluc.v)} num">${e.gluc.v}</span> <span class="muted">mg/dl · ${e.gluc.src==='senzor'?'senzor':'din deget'}</span></div>`;
+  }else if(e.type==='ins'){
+    const k=e.ins.kind==='corectie'?'corecție':(e.ins.kind==='bazala'?'bazală':'la masă');
+    body=`<div class="hl num">💉 ${fmtN(e.ins.u)} U ${esc(e.ins.name)}</div><div class="sub">${k}</div>`;
+  }else if(e.type==='meal'){
+    const items=e.meal.items.map(i=>esc(i.name)+(i.grams?' ('+i.grams+'g)':'')).join(' + ');
+    body=`<div class="hl">🍽 ${e.meal.hc?'<span class="num">'+fmtHC(e.meal.hc)+' HC</span>':'Masă'}</div>
+          <div class="sub">${items}${e.meal.note?(items?' · ':'')+esc(e.meal.note):''}</div>`;
+  }else if(e.type==='kg'){
+    body=`<div class="hl num">⚖️ ${fmtN(e.kg.v)} kg</div>`;
+  }else{
+    body=`<div class="hl">${e.type==='act'?'🏃 Activitate':'📝 Notă'}</div><div class="sub">${esc(e.note.text)}</div>`;
+  }
+  return `<button class="ev" onclick="editEv('${e.id}')">${t}<span class="body">${body}</span></button>`;
+}
+function emptyState(o){
+  return `<div class="card empty"><span class="ei">${o.ic}</span><b>${o.t}</b>
+    <span class="hint">${o.d}</span>
+    ${o.btn?`<button class="act" onclick="${o.btn.go}">${o.btn.t}</button>`:''}</div>`;
+}
+function renderTimeline(el, evs){
+  if(!evs.length){
+    const lastAll=S.events[S.events.length-1];
+    el.innerHTML = lastAll
+      ? emptyState({ic:'☀️', t:'Zi nouă, jurnal gol',
+          d:'Ultima intrare a fost '+dNice(lastAll.ts)+', la '+tHM(lastAll.ts)+'. Folosește butoanele de mai sus ca să notezi ceva; jurnalul complet e la Istoric.'})
+      : emptyState({ic:'👋', t:'Aici va apărea ziua ta',
+          d:'Tot ce notezi se așază aici, în ordinea orelor, grupat pe momentele zilei. Începe cu o glicemie: durează cinci secunde.',
+          btn:{t:'Adaugă prima glicemie', go:'shGluc()'}});
+    return; }
+  let html='', lastPart='';
+  let mealRun=[];  // grup de mese consecutive (≤45 min între ele)
+  const flushMeals=()=>{
+    if(mealRun.length){
+      const tot=mealRun.reduce((a,m)=>a+(m.meal.hc||0),0);
+      if(tot>0 && mealRun.length>1){
+        html+=`<div class="mealsum"><span class="lbl">Total masă:</span> <b>${fmtHC(tot)} HC</b> <span class="lbl">· ${nUnit(mealRun.length,'alimente','un aliment')}</span></div>`;
+      }
+      mealRun=[];
+    }
+  };
+  evs.forEach(e=>{ const p=daypart(e.ts);
+    if(p!==lastPart){ flushMeals(); html+=`<div class="daypart">${p}</div>`; lastPart=p; }
+    if(e.type==='meal'){
+      if(mealRun.length && (e.ts - mealRun[mealRun.length-1].ts) > 45*60000) flushMeals();
+      html+=eventCard(e);
+      mealRun.push(e);
+    } else {
+      flushMeals();
+      html+=eventCard(e);
+    }
+  });
+  flushMeals();
+  el.innerHTML=html;
+}
+function renderQuickStart(){
+  const el=$('quickstart'); if(!el) return;
+  // ascunsă permanent dacă a fost închisă sau completată — decizie păstrată în setări
+  if(S.settings.qsDone){ el.innerHTML=''; return; }
+  const hasGluc = S.events.some(e=>e.type==='gluc');
+  // aliment „adăugat de tine": orice nu se află printre cele preîncărcate.
+  // ATENȚIE: lista de comparație se derivă din seedFoods(), sursa unică de adevăr.
+  // Înainte era o listă de nume generice scrisă de mână, care nu se potrivea cu
+  // alimentele preîncărcate reale (produse concrete), deci pasul apărea bifat de la
+  // prima pornire, la orice utilizator nou.
+  const seedNames=new Set(seedFoods().map(f=>(f.name||'').toLowerCase()));
+  const hasCustomFood = (S.foods||[]).some(f=> f.custom===true || !seedNames.has((f.name||'').toLowerCase()));
+  const hasMeal = S.events.some(e=>e.type==='meal');
+  // backupul de referință pus la prima configurare (bkFake) NU e un backup real
+  const hasBackup = !!S.settings.lastBackup && !S.settings.bkFake;
+  const steps=[
+    {done:hasGluc,       lbl:'Notează prima glicemie',           act:"shGluc()",           btn:'Adaugă'},
+    {done:hasCustomFood, lbl:'Adaugă un aliment pe care îl mănânci des', act:"go('foods');shFood()", btn:'Adaugă'},
+    {done:hasMeal,       lbl:'Logează prima masă',              act:"shMeal()",           btn:'Adaugă'},
+    {done:hasBackup,     lbl:'Fă primul backup',                act:"backupNow()",        btn:'Backup'},
+  ];
+  const doneN=steps.filter(s=>s.done).length;
+  if(doneN===steps.length){ S.settings.qsDone=1; save(); el.innerHTML=''; return; }
+  el.innerHTML=`<div class="card">
+    <div class="qs-head"><h2>Cei 4 pași de început · ${doneN}/${steps.length}</h2>
+      <button class="qs-close" onclick="qsDismiss()" aria-label="Ascunde">×</button></div>
+    <div class="qs-hint">Dispare singură când e completă. O poți relua din Mai mult → Ghid rapid.</div>
+    <ul>${steps.map(s=>`<li class="${s.done?'done':''}">
+        <span class="mk">${s.done?'✓':''}</span>
+        <span class="lbl">${s.lbl}</span>
+        ${s.done?'':`<button class="go" onclick="${s.act}">${s.btn} →</button>`}
+      </li>`).join('')}</ul>
+  </div>`;
+}
+function qsDismiss(){
+  shConfirm('Poți reveni la ea din Mai mult → Ghid rapid, oricând.',
+    ()=>{ S.settings.qsDone=1; save(); renderQuickStart(); },
+    {title:'Ascunzi lista de început?', confirmLabel:'Ascunde'});
+}
+function renderToday(){
+  const key=dKey(Date.now()), evs=evOfDay(key);
+  // erou: ultima glicemie
+  const glucs=S.events.filter(e=>e.type==='gluc');
+  const last=glucs[glucs.length-1];
+  let hero;
+  if(!last){ hero='<div class="empty" style="flex:1; padding:18px 8px"><span class="ei">◉</span><b>Încă nicio glicemie</b><span class="hint">Aici vei vedea ultima valoare, cât de demult a fost și în ce direcție merge.</span></div>'; }
+  else{
+    const col=rangeColor(last.gluc.v);
+    const mins=Math.round((Date.now()-last.ts)/60000);
+    const ago = mins<60? 'acum '+mins+' min' : (dKey(last.ts)===key? 'azi la '+tHM(last.ts) : dNice(last.ts)+' '+tHM(last.ts));
+    const prev=glucs.length>1 && (last.ts-glucs[glucs.length-2].ts)<4*3600e3 ? glucs[glucs.length-2] : null;
+    let delta='';
+    if(prev){ const d=last.gluc.v-prev.gluc.v;
+      delta=`<div class="delta" style="color:${col}">${d>5?'↗':(d<-5?'↘':'→')} ${d>0?'+':''}${d} față de ${tHM(prev.ts)}</div>`; }
+    const pct=Math.max(.06, Math.min(1, last.gluc.v/300));
+    const C=2*Math.PI*46;
+    const word=rangeWord(last.gluc.v);
+    hero=`<div id="dial" role="img" aria-label="Ultima glicemie ${last.gluc.v} mg/dl, ${word}">
+        <svg width="104" height="104" viewBox="0 0 104 104">
+          <circle cx="52" cy="52" r="46" fill="none" stroke="var(--line)" stroke-width="9"/>
+          <circle cx="52" cy="52" r="46" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round"
+            stroke-dasharray="${(C*pct).toFixed(1)} ${C.toFixed(1)}"/>
+        </svg>
+        <div class="v"><b class="num" style="color:${col}">${last.gluc.v}</b><small>mg/dl</small><small class="state" style="color:${col}">${word}</small></div>
+      </div>
+      <div class="side">${delta}<div class="ago">${ago} · ${last.gluc.src==='senzor'?'senzor':'din deget'}</div></div>`;
+  }
+  $('hero').innerHTML=hero;
+  // mini-statistici azi
+  const g=evs.filter(e=>e.type==='gluc').map(e=>e.gluc.v);
+  const hc=evs.filter(e=>e.type==='meal').reduce((a,e)=>a+(e.meal.hc||0),0);
+  const bol=evs.filter(e=>e.type==='ins'&&e.ins.kind!=='bazala').reduce((a,e)=>a+e.ins.u,0);
+  const baz=evs.filter(e=>e.type==='ins'&&e.ins.kind==='bazala').reduce((a,e)=>a+e.ins.u,0);
+  $('mini3').innerHTML=`
+    <div><b class="num">${g.length?Math.round(g.reduce((a,b)=>a+b,0)/g.length):'—'}</b><span>medie azi</span></div>
+    <div><b class="num">${fmtHC(hc)}</b><span>HC azi</span></div>
+    <div><b class="num">${bol?fmtN(bol):'—'}</b><span>rapidă U</span></div>
+    <div><b class="num">${baz?fmtN(baz):'—'}</b><span>bazală U</span></div>`;
+  renderSpark(evs);
+  renderTimeline($('timeline'), evs);
+  renderBkLine(); renderQuickStart();
+  $('whoami').textContent=S.settings.name?S.settings.name+' · '+dNice(Date.now()):dNice(Date.now());
+}
+/* Graficul e desen: un cititor de ecran nu are ce citi în el, iar cineva cu vedere
+   slăbită nu deosebește punctele. Deci îl însoțim de un rezumat în cuvinte, cu
+   aceleași informații pe care le-ar lua un văzător dintr-o privire: câte măsurători,
+   între ce valori, câte în țintă, de când până când și încotro merge. SVG-ul e
+   marcat aria-hidden, ca rezumatul să fie singurul citit, nu coordonatele. */
+function sparkSummary(pts){
+  const s=S.settings;
+  const vs=pts.map(p=>p.v);
+  const lo=Math.min(...vs), hi=Math.max(...vs);
+  const inT=vs.filter(v=>v>=s.low && v<=s.high).length;
+  const hhmm=m=>two(Math.floor(m/60))+':'+two(m%60);
+  const prim=pts[0], ult=pts[pts.length-1];
+  const d=ult.v-prim.v;
+  // câte sunt în țintă: la extreme sună natural, nu „2 din 2"
+  const tinta = inT===pts.length ? (pts.length===2 ? 'Ambele în țintă' : 'Toate în țintă')
+              : inT===0 ? 'Niciuna în țintă'
+              : inT+' din '+pts.length+' în țintă';
+  const trend = Math.abs(d)<=10 ? 'În ansamblu, stabil.'
+              : (d>0 ? 'În ansamblu, în urcare cu '+d+' mg/dl.'
+                     : 'În ansamblu, în scădere cu '+Math.abs(d)+' mg/dl.');
+  // o idee pe frază, fără punct și virgulă care leagă două gânduri
+  return nUnit(pts.length,'măsurători','o măsurătoare')+', între '+lo+' și '+hi+' mg/dl. '
+    + tinta+' ('+s.low+'–'+s.high+' mg/dl). '
+    + 'De la '+prim.v+' mg/dl la ora '+hhmm(prim.x)+', până la '+ult.v+' mg/dl la ora '+hhmm(ult.x)+'. '
+    + trend;
+}
+function renderSpark(evs){
+  const pts=evs.filter(e=>e.type==='gluc').map(e=>({x:new Date(e.ts).getHours()*60+new Date(e.ts).getMinutes(), v:e.gluc.v}));
+  if(pts.length<2){ $('spark').innerHTML=''; return; }
+  const s=S.settings, W=340, H=76, P=6;
+  const ymax=Math.max(260, ...pts.map(p=>p.v))+20, ymin=40;
+  const X=m=>P+(m/1439)*(W-2*P);
+  const Y=v=>H-P-((Math.min(v,ymax)-ymin)/(ymax-ymin))*(H-2*P-10);
+  const band=`<rect x="${P}" y="${Y(s.high)}" width="${W-2*P}" height="${Math.max(2,Y(s.low)-Y(s.high))}" fill="var(--petrol)" opacity="0.13" rx="3"/>`;
+  const line=pts.map((p,i)=>(i?'L':'M')+X(p.x).toFixed(1)+' '+Y(p.v).toFixed(1)).join(' ');
+  const dots=pts.map(p=>`<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.v).toFixed(1)}" r="3.4" fill="${rangeColor(p.v)}"/>`).join('');
+  const ticks=[0,6,12,18,24].map(h=>`<text x="${X(Math.min(h*60,1439)).toFixed(1)}" y="${H-1}" font-size="8.5" fill="var(--ink-soft)" text-anchor="middle">${two(h%24)}</text>`).join('');
+  const rez=sparkSummary(pts);
+  // eticheta pentru cititoarele de ecran are nevoie de context („ce e imaginea asta?");
+  // textul vizibil stă deja sub titlul „Graficul în cuvinte", deci acolo prefixul ar fi de prisos
+  $('spark').innerHTML=`<div role="img" aria-label="${esc('Graficul zilei. '+rez)}">
+    <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+    ${band}<path d="${line}" fill="none" stroke="var(--ink-soft)" stroke-width="1.6" opacity=".55"/>${dots}${ticks}</svg></div>
+    <details class="sparksum"><summary>Graficul în cuvinte</summary><p>${esc(rez)}</p></details>`;
+}
+
+/* ================= ISTORIC + CĂUTARE ================= */
+function evText(e){
+  if(e.type==='gluc') return e.gluc.v+' '+e.gluc.src;
+  if(e.type==='ins') return e.ins.u+'U '+fmtN(e.ins.u)+' U '+e.ins.name+' '+e.ins.kind;   // ambele scrieri, ca să găsească și „5,5" și „5.5"
+  if(e.type==='meal') return e.meal.items.map(i=>i.name).join(' ')+' '+(e.meal.note||'');
+  if(e.type==='kg') return e.kg.v+' kg greutate';
+  return e.note.text;
+}
+function mealTotalHtml(mealRun){
+  if(mealRun.length<2) return '';
+  const tot=mealRun.reduce((a,m)=>a+(m.meal.hc||0),0);
+  if(tot<=0) return '';
+  return `<div class="mealsum"><span class="lbl">Total masă:</span> <b>${fmtHC(tot)} HC</b> <span class="lbl">· ${nUnit(mealRun.length,'alimente','un aliment')}</span></div>`;
+}
+function dayGroupedHtml(dayEvs){
+  // dayEvs: cronologic crescător; grupăm pe momente + subtotal HC pe rulaje de mese (≤45 min)
+  let html='', lastPart='', mealRun=[];
+  const flush=()=>{ if(mealRun.length){ html+=mealTotalHtml(mealRun); mealRun=[]; } };
+  dayEvs.forEach(e=>{ const p=daypart(e.ts);
+    if(p!==lastPart){ flush(); html+=`<div class="daypart">${p}</div>`; lastPart=p; }
+    if(e.type==='meal'){
+      if(mealRun.length && (e.ts-mealRun[mealRun.length-1].ts)>45*60000) flush();
+      html+=eventCard(e); mealRun.push(e);
+    } else { flush(); html+=eventCard(e); }
+  });
+  flush();
+  return html;
+}
+function renderHist(){
+  const q=$('q').value.trim().toLowerCase();
+  if(q){
+    HIST_SHOWN=60;   // când se caută, lista plină de dedesubt revine la starea inițială
+    if(q!==LAST_Q){ SEARCH_SHOWN=SEARCH_PAGE; LAST_Q=q; }   // cuvânt nou: pornim de la prima tranșă
+    // în căutare rămânem la lista plată filtrată (potriviri răzlețe), cu context la mese
+    const all=[...S.events].reverse().filter(e=>evText(e).toLowerCase().includes(q));
+    if(!all.length){ $('histbody').innerHTML=emptyState({ic:'🔍', t:'Niciun rezultat pentru „'+esc(q)+'"',
+      d:'Încearcă un cuvânt mai scurt sau altă formă: căutarea se uită în alimente, note și observații. De exemplu „pâine" în loc de „pâinea aia integrală".'}); return; }
+    const evs=all.slice(0, SEARCH_SHOWN);
+    const cate = all.length===1 ? 'O potrivire' : nUnit(all.length,'potriviri','o potrivire');
+    let html='<p class="muted" style="margin:2px 6px 10px">'+cate+' pentru „'+esc(q)+'". Atinge o masă ca să vezi contextul: glicemii și insulină în jurul ei.</p>', lastDay='';
+    evs.forEach(e=>{ const k=dKey(e.ts);
+      if(k!==lastDay){ html+=`<div class="dayhead"><span>${dNice(e.ts)}</span></div>`; lastDay=k; }
+      html+= e.type==='meal' ? eventCard(e).replace('onclick="editEv','onclick="ctx') : eventCard(e);
+    });
+    if(all.length>SEARCH_SHOWN){
+      const rest=all.length-SEARCH_SHOWN, next=Math.min(SEARCH_PAGE, rest);
+      html+=`<button class="btn btn-g" style="margin:14px 0 4px" onclick="searchMore()">Arată mai multe rezultate (încă ${next} din ${nUnit(rest,'rămase','rămasă')})</button>`;
+    } else if(all.length>SEARCH_PAGE){
+      html+=`<p class="muted" style="text-align:center; margin:14px 0 4px">Ai ajuns la cea mai veche potrivire, din ${dNice(all[all.length-1].ts)}.</p>`;
+    }
+    $('histbody').innerHTML=html; return;
+  }
+  LAST_Q=null;   // s-a golit căutarea: următoarea pornește de la prima tranșă
+  // fără căutare: zilele, grupate pe momente (ca la Azi), încărcate în tranșe
+  const allDays=[...new Set(S.events.map(e=>dKey(e.ts)))].sort().reverse();
+  if(!allDays.length){ $('histbody').innerHTML=emptyState({ic:'📜', t:'Istoricul se scrie singur',
+    d:'Pe măsură ce notezi, zilele se adună aici, fiecare grupată pe momente. Vei putea căuta orice ai mâncat vreodată și vedea ce glicemii și ce insulină ai avut în jurul mesei.',
+    btn:{t:'Începe cu ziua de azi', go:"go('today')"}}); return; }
+  const days=allDays.slice(0, HIST_SHOWN);
+  let html='';
+  days.forEach(k=>{
+    const de=evOfDay(k).slice().sort((a,b)=>a.ts-b.ts);
+    const dg=de.filter(x=>x.type==='gluc').map(x=>x.gluc.v);
+    const avg=dg.length?Math.round(dg.reduce((a,b)=>a+b,0)/dg.length):null;
+    const hc=de.filter(x=>x.type==='meal').reduce((a,x)=>a+(x.meal.hc||0),0);
+    const meta=[avg?('medie '+avg):'', hc>0?(fmtHC(hc)+' HC'):''].filter(Boolean).join(' · ');
+    html+=`<div class="dayhead"><span>${dNice(de[0].ts)}</span><span class="muted num">${meta}</span></div>`;
+    html+=dayGroupedHtml(de);
+  });
+  if(allDays.length>HIST_SHOWN){
+    const rest=allDays.length-HIST_SHOWN;
+    const next=Math.min(60, rest);
+    html+=`<button class="btn btn-g" style="margin:14px 0 4px" onclick="histMore()">Arată mai multe zile (încă ${next} din ${nUnit(rest,'rămase','rămasă')})</button>`;
+  } else if(allDays.length>60){
+    html+=`<p class="muted" style="text-align:center; margin:14px 0 4px">Ai ajuns la începutul jurnalului. ${nUnit(allDays.length,'zile','o zi')} cu date, prima pe ${dNice(S.events[0].ts)}.</p>`;
+  }
+  $('histbody').innerHTML=html;
+}
+function histMore(){ HIST_SHOWN+=60; renderHist(); }
+function searchMore(){ SEARCH_SHOWN+=SEARCH_PAGE; renderHist(); }
+function ctx(id){
+  const e=S.events.find(x=>x.id===id); if(!e){return;}
+  const from=e.ts-2.5*3600e3, to=e.ts+4*3600e3;
+  const around=S.events.filter(x=>x.ts>=from && x.ts<=to);
+  openSheet(`<h3>Context · ${dNice(e.ts)}</h3>
+    <p class="muted" style="margin:0 0 10px">Fereastră: 2½ h înainte → 4 h după masă.</p>
+    ${around.map(eventCard).join('')}
+    <button class="btn btn-g" onclick="closeSheet()">Închide</button>`);
+}
+
+/* ================= ALIMENTE ================= */
+function shFood(f, presetName, fromMeal){
+  f=f||null;
+  openSheet(`<h3>${f?'Modifică alimentul':'Aliment nou'}</h3>
+    <div class="frow"><label>Nume</label><input class="inp" id="fname" value="${esc(f?f.name:(presetName||''))}" placeholder="ex: Pâine graham Lidl"></div>
+    <div class="frow"><label>Cum îl măsori?</label><div class="chips" id="fmode">
+      <button class="chip ${(!f||f.mode==='per100')?'on':''}" data-v="per100">HC la 100 g</button>
+      <button class="chip ${f&&f.mode==='portie'?'on':''}" data-v="portie">HC pe porție</button>
+    </div></div>
+    <div class="frow"><label>Carbohidrați (HC)</label><input class="inp bignum num" id="fval" type="number" step="0.1" inputmode="decimal" value="${f?f.val:''}" placeholder="—"></div>
+    <div class="frow"><label class="chips"><button class="chip ${f&&f.fav?'on':''}" id="ffav" onclick="this.classList.toggle('on')">★ Favorit (apare la Rapide)</button></label></div>
+    <button class="btn btn-p" onclick="okFood('${f?f.id:''}', ${fromMeal?'true':'false'})">Salvează alimentul</button>
+    ${f?'<button class="btn btn-d" onclick="delFood(\''+f.id+'\')">Șterge din bibliotecă</button>':''}`);
+  chipify('fmode');
+}
+function okFood(id, fromMeal){
+  const name=$('fname').value.trim(), val=parseFloat($('fval').value);
+  if(!name||!val){ toast('Completează numele și HC'); return; }
+  const rec={name, mode:chipVal('fmode'), val, fav:$('ffav').classList.contains('on')};
+  let f;
+  if(id){ f=S.foods.find(x=>x.id===id); Object.assign(f,rec); }
+  else{ f={id:uid(), uses:0, ...rec}; S.foods.push(f); }
+  save(); toast('Aliment salvat');
+  if(fromMeal){ shMealResume(f); } else { closeSheet(); renderFoods(); }
+}
+function shMealResume(f){
+  // ne întoarcem la masa în lucru și adăugăm direct alimentul nou
+  const items=M.items, note=M.note, edit=M._edit, ts=M._ts;
+  shMeal(edit?S.events.find(x=>x.id===edit):null);
+  M.items=items; M.note=note; drawMealItems();
+  pickFood(f.id);
+}
+function delFood(id){
+  shConfirm('Mesele deja salvate rămân neschimbate.', ()=>{
+    S.foods=S.foods.filter(f=>f.id!==id); save(); renderFoods();
+  }, {title:'Ștergi acest aliment din bibliotecă?', confirmLabel:'Șterge din bibliotecă'});
+}
+function renderFoods(){
+  const q=($('fq').value||'').trim().toLowerCase();
+  let fs=[...S.foods].sort((a,b)=>(b.fav-a.fav)||(b.uses-a.uses)||a.name.localeCompare(b.name,'ro'));
+  if(q) fs=fs.filter(f=>f.name.toLowerCase().includes(q));
+  $('foodlist').innerHTML=fs.map(f=>
+    `<button class="fooditem" onclick='shFood(S.foods.find(x=>x.id==="${f.id}"))'>
+      <span class="star">${f.fav?'★':'☆'}</span>
+      <span class="txt">
+        <span class="n">${esc(f.name)}</span>
+        <span class="d">${foodLabel(f)}${f.uses?' · folosit de '+f.uses+' ori':''}</span>
+      </span>
+    </button>`).join('') || (q
+      ? emptyState({ic:'🔍', t:'Niciun aliment pentru „'+esc(q)+'"',
+          d:'Nu ai încă acest aliment în bibliotecă. Îl poți adăuga acum, cu carbohidrații de pe etichetă, și data viitoare îl alegi dintr-o atingere.',
+          btn:{t:'Adaugă acest aliment', go:"shFood(null, $('fq').value.trim())"}})
+      : emptyState({ic:'🥖', t:'Biblioteca ta de alimente',
+          d:'Aici pui alimentele pe care le mănânci des, cu carbohidrații lor. La masă le alegi dintr-o atingere, în loc să scrii de fiecare dată. Cele marcate cu stea apar primele.',
+          btn:{t:'Adaugă primul aliment', go:'shFood()'}}));
+}
+
+/* ================= STATISTICI ================= */
+let PERIOD=30;
+let HIST_SHOWN=60;   // câte zile de istoric sunt afișate acum; crește cu „Arată mai multe"
+/* Căutarea are propria tranșă. Fără ea, un aliment mâncat des (pâine, cartofi) dădea
+   mai multe potriviri decât limita, iar cele mai vechi rămâneau inaccesibile: exact
+   invers de ce vrei la o căutare istorică. LAST_Q ține minte căutarea, ca tranșa să
+   revină la început când schimbi cuvântul, dar să crească la „Arată mai multe". */
+const SEARCH_PAGE=300;
+let SEARCH_SHOWN=SEARCH_PAGE, LAST_Q=null;
+function renderStats(){
+  $('periodChips').innerHTML=[7,30,90].map(p=>
+    `<button class="chip ${PERIOD===p?'on':''}" onclick="PERIOD=${p};renderStats()">${p} zile</button>`).join('');
+  const d0=new Date(); d0.setHours(0,0,0,0);
+  const from=d0.getTime()-(PERIOD-1)*MS_D;
+  const evs=S.events.filter(e=>e.ts>=from);
+  const g=evs.filter(e=>e.type==='gluc').map(e=>({v:e.gluc.v, ts:e.ts}));
+  if(!g.length){ $('statsbody').innerHTML = S.events.some(e=>e.type==='gluc')
+    ? emptyState({ic:'📅', t:'Nicio glicemie în ultimele '+nUnit(PERIOD,'zile'),
+        d:'Ai date mai vechi în jurnal. Alege o perioadă mai lungă din butoanele de sus ca să le vezi rezumate aici.'})
+    : emptyState({ic:'📈', t:'Statisticile au nevoie de câteva zile',
+        d:'După ce notezi glicemii câteva zile, aici vei vedea media, HbA1c estimat, timpul în țintă și dozele tipice, plus ICR și ISF pentru discuția cu medicul.',
+        btn:{t:'Notează o glicemie', go:"go('today');shGluc()"}}); return; }
+  const vals=g.map(x=>x.v);
+  const avg=vals.reduce((a,b)=>a+b,0)/vals.length;
+  const a1c=(avg+46.7)/28.7;
+  const s=S.settings;
+  const nl=vals.filter(v=>v<s.low).length, ni=vals.filter(v=>v>=s.low&&v<=s.high).length, nh=vals.length-nl-ni;
+  const pl=Math.round(nl/vals.length*100), pi=Math.round(ni/vals.length*100), ph=100-pl-pi;
+  // medii pe momente ale zilei
+  const parts=['Dimineața','Prânz','Cină','Seara / noaptea'];
+  const short={'Dimineața':'Dim','Prânz':'Prânz','Cină':'Cină','Seara / noaptea':'Seara'};
+  const byPart=parts.map(p=>{ const pv=g.filter(x=>daypart(x.ts)===p).map(x=>x.v);
+    return {p, avg: pv.length?Math.round(pv.reduce((a,b)=>a+b,0)/pv.length):0, n:pv.length}; });
+  const maxAvg=Math.max(...byPart.map(b=>b.avg),1);
+  const days=new Set(evs.map(e=>dKey(e.ts))).size||1;
+  // insulina & mesele se calculează DOAR pe zile complete (azi, fiind în curs, ar strica mediile)
+  const todayStart=d0.getTime();
+  const cEvs=S.events.filter(e=>e.ts>=todayStart-PERIOD*MS_D && e.ts<todayStart);
+  const cDays=new Set(cEvs.map(e=>dKey(e.ts))).size||1;
+  const cIns=cEvs.filter(e=>e.type==='ins');
+  // agregăm PE ZI, apoi arătăm intervalul (min–max, tipic mediană); evită falsa precizie a mediilor
+  const rapidByDay={}, bazByDay={}, corrByDay={}, hcByDay={};
+  cEvs.forEach(e=>{ const k=dKey(e.ts);
+    if(e.type==='ins'){ if(e.ins.kind==='bazala') bazByDay[k]=(bazByDay[k]||0)+e.ins.u;
+      else { rapidByDay[k]=(rapidByDay[k]||0)+e.ins.u; if(e.ins.kind==='corectie') corrByDay[k]=(corrByDay[k]||0)+1; } }
+    if(e.type==='meal') hcByDay[k]=(hcByDay[k]||0)+(e.meal.hc||0);
+  });
+  const dayKeys=[...new Set(cEvs.map(e=>dKey(e.ts)))];
+  const arr=o=>dayKeys.map(k=>o[k]||0);
+  const bolMeals=cIns.filter(e=>e.ins.kind==='bolus').map(e=>e.ins.u);
+  const bazTip=median(Object.values(bazByDay));
+  // insulina rapidă (bolus+corecție) pe momente ale zilei: sumă pe zi/moment, apoi mediană peste zile
+  const partsR=['Dimineața','Prânz','Cină','Seara / noaptea'];
+  const rapidPart={}; partsR.forEach(p=>rapidPart[p]={});
+  cEvs.forEach(e=>{ if(e.type==='ins' && e.ins.kind!=='bazala'){
+    const p=daypart(e.ts), k=dKey(e.ts);
+    rapidPart[p][k]=(rapidPart[p][k]||0)+e.ins.u; } });
+  const rapidPartMed=p=>med(Object.values(rapidPart[p]));
+  $('statsbody').innerHTML=`
+    <div class="card"><h2>Glicemie · ultimele ${nUnit(PERIOD,'zile')}</h2>
+      <div class="statgrid">
+        <div class="stat"><b class="num">${Math.round(avg)}<small class="u">mg/dl</small></b><span>medie</span></div>
+        <div class="stat"><b class="num">${fmtN(a1c)}<small class="u">%</small></b><span>HbA1c estimat</span></div>
+        <div class="stat"><b class="num">${vals.length}</b><span>măsurători</span></div>
+        <div class="stat"><b class="num">${fmtN(vals.length/days)}</b><span>măsurători pe zi</span></div>
+      </div>
+      <p class="muted" style="margin:10px 0 0">HbA1c estimat din media glicemiilor tale (formula ADA eAG). E o tendință orientativă, nu înlocuiește analiza de laborator, mai ales la măsurători punctuale din deget.</p>
+    </div>
+    <div class="card"><h2>Timp în țintă (${s.low}–${s.high})</h2>
+      <div class="tirbar">
+        ${pl?`<div style="flex:${pl};background:var(--low)">${pl>=14?'<span>'+pl+'%</span>':''}</div>`:''}
+        ${pi?`<div style="flex:${pi};background:var(--ok)">${pi>=14?'<span>'+pi+'%</span>':''}</div>`:''}
+        ${ph?`<div style="flex:${ph};background:var(--high)">${ph>=14?'<span>'+ph+'%</span>':''}</div>`:''}
+      </div>
+      <div class="tirlegend">
+        <div><i style="background:var(--low)"></i>sub țintă <b>${pl}%</b></div>
+        <div><i style="background:var(--ok)"></i>în țintă <b>${pi}%</b></div>
+        <div><i style="background:var(--high)"></i>peste <b>${ph}%</b></div>
+      </div>
+    </div>
+    <div class="card" id="mediiCard"><h2>Media pe momente ale zilei</h2>
+      <div class="bars">${byPart.map(b=>`<div class="b"><i style="height:${Math.round(b.avg/maxAvg*100)}%; background:${b.avg?rangeColor(b.avg):'var(--line)'}">${b.avg||''}</i><span>${short[b.p]}</span></div>`).join('')}</div>
+    </div>
+    <div class="card"><h2>Insulină rapidă pe momente</h2>
+      <div class="statgrid">
+        <div class="stat"><b class="num">${rapidPartMed('Dimineața')}${rapidPartMed('Dimineața')!=='—'?'<small class="u">U</small>':''}</b><span>rapidă dimineața</span></div>
+        <div class="stat"><b class="num">${rapidPartMed('Prânz')}${rapidPartMed('Prânz')!=='—'?'<small class="u">U</small>':''}</b><span>rapidă prânz</span></div>
+        <div class="stat"><b class="num">${rapidPartMed('Cină')}${rapidPartMed('Cină')!=='—'?'<small class="u">U</small>':''}</b><span>rapidă cină</span></div>
+        <div class="stat"><b class="num">${rapidPartMed('Seara / noaptea')}${rapidPartMed('Seara / noaptea')!=='—'?'<small class="u">U</small>':''}</b><span>rapidă seara</span></div>
+      </div>
+      <p class="muted" style="margin:10px 0 0">Insulina rapidă (bolus și corecții) însumată pe fiecare moment al zilei, doza tipică (mediană) pe ultimele ${nUnit(PERIOD,'zile')} complete. Descriptiv, din istoricul tău.</p>
+    </div>
+    <div class="card"><h2>Insulină & mese pe zi</h2>
+      <div class="statgrid">
+        <div class="stat"><b class="num">${med(arr(rapidByDay))}<small class="u">U</small></b><span>rapidă pe zi</span></div>
+        <div class="stat"><b class="num">${med(Object.values(bazByDay))}<small class="u">U</small></b><span>bazală pe zi</span></div>
+        <div class="stat"><b class="num">${med(arr(corrByDay))}</b><span>corecții pe zi</span></div>
+        <div class="stat"><b class="num">${med(arr(hcByDay))}<small class="u">HC</small></b><span>carbohidrați pe zi</span></div>
+        <div class="stat"><b class="num">${cDays}</b><span>zile complete</span></div>
+        <div class="stat"><b class="num">${med(bolMeals)}<small class="u">U</small></b><span>rapidă la masă</span></div>
+      </div>
+      <p class="muted" style="margin:10px 0 0">Valorile sunt <b>doza tipică</b> (mediană) pe ultimele ${nUnit(PERIOD,'zile')} complete; ziua de azi, în curs, e exclusă. Variația reală: rapidă ${rangeLabel(arr(rapidByDay),'U')}/zi, bazală ${rangeLabel(Object.values(bazByDay),'U')}/zi, HC ${rangeLabel(arr(hcByDay),'')}/zi.</p>
+    </div>
+    ${(function(){
+      const icr=computeICR(cEvs); const isf=computeISF(cEvs);
+      const parts=['Dimineața','Prânz','Cină','Seara'];
+      const cells=parts.map(p=>{ const v=(icr[p]||[]).filter(x=>x>0);
+        const lbl={'Dimineața':'ICR dimineața','Prânz':'ICR prânz','Cină':'ICR cină','Seara':'ICR seara'}[p];
+        return `<div class="stat"><b class="num">${v.length? Math.round(median(v)):'—'}${v.length?'<small class="u">g/U</small>':''}</b><span>${lbl}</span></div>`; }).join('');
+      const isfOk = isf.vals.length>=10;
+      const isfCell = isfOk
+        ? `<b class="num">${Math.round(median(isf.vals))}<small class="u">mg/dl<span style="opacity:.6">/U</span></small></b><span>ISF estimat</span>`
+        : `<b class="num">—</b><span>ISF estimat</span>`;
+      return `<div class="card"><h2>ICR & ISF observați</h2>
+        <div class="statgrid">${cells}<div class="stat">${isfCell}</div>
+          <div class="stat"><b class="num">${isf.clean}</b><span>corecții curate</span></div></div>
+        <p class="muted" style="margin:12px 0 0"><b>ICR</b> · câte grame de carbohidrați acoperă o unitate de insulină rapidă. Mediană, calculată pe fiecare moment al zilei.</p>
+      <p class="muted" style="margin:7px 0 0"><b>ISF</b> · cu cât scade glicemia la o unitate de corecție. Se calculează doar din corecțiile „curate": cele fără mâncare sau alt bolus în intervalul de 2–4 h de observație.${isfOk?'':`<br><span style="opacity:.85">Deocamdată ai ${isf.clean} astfel de corecții din ${isf.total}. Cifra apare de la 10, ca să nu fie înșelătoare.</span>`}</p>
+      <p class="muted" style="margin:7px 0 0">Sunt <b>valori descriptive din istoricul tău</b>, nu recomandări. Utile de arătat medicului.</p>
+      </div>`;
+    })()}`;
+}
+</script>
+
+<script>
+/* ================= EXPORT / BACKUP / IMPORT ================= */
+function stamp(){ const d=new Date();
+  return d.getFullYear()+two(d.getMonth()+1)+two(d.getDate())+'_'+two(d.getHours())+two(d.getMinutes()); }
+/* Salvează un fișier și raportează ce s-a întâmplat:
+   true = sigur salvat · false = utilizatorul a anulat · 'unknown' = browserul nu ne spune */
+async function downloadOrShare(name, mime, content){
+  // 1. Selector de fișier: alegi tu unde salvezi ȘI aplicația află dacă ai anulat.
+  if(window.showSaveFilePicker){
+    try{
+      const ext='.'+name.split('.').pop();
+      const h=await window.showSaveFilePicker({suggestedName:name,
+        types:[{description:'Fișier Nivelo', accept:{[mime]:[ext]}}]});
+      const w=await h.createWritable();
+      await w.write(content); await w.close();
+      return true;
+    }catch(err){
+      if(err && err.name==='AbortError') return false;   // ai anulat: nu s-a salvat nimic
+      /* altă eroare: încercăm metodele de mai jos */
+    }
+  }
+  const blob=new Blob([content],{type:mime});
+  const file=new File([blob], name, {type:mime});
+  // 2. Foaia de partajare (Drive, Gmail, Fișiere...)
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file], title:name}); return true; }
+    catch(err){ if(err && err.name==='AbortError') return false; }
+  }
+  // 3. Descărcare simplă. Browserul NU ne comunică rezultatul, deci nu putem promite nimic.
+  plainDownload(blob,name);
+  return 'unknown';
+}
+function plainDownload(blob,name){
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+/* ================= PROTECȚIA STOCĂRII =================
+   Browserele pot șterge singure datele site-urilor. Safari pe iPhone
+   evacuează datele site-urilor NEINSTALATE după ~7 zile de neutilizare.
+   Cerem explicit browserului să păstreze datele și avertizăm dacă
+   aplicația rulează într-o filă, nu instalată pe ecranul principal. */
+const isIOS=()=>/iPad|iPhone|iPod/.test(navigator.userAgent||'');
+const isInstalled=()=>{
+  try{ return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone===true; }
+  catch(e){ return false; }
+};
+let PERSIST_OK=null;
+async function askPersist(){
+  try{
+    if(!navigator.storage || !navigator.storage.persist) return;
+    PERSIST_OK = navigator.storage.persisted ? await navigator.storage.persisted() : false;
+    if(!PERSIST_OK) PERSIST_OK = await navigator.storage.persist();
+  }catch(e){ PERSIST_OK=null; }
+}
+function riskyStorage(){ return isIOS() && !isInstalled(); }
+/* Avertizare ÎNAINTE ca spațiul să se umple. Odată umplut, salvările eșuează și
+   singurul lucru pe care îl mai putem face e să dăm o veste proastă; e mult mai
+   util să prevenim. Cota pe iPhone e mult mai mică decât pe Android, deci pragul
+   e ținut prudent. Verificarea e best-effort: unele browsere nu o oferă. */
+async function quotaWarn(){
+  const el=$('quotawarn'); if(!el) return;
+  el.innerHTML=''; el.style.display='none';
+  if(S.events.length<=3) return;
+  try{
+    const est=await navigator.storage.estimate();
+    if(!est || !est.quota) return;
+    const pct=est.usage/est.quota;
+    if(pct < 0.8) return;
+    el.innerHTML='<b>Spațiul de pe telefon e aproape plin.</b>'
+      +'Jurnalul e la '+Math.round(pct*100)+'% din cât poate ține aplicația. '
+      +'Dacă se umple, notările noi nu se mai salvează. Salvează o copie acum, apoi eliberează spațiu pe telefon.'
+      +'<br><button onclick="backupNow()">Salvează o copie →</button>';
+    el.style.display='block';
+  }catch(e){}
+}
+function storageWarn(){
+  const el=$('storagewarn'); if(!el) return;
+  if(!riskyStorage() || S.events.length<=3){ el.innerHTML=''; return; }
+  el.innerHTML=`<div class="card" style="border-left:4px solid var(--high)">
+    <b style="display:block; margin-bottom:4px">Instalează aplicația pe ecranul principal</b>
+    <span class="muted">Deschisă doar din Safari, aplicația își poate pierde datele: iPhone-ul șterge datele site-urilor nefolosite câteva zile. Apasă butonul de partajare din Safari și alege „Adaugă la ecranul principal". Până atunci, fă-ți des backup.</span>
+  </div>`;
+}
+/* ================= ANULAREA UNEI OPERAȚIUNI =================
+   Nu salvăm o copie a întregului jurnal (ar dubla consumul de memorie și
+   ar risca depășirea cotei pe iPhone). Salvăm doar ce s-ar pierde:
+   evenimentele șterse, sau id-urile celor adăugate la un import. */
+const UNDO_KEY='glucolog_undo';
+const UNDO_MS=10*60*1000;   // oferta de anulare expiră în 10 minute
+function setUndo(rec){
+  rec.ts=Date.now();
+  try{ localStorage.setItem(UNDO_KEY, JSON.stringify(rec)); showUndoBar(rec); }
+  catch(e){ try{ localStorage.removeItem(UNDO_KEY); }catch(_){} }   // fără loc: mergem mai departe
+}
+function getUndo(){
+  try{ const r=JSON.parse(localStorage.getItem(UNDO_KEY));
+       if(r && r.ts && Date.now()-r.ts<UNDO_MS) return r; }catch(e){}
+  return null;
+}
+function clearUndo(){ try{ localStorage.removeItem(UNDO_KEY); }catch(e){} hideUndoBar(); }
+function showUndoBar(rec){
+  const el=$('undobar'); if(!el) return;
+  el.innerHTML=`<span><b>${esc(rec.label)}</b></span><button onclick="runUndo()">Anulează</button>`;
+  el.classList.add('on');
+  clearTimeout(el._x); el._x=setTimeout(hideUndoBar, 12000);
+}
+function hideUndoBar(){ const el=$('undobar'); if(el){ el.classList.remove('on'); clearTimeout(el._x); } }
+function runUndo(){
+  const r=getUndo();
+  if(!r){ hideUndoBar(); toast('Nu mai pot anula operațiunea'); return; }
+  if(r.op==='del'){
+    const have=new Set(S.events.map(e=>e.id));
+    (r.items||[]).forEach(it=>{ if(!have.has(it.id)) S.events.push(it); });
+    sortEv();
+  } else if(r.op==='import'){
+    const ids=new Set(r.ids||[]);
+    if(ids.size) S.events=S.events.filter(e=>!ids.has(e.id));
+    const fids=new Set(r.foodIds||[]);
+    if(fids.size) S.foods=S.foods.filter(f=>!fids.has(f.id));
+  }
+  save(); clearUndo();
+  renderToday(); renderHist(); renderFoods(); renderStats();
+  toast(r.undone||'Am pus la loc');
+}
+function backupSpan(){
+  const evs=S.events;
+  if(!evs.length) return null;
+  return {n:evs.length, from:dKey(evs[0].ts), to:dKey(evs[evs.length-1].ts)};
+}
+/* Verificăm copia ÎNAINTE de a o da utilizatorului. Până acum raportam „salvat"
+   fără să ne uităm la ce am produs: dacă textul ar fi ieșit incomplet, omul ar fi
+   plecat liniștit cu un fișier care nu se poate pune la loc. Cel mai prost moment
+   să afli asta e când ai nevoie de el. Verificarea e ieftină: îl citim înapoi și
+   comparăm ce conține cu ce e în aplicație. */
+function verifyBackup(text){
+  try{
+    const d=JSON.parse(text);
+    if(!d || !Array.isArray(d.events)) return {ok:false, de:'lipsesc intrările'};
+    if(d.events.length!==S.events.length) return {ok:false, de:'numărul de intrări nu se potrivește'};
+    if(!Array.isArray(d.foods)) return {ok:false, de:'lipsește biblioteca de alimente'};
+    if(d.foods.length!==(S.foods||[]).length) return {ok:false, de:'numărul de alimente nu se potrivește'};
+    if(!d.settings) return {ok:false, de:'lipsesc setările'};
+    return {ok:true, ev:d.events.length, al:d.foods.length};
+  }catch(e){ return {ok:false, de:'fișierul nu se poate citi înapoi'}; }
+}
+async function backupNow(){
+  const name='Nivelo_backup_'+(S.settings.name||'profil')+'_'+stamp()+'.json';
+  const info=backupSpan();
+  const text=JSON.stringify(S,null,1);
+  const v=verifyBackup(text);
+  if(!v.ok){
+    shAlert('Am pregătit copia, dar la verificare am găsit o problemă: '+v.de+'.\n\nNu îți dau un fișier în care nu pot avea încredere. Încearcă din nou, iar dacă se repetă, folosește exportul Excel sau CSV ca variantă de rezervă.',
+      {ic:'🛑', title:'Copia NU a trecut verificarea', ok:'Am înțeles'});
+    return;
+  }
+  const res=await downloadOrShare(name,'application/json',text);
+  if(res===false){
+    // ai anulat salvarea: nu marcăm nimic, bannerul rămâne aprins
+    shAlert('Ai închis fereastra de salvare, deci fișierul nu a ajuns nicăieri. Încearcă din nou și alege unde să-l salvezi (de exemplu Drive).',
+      {ic:'📭', title:'Backupul NU a fost salvat', ok:'Am înțeles'});
+    return;
+  }
+  S.settings.lastBackup=Date.now();
+  S.settings.bkFake=0;   // de acum e un backup adevărat, nu ceasul de pornire
+  save(); bannerCheck(); renderBkLine(); renderMore(); renderQuickStart();
+  const det = info ? nUnit(info.n,'intrări','o intrare') : 'jurnal gol';
+  if(res==='unknown'){
+    // descărcare simplă: browserul nu ne spune dacă a reușit, deci lăsăm o portiță
+    shAlert('Fișierul a plecat spre Descărcări ('+det+'), verificat că se poate pune la loc.\nMută-l undeva sigur, de exemplu în Drive. Cu el poți reface jurnalul pe orice telefon.',
+      {ic:'🛟', title:'Backup pregătit', ok:'L-am găsit, e bine',
+       alt:{t:'Nu găsesc fișierul', go:'backupNotFound()'}});
+  } else {
+    shAlert('Salvat '+det+', verificat că se poate pune la loc.\nȚine fișierul undeva sigur, de exemplu în Drive. Cu el poți reface jurnalul pe orice telefon.',
+      {ic:'🛟', title:'Backup salvat', ok:'Perfect'});
+  }
+}
+function backupNotFound(){
+  S.settings.lastBackup=0; save();
+  bannerCheck(); renderBkLine(); renderMore(); renderQuickStart(); closeSheet2();
+  shAlert('Am marcat backupul ca nefăcut, ca să nu te bazezi pe un fișier care nu există.\nCaută-l în Descărcări sau în aplicația Fișiere. Dacă tot nu apare, mai încearcă o dată.',
+    {ic:'🔎', title:'Bine că mi-ai spus', ok:'Am înțeles'});
+}
+const TYPE_RO={gluc:'Glicemie', meal:'Masă', ins:'Insulină', kg:'Greutate', note:'Notă', act:'Activitate'};
+function exportCSV(){
+  const {H, rows}=evRows();
+  const foodRows=S.foods.map(f=>({Data:'',Ora:'',Tip:'Aliment',Glicemie:'',Sursa:f.fav?'favorit':'',Insulina:'',Unitati:'',
+    Scop:f.mode,Alimente:f.name,HC:f.val,Greutate:'',Nota:''}));
+  rows.unshift(...foodRows);
+  const q=v=>{ v=String(v??''); return (v.includes(';')||v.includes('"')||v.includes('\n'))?'"'+v.replace(/"/g,'""')+'"':v; };
+  const csv='\uFEFF'+'sep=;\n'+H.join(';')+'\n'+rows.map(r=>H.map(h=>q(r[h])).join(';')).join('\n');
+  downloadOrShare('Nivelo_'+(S.settings.name||'profil')+'_'+stamp()+'.csv','text/csv;charset=utf-8',csv);
+  toast('CSV generat, se deschide în Excel');
+}
+/* ================= EXPORT XLSX (generator propriu, zero dependențe) =================
+   Un .xlsx este o arhivă ZIP cu fișiere XML. Scriem ZIP-ul fără compresie
+   (metoda "store"), pe care Excel/LibreOffice/Google Sheets îl citesc normal.
+   Astfel exportul nativ Excel rămâne în spiritul aplicației: un singur fișier, offline. */
+const CRC_T=(()=>{ const t=new Uint32Array(256);
+  for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=c&1?0xEDB88320^(c>>>1):c>>>1; t[n]=c>>>0; }
+  return t; })();
+function crc32(b){ let c=0xFFFFFFFF; for(let i=0;i<b.length;i++) c=CRC_T[(c^b[i])&0xFF]^(c>>>8); return (c^0xFFFFFFFF)>>>0; }
+const xenc=s=>new TextEncoder().encode(s);
+const xesc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,'');
+function zipStore(files){
+  const parts=[], central=[]; let off=0;
+  const d=new Date(), dT=((d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1))&0xFFFF;
+  const dD=(((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate())&0xFFFF;
+  const u16=v=>[v&255,(v>>8)&255], u32=v=>[v&255,(v>>>8)&255,(v>>>16)&255,(v>>>24)&255];
+  files.forEach(f=>{
+    const nm=xenc(f.name), crc=crc32(f.data), sz=f.data.length;
+    const lh=[...u32(0x04034b50),...u16(20),...u16(0x0800),...u16(0),...u16(dT),...u16(dD),
+      ...u32(crc),...u32(sz),...u32(sz),...u16(nm.length),...u16(0)];
+    parts.push(new Uint8Array(lh), nm, f.data);
+    central.push([...u32(0x02014b50),...u16(20),...u16(20),...u16(0x0800),...u16(0),...u16(dT),...u16(dD),
+      ...u32(crc),...u32(sz),...u32(sz),...u16(nm.length),...u16(0),...u16(0),...u16(0),...u16(0),...u32(0),...u32(off),...nm]);
+    off += lh.length + nm.length + sz;
+  });
+  const cdB=new Uint8Array([].concat(...central));
+  const eo=new Uint8Array([...u32(0x06054b50),...u16(0),...u16(0),...u16(files.length),...u16(files.length),
+    ...u32(cdB.length),...u32(off),...u16(0)]);
+  let tot=0; parts.forEach(p=>tot+=p.length); tot+=cdB.length+eo.length;
+  const out=new Uint8Array(tot); let p=0;
+  parts.forEach(x=>{ out.set(x,p); p+=x.length; });
+  out.set(cdB,p); p+=cdB.length; out.set(eo,p);
+  return out;
+}
+function colName(n){ let s=''; while(n>0){ const m=(n-1)%26; s=String.fromCharCode(65+m)+s; n=(n-1-m)/26; } return s; }
+function sheetXML(H, rows){
+  const cell=(c,r,v,hdr)=>{
+    const ref=colName(c)+r;
+    if(v===''||v===null||v===undefined) return '';
+    if(!hdr && typeof v==='number' && isFinite(v)) return `<c r="${ref}"><v>${v}</v></c>`;
+    return `<c r="${ref}" t="inlineStr"${hdr?' s="1"':''}><is><t xml:space="preserve">${xesc(v)}</t></is></c>`;
+  };
+  let x=`<row r="1">`+H.map((h,i)=>cell(i+1,1,h,true)).join('')+`</row>`;
+  rows.forEach((r,ri)=>{ x+=`<row r="${ri+2}">`+H.map((h,i)=>cell(i+1,ri+2,r[h],false)).join('')+`</row>`; });
+  const cols=H.map((h,i)=>`<col min="${i+1}" max="${i+1}" width="${
+    h==='Alimente'||h==='Aliment'?46:h==='Nota'?40:h==='Data'?11:h==='Ora'?7:12}" customWidth="1"/>`).join('');
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<dimension ref="A1:${colName(H.length)}${rows.length+1}"/>
+<sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>
+<cols>${cols}</cols><sheetData>${x}</sheetData>
+<autoFilter ref="A1:${colName(H.length)}${rows.length+1}"/></worksheet>`;
+}
+function buildXLSX(sheets){
+  const ov=sheets.map((s,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('');
+  const sh=sheets.map((s,i)=>`<sheet name="${xesc(s.name)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('');
+  const rel=sheets.map((s,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')
+    +`<Relationship Id="rId${sheets.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>`;
+  const files=[
+    {name:'[Content_Types].xml', data:xenc(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+<Default Extension="xml" ContentType="application/xml"/>
+<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+${ov}<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>
+</Types>`)},
+    {name:'_rels/.rels', data:xenc(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+</Relationships>`)},
+    {name:'xl/workbook.xml', data:xenc(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<sheets>${sh}</sheets></workbook>`)},
+    {name:'xl/_rels/workbook.xml.rels', data:xenc(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${rel}</Relationships>`)},
+    {name:'xl/styles.xml', data:xenc(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font></fonts>
+<fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF0E7C7B"/><bgColor indexed="64"/></patternFill></fill></fills>
+<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>
+<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+<cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/></cellXfs>
+<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
+</styleSheet>`)}
+  ];
+  sheets.forEach((s,i)=>files.push({name:'xl/worksheets/sheet'+(i+1)+'.xml', data:xenc(sheetXML(s.H, s.rows))}));
+  return zipStore(files);
+}
+function evRows(){
+  const H=['Data','Ora','Tip','Glicemie','Sursa','Insulina','Unitati','Scop','Alimente','HC','Greutate','Nota'];
+  const rows=[...S.events].map(e=>{
+    const r={Data:dKey(e.ts), Ora:tHM(e.ts), Tip:TYPE_RO[e.type]||e.type, Glicemie:'',Sursa:'',Insulina:'',Unitati:'',Scop:'',Alimente:'',HC:'',Greutate:'',Nota:''};
+    if(e.type==='gluc'){ r.Glicemie=e.gluc.v; r.Sursa=e.gluc.src; }
+    if(e.type==='ins'){ r.Insulina=e.ins.name; r.Unitati=e.ins.u; r.Scop=e.ins.kind; }
+    if(e.type==='meal'){ r.Alimente=e.meal.items.map(i=>i.name+(i.grams?' ['+i.grams+'g]':'')+' = '+i.hc+'HC').join(' + '); r.HC=e.meal.hc||''; r.Nota=e.meal.note||''; }
+    if(e.type==='kg'){ r.Greutate=e.kg.v; }
+    if(e.type==='note'||e.type==='act'){ r.Nota=e.note.text; }
+    return r;
+  });
+  return {H, rows};
+}
+function exportXLSX(){
+  try{
+    const {H, rows}=evRows();
+    const fH=['Aliment','Mod','HC','Favorit','Folosit de'];
+    const fRows=S.foods.map(f=>({Aliment:f.name, Mod:f.mode==='per100'?'la 100 g':'pe porție',
+      HC:f.val, Favorit:f.fav?'da':'', 'Folosit de':f.uses||0}));
+    const buf=buildXLSX([{name:'Jurnal', H, rows},{name:'Alimente', H:fH, rows:fRows}]);
+    downloadOrShare('Nivelo_'+(S.settings.name||'profil')+'_'+stamp()+'.xlsx',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', buf);
+    toast('Fișier Excel generat');
+  }catch(err){
+    toast('Exportul Excel nu a reușit; încearcă CSV');
+  }
+}
+function importFile(inp){
+  const f=inp.files[0]; if(!f) return; inp.value='';
+  if(f.size>15*1024*1024){ shAlert('Verifică dacă e într-adevăr un backup Nivelo.', {ic:'📦', title:'Fișierul e prea mare', ok:'Am înțeles'}); return; }
+  const rd=new FileReader();
+  rd.onerror=()=>shAlert('Încearcă din nou sau alege alt fișier.', {ic:'⚠️', title:'Fișierul nu a putut fi citit'});
+  rd.onload=()=>{
+    const txt=String(rd.result||'');
+    const isJson=f.name.toLowerCase().endsWith('.json');
+    const isCsv=f.name.toLowerCase().endsWith('.csv');
+    if(!isJson && !isCsv){
+      shAlert('Nivelo acceptă doar:\n• backup .json (creat din „Backup acum")\n• tabel .csv (creat din „Export")', {ic:'📄', title:'Tip de fișier nerecunoscut'});
+      return;
+    }
+    if(isJson){ importJSON(txt); } else { importCSVsafe(txt); }
+  };
+  rd.readAsText(f,'utf-8');
+}
+function importJSON(txt){
+  let d;
+  try{ d=JSON.parse(txt); }
+  catch(e){ shAlert('Datele tale actuale NU au fost modificate. Încearcă alt backup.', {ic:'⚠️', title:'Fișierul .json pare deteriorat'}); return; }
+  // validare structură
+  if(typeof d!=='object' || !d || !Array.isArray(d.events) || typeof d.settings!=='object' || !d.settings){
+    shAlert('Datele tale actuale NU au fost modificate.', {ic:'📄', title:'Nu are structura unui backup Nivelo'}); return;
+  }
+  // validare minimală a câtorva evenimente (să fie cu adevărat Nivelo)
+  const bad = d.events.some(e=>!e || typeof e!=='object' || typeof e.ts!=='number' || !e.type);
+  if(bad){ shAlert('Datele tale actuale NU au fost modificate.', {ic:'⚠️', title:'Backupul conține intrări nevalide'}); return; }
+  shConfirm('Înlocuiește COMPLET datele de pe acest telefon. Păstrez o copie a jurnalului actual, ca să poți reveni dacă ai pus alt fișier decât voiai.', async ()=>{
+    if(!Array.isArray(d.foods)) d.foods=seedFoods();
+    // copia se face ÎNAINTE de orice modificare; altfel nu mai are ce salva
+    const nVechi=S.events.length;
+    const pastrat = nVechi>0 ? await idbSave(JSON.stringify(S), IDB_PREV) : false;
+    S=d; sortEv(); save(); go('today');
+    if(pastrat){
+      shAlert(nUnit(d.events.length,'intrări','o intrare')+' din backup sunt acum în aplicație.\n'
+        +'Am pus deoparte și jurnalul dinainte, cu '+nUnit(nVechi,'intrări','o intrare')+'.',
+        {ic:'✅', title:'Backup restaurat', ok:'E bine așa',
+         alt:{t:'Nu era backupul potrivit, anulează', go:'undoRestore()'}});
+    } else {
+      toast('Backup restaurat');
+    }
+  }, {title:'Backup din '+esc(d.settings.name||'?')+' cu '+nUnit(d.events.length,'intrări','o intrare'), confirmLabel:'Continuă, înlocuiește datele'});
+}
+/* Întoarcerea la jurnalul dinainte de restaurare. Nu are termen de expirare:
+   cineva poate realiza abia peste o oră că a pus backupul greșit. */
+async function undoRestore(){
+  closeSheet2();
+  const prev=await idbLoad(IDB_PREV);
+  if(!prev){
+    shAlert('Nu mai găsesc copia dinainte de restaurare. Dacă ai un fișier de backup mai vechi, îl poți pune la loc din Mai mult, Import.',
+      {ic:'🔎', title:'Copia nu mai există'});
+    return;
+  }
+  shConfirm('Pun la loc jurnalul dinainte, cu '+nUnit(prev.n,'intrări','o intrare')+'. Datele venite din backup se pierd.',
+    async ()=>{
+      S=prev.data; sortEv(); save();
+      await idbDelete(IDB_PREV);
+      go('today'); renderToday(); renderMore(); bannerCheck(); renderBkLine();
+      toast('Jurnalul dinainte e înapoi');
+    }, {title:'Anulezi restaurarea?', confirmLabel:'Pune jurnalul înapoi'});
+}
+function importCSVsafe(txt){
+  let r;
+  try{ r=importCSV(txt); }
+  catch(e){
+    shAlert('Datele tale actuale NU au fost modificate. Folosește un CSV exportat din Nivelo.', {ic:'⚠️', title:'Fișierul CSV nu a putut fi procesat'});
+    return;
+  }
+  if(r.error){
+    shAlert(r.error+'\n\nDatele tale actuale NU au fost modificate.', {ic:'⚠️', title:'Importul nu a reușit'});
+    return;
+  }
+  if(r.added===0 && r.foodsAdded===0){
+    shAlert(r.skipped?('Cele '+nUnit(r.skipped,'zile')+' din fișier existau deja în aplicație.'):'Fișierul nu conținea intrări recunoscute.', {ic:'ℹ️', title:'Nu s-a importat nimic nou'});
+    return;
+  }
+  let msg='Import reușit: '+nUnit(r.added,'intrări noi','o intrare nouă')+(r.foodsAdded?(' și '+nUnit(r.foodsAdded,'alimente','un aliment')):'')+'.';
+  if(r.skipped) msg+='\n'+nUnit(r.skipped,'zile existau','o zi exista')+' deja și au fost sărite (protecție anti-dubluri).';
+  shAlert(msg, {ic:'✅', title:'Import reușit', ok:'Perfect'});
+  setUndo({op:'import', ids:r.ids, foodIds:r.foodIds,
+           label:'Importate '+nUnit(r.added,'intrări','o intrare'), undone:'Importul a fost anulat'});
+  go('today');
+}
+function importCSV(txt){
+  txt=String(txt||'').replace(/^\uFEFF/,'').replace(/^sep=.\r?\n/,'');
+  const firstLine=(txt.split('\n')[0]||'');
+  const lines=parseCSV(txt, firstLine.includes(';')?';':',');
+  if(!lines.length) return {error:'Fișierul CSV este gol.'};
+  const H=lines.shift().map(h=>h.trim());
+  const ix=n=>H.indexOf(n);
+  // validare header: trebuie să fie un CSV Nivelo (măcar Data+Tip)
+  if(ix('Tip')<0 || (ix('Data')<0 && !H.includes('Alimente'))){
+    return {error:'Fișierul nu pare un CSV exportat din Nivelo (lipsesc coloanele așteptate).'};
+  }
+  const seen=new Set(S.events.map(e=>e.ts+'|'+e.type));
+  const existingDays=new Set(S.events.map(e=>dKey(e.ts)));
+  const K2T={'Glicemie':'gluc','Masă':'meal','Masa':'meal','Insulină':'ins','Insulina':'ins','Greutate':'kg','Notă':'note','Nota':'note','Activitate':'act'};
+  // STAGING: construim în copii separate; comitem în S doar la final, dacă totul e ok
+  const newEvents=[], newFoods=[]; const skipped=new Set();
+  lines.forEach(c=>{
+    if(c.length<2) return;
+    if(c[ix('Tip')]==='Aliment'){
+      const name=(c[ix('Alimente')]||'').trim(), val=parseFloat(String(c[ix('HC')]).replace(',','.'));
+      if(name&&val>0 && !S.foods.some(f=>f.name.toLowerCase()===name.toLowerCase()) && !newFoods.some(f=>f.name.toLowerCase()===name.toLowerCase()))
+        newFoods.push({id:uid(),name,mode:c[ix('Scop')]==='portie'?'portie':'per100',val,fav:(c[ix('Sursa')]||'').includes('fav'),uses:0});
+      return;
+    }
+    if(ix('Data')<0 || !c[ix('Data')]) return;
+    if(existingDays.has(c[ix('Data')])){ skipped.add(c[ix('Data')]); return; }
+    const ts=new Date(c[ix('Data')]+'T'+(c[ix('Ora')]||'12:00')).getTime();
+    if(isNaN(ts)) return;
+    const tp=K2T[c[ix('Tip')]]; if(!tp) return;
+    if(seen.has(ts+'|'+tp)) return;
+    const e={id:uid(), ts, type:tp};
+    if(tp==='gluc'){ const v=parseFloat(c[ix('Glicemie')]); if(!v||v<20||v>900) return; e.gluc={v, src:c[ix('Sursa')]||'deget'}; }
+    if(tp==='ins'){ const u=parseFloat(c[ix('Unitati')]); if(!u||u<=0||u>100) return; e.ins={name:c[ix('Insulina')]||'Fiasp', u, kind:c[ix('Scop')]||'bolus'}; }
+    if(tp==='meal'){
+      const items=(c[ix('Alimente')]||'').split(' + ').filter(Boolean).map(x=>{
+        const m=x.match(/^(.*?)(?:\s*\[(\d+(?:[.,]\d+)?)g\])?\s*=\s*([\d.,]+)HC$/);
+        return m? {name:m[1].trim(), grams:m[2]?parseFloat(m[2].replace(',','.')):null, hc:parseFloat(m[3].replace(',','.'))||0} : {name:x.trim(), grams:null, hc:0};
+      });
+      e.meal={items, hc:parseFloat(String(c[ix('HC')]).replace(',','.'))||items.reduce((a,i)=>a+i.hc,0), note:c[ix('Nota')]||''};
+    }
+    if(tp==='kg'){ const v=parseFloat(String(c[ix('Greutate')]).replace(',','.')); if(!v||v<20||v>400) return; e.kg={v}; }
+    if(tp==='note'||tp==='act'){ const t=(c[ix('Nota')]||'').trim(); if(!t) return; e.note={text:t}; }
+    newEvents.push(e);
+  });
+  // COMIT: abia acum atingem datele reale
+  S.events.push(...newEvents);
+  S.foods.push(...newFoods);
+  sortEv(); save();
+  return {added:newEvents.length, foodsAdded:newFoods.length, skipped:skipped.size,
+          ids:newEvents.map(e=>e.id), foodIds:newFoods.map(f=>f.id)};
+}
+function parseCSV(txt, sep){
+  const out=[]; let row=[], cur='', inQ=false;
+  for(let i=0;i<txt.length;i++){
+    const ch=txt[i];
+    if(inQ){ if(ch==='"'){ if(txt[i+1]==='"'){cur+='"';i++;} else inQ=false; } else cur+=ch; }
+    else if(ch==='"') inQ=true;
+    else if(ch===sep){ row.push(cur); cur=''; }
+    else if(ch==='\n'||ch==='\r'){ if(cur!==''||row.length){ row.push(cur); out.push(row); row=[]; cur=''; } }
+    else cur+=ch;
+  }
+  if(cur!==''||row.length){ row.push(cur); out.push(row); }
+  return out;
+}
+
+/* ================= RAPORT MEDIC ================= */
+let RP={days:90, det:false};
+function shReport(){
+  openSheet(`<h3>Raport pentru doctor</h3>
+    <div class="frow"><label>Perioada</label><div class="chips" id="rper">
+      <button class="chip" data-v="30">30 zile</button>
+      <button class="chip on" data-v="90">90 zile</button>
+      <button class="chip" data-v="180">180 zile</button></div></div>
+    <div class="frow"><label>Nivel de detaliu</label><div class="chips" id="rlvl">
+      <button class="chip on" data-v="macro">Macro (doar imaginea de ansamblu)</button>
+      <button class="chip" data-v="micro">Detaliat (plus jurnalul pe zile)</button></div></div>
+    <p class="muted" style="margin:-4px 0 12px">Raportul detaliat include jurnalul complet al perioadei alese; la 90+ zile pot ieși multe pagini.</p>
+    <p class="muted">Se deschide fereastra de tipărire. Alege „Salvează ca PDF" și trimite-l sau pune-l în folderul Drive partajat.</p>
+    <button class="btn btn-p" onclick="doReport(parseInt(chipVal('rper')), chipVal('rlvl')==='micro')">Generează raportul</button>`);
+  chipify('rper'); chipify('rlvl');
+}
+function bucketLabel(ts, byWeek){
+  const d=new Date(ts);
+  if(byWeek){ const on=new Date(d); on.setDate(d.getDate()-((d.getDay()+6)%7));
+    return on.getDate()+' '+LUNI[on.getMonth()]+(on.getFullYear()!==new Date().getFullYear()?' '+on.getFullYear():''); }
+  return LUNI[d.getMonth()]+' '+d.getFullYear();
+}
+function bucketKey(ts, byWeek){
+  const d=new Date(ts);
+  if(byWeek){ const on=new Date(d); on.setDate(d.getDate()-((d.getDay()+6)%7)); return dKey(on.getTime()); }
+  return d.getFullYear()+'-'+two(d.getMonth()+1);
+}
+function doReport(days, detailed){
+  const d0=new Date(); d0.setHours(0,0,0,0);
+  const from=d0.getTime()-(days-1)*MS_D;
+  const evs=S.events.filter(e=>e.ts>=from);
+  const g=evs.filter(e=>e.type==='gluc').map(e=>({v:e.gluc.v,ts:e.ts}));
+  if(!g.length){ toast('Nu există date în această perioadă'); return; }
+  const s=S.settings, vals=g.map(x=>x.v);
+  const avg=vals.reduce((a,b)=>a+b,0)/vals.length, a1c=(avg+46.7)/28.7;
+  const nl=vals.filter(v=>v<s.low).length, ni=vals.filter(v=>v>=s.low&&v<=s.high).length;
+  const daysSet=[...new Set(evs.map(e=>dKey(e.ts)))].sort();
+  const nd=Math.max(daysSet.length,1);
+  const ins=evs.filter(e=>e.type==='ins');
+  const todayStart=d0.getTime();
+  const cEvs=S.events.filter(e=>e.ts>=todayStart-days*MS_D && e.ts<todayStart);
+  const cDays=new Set(cEvs.map(e=>dKey(e.ts))).size||1;
+  const cIns=cEvs.filter(e=>e.type==='ins');
+  const rapidByDay={}, bazByDay={}, corrByDay={}, hcByDay={};
+  cEvs.forEach(e=>{ const k=dKey(e.ts);
+    if(e.type==='ins'){ if(e.ins.kind==='bazala') bazByDay[k]=(bazByDay[k]||0)+e.ins.u;
+      else { rapidByDay[k]=(rapidByDay[k]||0)+e.ins.u; if(e.ins.kind==='corectie') corrByDay[k]=(corrByDay[k]||0)+1; } }
+    if(e.type==='meal') hcByDay[k]=(hcByDay[k]||0)+(e.meal.hc||0); });
+  const dk=[...new Set(cEvs.map(e=>dKey(e.ts)))];
+  const arr=o=>dk.map(k=>o[k]||0);
+  const bolMeals=cIns.filter(e=>e.ins.kind==='bolus').map(e=>e.ins.u);
+  const bazTip=median(Object.values(bazByDay));
+  // semnalăm zilele cu mai multe doze de bazală: de obicei o greșeală de notare,
+  // iar totalul zilei apare atunci dublat și strică extremele
+  const bazPerDay={};
+  cIns.filter(e=>e.ins.kind==='bazala').forEach(e=>{ const k=dKey(e.ts); bazPerDay[k]=(bazPerDay[k]||0)+1; });
+  const bazMulti=Object.keys(bazPerDay).filter(k=>bazPerDay[k]>1);
+  const bazAnomaly = bazMulti.length
+    ? ` <b>De verificat:</b> ${bazMulti.length===1?'într-o zi':nUnit(bazMulti.length,'zile')} apar mai multe doze de bazală (${bazMulti.slice(0,3).join(', ')}${bazMulti.length>3?' …':''}), deci totalul acelei zile e însumat. Dacă e o notare dublă, o poți corecta din Istoric.`
+    : '';
+  const hcAll=cEvs.filter(e=>e.type==='meal').reduce((a,e)=>a+(e.meal.hc||0),0);
+  // evoluție pe săptămâni (≤35 zile) sau pe luni
+  const byWeek = days<=35;
+  const buckets={};
+  g.forEach(x=>{ const k=bucketKey(x.ts,byWeek); (buckets[k]=buckets[k]||{vs:[],ts:x.ts}).vs.push(x.v); });
+  ins.filter(e=>e.ins.kind==='corectie').forEach(e=>{ const k=bucketKey(e.ts,byWeek); if(buckets[k]) buckets[k].cor=(buckets[k].cor||0)+1; });
+  // insulina pe perioade: doar zile complete
+  const bDays={}, bBol={}, bBaz={};
+  cEvs.forEach(e=>{ const k=bucketKey(e.ts,byWeek); (bDays[k]=bDays[k]||new Set()).add(dKey(e.ts)); });
+  cIns.forEach(e=>{ const k=bucketKey(e.ts,byWeek);
+    if(e.ins.kind==='bazala'){ const dk=dKey(e.ts); (bBaz[k]=bBaz[k]||{}); bBaz[k][dk]=(bBaz[k][dk]||0)+e.ins.u; }
+    else bBol[k]=(bBol[k]||0)+e.ins.u; });
+  const trendRows=Object.keys(buckets).sort().map(k=>{
+    const b=buckets[k], m=b.vs.reduce((a,x)=>a+x,0)/b.vs.length;
+    const tir=Math.round(b.vs.filter(v=>v>=s.low&&v<=s.high).length/b.vs.length*100);
+    const hypo=b.vs.filter(v=>v<s.low).length;
+    const ndB=bDays[k]?bDays[k].size:0;
+    const rap=ndB? fmtN((bBol[k]||0)/ndB)+' U':'—';
+    const bz=bBaz[k]? fmtN(median(Object.values(bBaz[k])))+' U':'—';
+    return `<tr><td>${byWeek?'Săpt. din ':''}${bucketLabel(b.ts,byWeek)}</td><td>${Math.round(m)}</td><td>${fmtN((m+46.7)/28.7)}%</td><td>${tir}%</td><td>${hypo}</td><td>${b.cor||0}</td><td>${rap}</td><td>${bz}</td><td>${b.vs.length}</td></tr>`;
+  }).join('');
+  const parts=['Dimineața','Prânz','Cină','Seara / noaptea'];
+  const rowsPart=parts.map(p=>{ const pv=g.filter(x=>daypart(x.ts)===p).map(x=>x.v);
+    return `<tr><td>${p}</td><td>${pv.length?Math.round(pv.reduce((a,b)=>a+b,0)/pv.length):'—'}</td><td>${pv.length?Math.min(...pv):'—'}</td><td>${pv.length?Math.max(...pv):'—'}</td><td>${pv.length}</td></tr>`; }).join('');
+  const kg=evs.filter(e=>e.type==='kg');
+  let journal='';
+  if(detailed){
+    const jDays=[...daysSet].reverse();
+    journal='<h2>Jurnal detaliat, toate cele '+nUnit(daysSet.length,'zile')+' cu date din perioadă</h2><table><tr><th>Ziua</th><th>Evenimente</th></tr>'+
+      jDays.map(k=>{
+        const de=evOfDay(k).slice().sort((a,b)=>a.ts-b.ts);
+        const parts=['Dimineața','Prânz','Cină','Seara / noaptea'];
+        const evLine=e=>{
+          if(e.type==='gluc') return tHM(e.ts)+': glicemie '+e.gluc.v;
+          if(e.type==='ins') return tHM(e.ts)+': '+fmtN(e.ins.u)+' U '+e.ins.name+(e.ins.kind==='corectie'?' (corecție)':(e.ins.kind==='bazala'?' (bazală)':''));
+          if(e.type==='meal') return tHM(e.ts)+': masă '+(e.meal.hc?fmtN(e.meal.hc)+' HC: ':'')+e.meal.items.map(i=>i.name).join(', ').slice(0,180)+(e.meal.note?' · '+esc(e.meal.note):'');
+          if(e.type==='kg') return tHM(e.ts)+': greutate '+fmtN(e.kg.v)+' kg';
+          return tHM(e.ts)+': '+esc(e.note.text).slice(0,180);
+        };
+        let blocks='';
+        parts.forEach(p=>{
+          const pe=de.filter(e=>daypart(e.ts)===p);
+          if(!pe.length) return;
+          const hc=pe.filter(e=>e.type==='meal').reduce((a,e)=>a+(e.meal.hc||0),0);
+          const label=p.replace(' / noaptea','');
+          blocks+=`<div style="margin-top:4px"><b>${label}</b>${hc>0?` <span style="color:#B0672E">· ${fmtHC(hc)} HC</span>`:''}<br>`+
+                  pe.map(evLine).join('<br>')+'</div>';
+        });
+        return `<tr><td style="white-space:nowrap;vertical-align:top">${dNice(de[0].ts)}</td><td>${blocks}</td></tr>`;
+      }).join('')+'</table>';
+  }
+  $('report').innerHTML=`
+    <h1>Jurnal glicemic · ${esc(s.name||'')}</h1>
+    <div class="rmeta">Perioada: ultimele ${nUnit(days,'zile')}, până la ${dNice(Date.now())} · ${nUnit(daysSet.length,'zile')} cu date · Țintă: ${s.low}–${s.high} mg/dl · Generat din Nivelo</div>
+    <div style="border:1px solid #ccc; border-radius:8px; padding:10px 13px; margin:12px 0; font-size:calc(12px*var(--fs)); color:#333; line-height:1.55">
+      <b style="display:block; margin-bottom:4px">Cum se citesc cifrele din raport</b>
+      <div><b>Tipic</b> = valoarea din mijloc a datelor, cea în jurul căreia stau cele mai multe (mediana).</div>
+      <div><b>Jumătatea din mijloc</b> (a zilelor sau a meselor) = zona în care se încadrează jumătatea din mijloc a valorilor, lăsând deoparte sfertul cel mai mic și sfertul cel mai mare; e mai aproape de realitate decât extremele.</div>
+      <div><b>Extreme</b> = cea mai mică și cea mai mare valoare; pot proveni dintr-o singură zi neobișnuită.</div>
+      <div><b>Nr. observații (n)</b> = pe câte zile, respectiv mese, se sprijină cifra.</div>
+      <div><b>În țintă</b> = procentul măsurătorilor între ${s.low} și ${s.high} mg/dl.</div>
+      <div><b>HbA1c estimat</b> = aproximare din media glicemiilor capilare; orientativă, nu analiză de laborator.</div>
+    </div>
+    <h2>Imagine de ansamblu</h2>
+    <table>
+      <tr><th>Medie glicemică</th><th>HbA1c estimat*</th><th>În țintă</th><th>Sub țintă (hipo)</th><th>Peste țintă</th><th>Măsurători</th><th>Măsurători / zi cu date</th></tr>
+      <tr><td><b>${Math.round(avg)} mg/dl</b></td><td><b>${fmtN(a1c)}%</b></td><td>${Math.round(ni/vals.length*100)}%</td>
+          <td>${Math.round(nl/vals.length*100)}% (${nl})</td><td>${Math.round((vals.length-nl-ni)/vals.length*100)}%</td><td>${vals.length}</td><td>${fmtN(vals.length/nd)}</td></tr>
+    </table>
+    <h2>Evoluția pe ${byWeek?'săptămâni':'luni'}</h2>
+    <table><tr><th>${byWeek?'Săptămâna':'Luna'}</th><th>Medie</th><th>A1c est.</th><th>În țintă</th><th>Hipo</th><th>Corecții</th><th>Rapidă/zi</th><th>Bazală/zi</th><th>Măsurători</th></tr>${trendRows}</table>
+    <h2>Glicemii pe momente ale zilei</h2>
+    <table><tr><th>Moment</th><th>Medie</th><th>Min</th><th>Max</th><th>Nr.</th></tr>${rowsPart}</table>
+    <h2>Insulină și mese, pe zile complete (ziua curentă exclusă)</h2>
+    <table>
+      <tr><th>Indicator</th><th>Tipic (mediană)</th><th>Jumătatea din mijloc</th><th>Extreme</th><th>Nr. observații</th></tr>
+      ${statRow('Rapidă / zi', arr(rapidByDay).filter(x=>x>0), ' U')}
+      ${statRow('Bazală / zi', Object.values(bazByDay).filter(x=>x>0), ' U')}
+      ${statRow('Corecții / zi', arr(corrByDay), '')}
+      ${statRow('HC / zi', arr(hcByDay).filter(x=>x>0), '')}
+      ${statRow('Rapidă / masă', bolMeals.filter(x=>x>0), ' U')}
+    </table>
+    <p style="color:#444; font-size:calc(12px*var(--fs))">„Jumătatea din mijloc" = zona în care se încadrează jumătatea din mijloc a valorilor, fără sfertul cel mai mic și cel mai mare; e mai aproape de realitate decât extremele, care pot veni dintr-o singură zi neobișnuită. „Nr. observații" = numărul de zile, cu excepția rândului „Rapidă / masă", unde sunt mese. <b>Corecțiile includ și zilele fără nicio corecție</b>, ca frecvența să fie reală. Pentru insulină și carbohidrați se numără doar zilele în care s-a notat ceva, fiindcă o zi nenotată nu înseamnă o zi fără mâncare sau fără insulină.${bazAnomaly}</p>
+    ${(function(){
+      const icr=computeICR(cEvs); const isf=computeISF(cEvs);
+      const parts=['Dimineața','Prânz','Cină','Seara'];
+      const rows=parts.map(p=>{ const v=(icr[p]||[]).filter(x=>x>0);
+        if(!v.length) return `<tr><td>${p}</td><td colspan="4">nu s-au putut forma perechi masă+bolus</td></tr>`;
+        const r=x=>Math.round(x);
+        return `<tr><td>${p}</td><td><b>1 U la ${r(median(v))} g</b></td>`
+          +`<td>1 U la ${r(pctl(v,.25))}–${r(pctl(v,.75))} g</td>`
+          +`<td>1 U la ${r(Math.min(...v))}–${r(Math.max(...v))} g</td>`
+          +`<td>${v.length}</td></tr>`; }).join('');
+      const isfLine = isf.vals.length>=10
+        ? `scădere tipică <b>${Math.round(median(isf.vals))} mg/dl la 1 U</b>; jumătatea corecțiilor între ${Math.round(pctl(isf.vals,.25))} și ${Math.round(pctl(isf.vals,.75))} mg/dl la 1 U (extreme ${Math.round(Math.min(...isf.vals))}–${Math.round(Math.max(...isf.vals))}), din ${nUnit(isf.clean,'corecții care intră în calcul','o corecție care intră în calcul')}`
+        : `<b>date insuficiente pentru o estimare fiabilă</b>: doar ${nUnit(isf.clean,'corecții care intră în calcul','o corecție care intră în calcul')} din cele ${isf.total} din perioadă. Se afișează o valoare de la 10 în sus`;
+      return `<h2>Parametri derivați: ICR și ISF (observați, ziua curentă exclusă)</h2>
+        <p style="color:#444">Valori <b>descriptive</b>, calculate din ce s-a practicat efectiv. Nu sunt recomandări de dozare; interpretarea aparține medicului.</p>
+        <h3 style="font-size:calc(14px*var(--fs)); margin:10px 0 4px">ICR: raportul insulină/carbohidrați</h3>
+        <p style="color:#444; font-size:calc(12px*var(--fs))">Se formează perechi între fiecare masă cu carbohidrați notați și bolusul rapid cel mai apropiat, dacă cele două sunt la cel mult 25 de minute distanță. Pentru fiecare pereche se calculează câte grame de carbohidrați au revenit unei unități. Mesele fără bolus asociat, sau sub 5 / peste 200 g HC, nu intră în calcul.</p>
+        <table><tr><th>Moment</th><th>Tipic (mediană)</th><th>Jumătatea meselor</th><th>Extreme</th><th>Nr. perechi</th></tr>${rows}</table>
+        <p style="color:#444; font-size:calc(12px*var(--fs))">„Jumătatea meselor" = zona în care se încadrează jumătatea din mijloc a meselor, fără cele mai mici și cele mai mari valori; extremele provin adesea din mese la care ora notată a bolusului nu a coincis exact cu masa, deci sunt de citit cu rezervă. „Nr. perechi" arată pe câte perechi masă+bolus se sprijină cifra.</p>
+        <h3 style="font-size:calc(14px*var(--fs)); margin:14px 0 4px">ISF: factorul de corecție</h3>
+        <p style="color:#444; font-size:calc(12px*var(--fs))">Arată cu cât a scăzut glicemia după o unitate de insulină administrată ca <i>corecție</i>. Se iau în calcul doar corecțiile „curate": cele care au o glicemie măsurată în cele 30 de minute dinainte, o alta la 2–4 h după, și <b>nicio masă și niciun alt bolus în acest interval</b>, altfel scăderea nu poate fi atribuită corecției. Din acest motiv, numărul de corecții care intră în calcul e de obicei mult mai mic decât numărul total de corecții.</p>
+        <p style="margin-top:4px">${isfLine}.</p>`;
+    })()}
+    <p style="color:#444">Valorile sunt interval minim–maxim pe ${nUnit(cDays,'zile')} complete; „tipic" = mediana. Doza zilnică de bazală și dozele la masă se citesc astfel mai fidel decât ca medie unică.</p>
+    ${kg.length?`<h2>Greutate</h2><p>${fmtN(kg[0].kg.v)} kg (${dNice(kg[0].ts)}) → ${fmtN(kg[kg.length-1].kg.v)} kg (${dNice(kg[kg.length-1].ts)})</p>`:''}
+    <p>*HbA1c estimat din media măsurătorilor capilare (formula ADA eAG→A1c); tendință orientativă, nu înlocuiește dozarea de laborator.</p>
+    ${journal}`;
+  closeSheet();
+  window.print();
+}
+function shDelDay(){
+  openSheet(`<h3>Șterge o zi din jurnal</h3>
+    <div class="frow"><label>Data</label><input class="inp" type="date" id="dd" value="${dKey(Date.now())}"></div>
+    <p class="muted">Șterge toate intrările din ziua aleasă. Folosește-o când o zi a fost dublată, apoi poți reimporta CSV-ul: zilele goale se completează la loc din istoric.</p>
+    <button class="btn btn-p" onclick="okDelDay()">Șterge ziua</button>`);
+}
+function okDelDay(){
+  const v=$('dd').value; if(!v){ toast('Alege data'); return; }
+  const gone=S.events.filter(e=>dKey(e.ts)===v);
+  const n=gone.length;
+  if(!n){ toast('Nicio intrare în ziua aleasă'); return; }
+  shConfirm('Vei putea anula imediat după, dacă te răzgândești.', ()=>{
+    S.events=S.events.filter(e=>dKey(e.ts)!==v); save();
+    setUndo({op:'del', items:gone, label:nUnit(n,'intrări șterse','o intrare ștearsă')+' din '+v, undone:'Ziua a revenit în jurnal'});
+    renderToday(); renderHist();
+  }, {title:'Ștergi '+nUnit(n,'intrări','o intrare')+' din '+v+'?', confirmLabel:'Șterge ziua'});
+}
+
+/* ================= SETĂRI + ONBOARDING ================= */
+function shSettings(first){
+  const s=S.settings;
+  openSheet(`<h3>${first?'Bine ai venit! Hai să te setăm.':'Profil & ținte'}</h3>
+    <div class="frow"><label>Numele tău</label><input class="inp" id="sname" value="${esc(s.name)}" placeholder="ex: Costi"></div>
+    <div class="rowflex">
+      <div class="frow"><label>Țintă jos</label><input class="inp num" id="slow" type="number" value="${s.low}"></div>
+      <div class="frow"><label>Țintă sus</label><input class="inp num" id="shigh" type="number" value="${s.high}"></div>
+    </div>
+    <div class="rowflex">
+      <div class="frow"><label>Insulină rapidă</label><input class="inp" id="sins0" value="${esc(s.insulins[0])}"></div>
+      <div class="frow"><label>Insulină bazală</label><input class="inp" id="sins1" value="${esc(s.insulins[1])}"></div>
+    </div>
+    <div class="frow"><label>Sursă glicemie implicită</label><div class="chips" id="ssrc">
+      <button class="chip ${(s.defSrc||'deget')==='deget'?'on':''}" data-v="deget">Din deget</button>
+      <button class="chip ${s.defSrc==='senzor'?'on':''}" data-v="senzor">Senzor</button></div></div>
+    <div class="frow"><label>Temă</label><div class="chips" id="stheme">
+      <button class="chip ${(s.theme||'auto')==='auto'?'on':''}" data-v="auto">Auto</button>
+      <button class="chip ${s.theme==='light'?'on':''}" data-v="light">Luminoasă</button>
+      <button class="chip ${s.theme==='dark'?'on':''}" data-v="dark">Întunecată</button></div></div>
+    <div class="frow"><label>Mărimea textului</label><div class="chips" id="sfs">
+      <button class="chip ${!s.fs||s.fs==='1'?'on':''}" data-v="1">Normal</button>
+      <button class="chip ${s.fs==='1.15'?'on':''}" data-v="1.15">Mare</button>
+      <button class="chip ${s.fs==='1.3'?'on':''}" data-v="1.3">Foarte mare</button>
+      <button class="chip ${s.fs==='1.45'?'on':''}" data-v="1.45">Maxim</button></div>
+      <p class="muted" style="margin-top:5px">Mărește textul din jurnal, statistici și ferestre. Bara de sus și butoanele de jos rămân la fel, ca să nu acopere conținutul.</p></div>
+    <button class="btn btn-p" onclick="okSettings(${first?'true':'false'})">${first?'Începem':'Salvează'}</button>
+    ${first?'<p class="muted" style="margin-top:10px">Datele rămân doar pe acest telefon. Aplicația îți va aminti săptămânal să faci un backup.</p>':''}`);
+  chipify('ssrc'); chipify('stheme'); chipify('sfs');
+}
+function shConsent(){
+  $('veil').classList.add('on'); $('sheet').classList.add('on'); syncLock();
+  $('sheet').innerHTML=`<h3>Bine ai venit la Nivelo 👋</h3>
+    <p><b>Nivelo e un jurnal personal de diabet.</b> Notezi tu glicemiile, mesele și insulina, iar aplicația le organizează, îți arată tendințele și îți face rezumate pentru medic.</p>
+    <p style="margin-top:10px">Pe scurt, ca să fim în siguranță: <b>nu e un dispozitiv medical</b>, nu dă sfaturi și nu calculează doze. Deciziile de tratament rămân între tine și medicul tău (urgențe: 112). Datele stau doar pe telefonul tău.</p>
+    <p class="muted" style="margin-top:8px">Poți reciti oricând aceste detalii la <b>Mai mult → Despre</b>.</p>
+    <button class="btn btn-p" onclick="acceptConsent()">Am înțeles, să începem</button>`;
+}
+function acceptConsent(){
+  S.settings.accepted=Date.now(); save(); closeSheet();
+  if(!S.settings.name) shSettings(true);
+}
+function applyFontScale(){
+  const v=parseFloat(S.settings.fs||'1');
+  document.documentElement.style.setProperty('--fs', (v>=1&&v<=2)? v : 1);
+}
+function applyTheme(){
+  const pref=S.settings.theme||'auto';
+  const dark = pref==='dark' || (pref==='auto' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.dataset.theme = dark?'dark':'light';
+}
+if(window.matchMedia){ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', ()=>{ if((S.settings.theme||'auto')==='auto') applyTheme(); }); }
+function okSettings(first){
+  const s=S.settings;
+  s.name=$('sname').value.trim();
+  s.low=parseInt($('slow').value)||70; s.high=parseInt($('shigh').value)||180;
+  s.insulins=[$('sins0').value.trim()||'Fiasp', $('sins1').value.trim()||'Tresiba'];
+  s.basal=s.insulins[1];
+  s.defSrc=chipVal('ssrc')||'deget';
+  s.theme=chipVal('stheme')||'auto';
+  s.fs=chipVal('sfs')||'1';
+  applyTheme(); applyFontScale();
+  // La prima configurare punem un „lastBackup" de referință, ca reminderul de backup
+  // să nu sară pe cineva care abia a intrat. E un ceas de pornire, NU un backup real,
+  // deci îl marcăm: lista „Cei 4 pași" trebuie să vadă pasul ca nefăcut.
+  if(first && !s.lastBackup){ s.lastBackup=Date.now(); s.bkFake=1; }
+  save(); closeSheet(); renderToday(); renderMore();
+  if(first) setTimeout(shTour, 350);
+}
+let TOUR=0;
+const TOUR_STEPS=[
+  {ic:'☀️', t:'Notează în câteva atingeri', d:'Pe pagina <b>Azi</b>, cele patru butoane mari (Glicemie, Masă, Insulină, Altele) îți adaugă o intrare în câteva secunde. Ziua se construiește singură, în ordine.'},
+  {ic:'📈', t:'Vezi-ți tendințele', d:'La <b>Statistici</b> ai media, HbA1c estimat, timpul în țintă și dozele tipice. La <b>Istoric</b> cauți orice ai notat vreodată: un aliment, o zi, o situație.'},
+  {ic:'🛟', t:'Fă backup regulat', d:'Datele tale stau <b>doar pe acest telefon</b>. Din <b>Mai mult → Backup</b> salvezi un fișier (de exemplu în Google Drive); e plasa ta de siguranță dacă schimbi telefonul sau ștergi aplicația.<br><br>Ca să nu uiți, aplicația îți arată mereu, sub cronologia zilei, cât timp a trecut de la ultimul backup:',
+   extra:`<div style="margin:10px 0 2px; font-size:calc(13.5px*var(--fs)); line-height:1.9">
+     <div><i style="display:inline-block;width:9px;height:9px;border-radius:9px;background:var(--ok);margin-right:8px"></i>sub o săptămână, ești acoperit</div>
+     <div><i style="display:inline-block;width:9px;height:9px;border-radius:9px;background:var(--high);margin-right:8px"></i>o săptămână, apare și un mesaj sus</div>
+     <div><i style="display:inline-block;width:9px;height:9px;border-radius:9px;background:var(--low);margin-right:8px"></i>două săptămâni sau mai mult, e cazul să faci unul</div>
+   </div>`}
+];
+function shTour(){
+  TOUR=0; renderTour();
+}
+function renderTour(){
+  const st=TOUR_STEPS[TOUR];
+  const last=TOUR===TOUR_STEPS.length-1;
+  const dots=TOUR_STEPS.map((_,i)=>`<span style="width:8px;height:8px;border-radius:9px;display:inline-block;background:${i===TOUR?'var(--petrol)':'var(--line)'}"></span>`).join(' ');
+  $('veil').classList.add('on'); $('sheet').classList.add('on'); syncLock(); syncHist();
+  $('sheet').innerHTML=`<div style="text-align:center;padding:4px 0 2px">
+      <div style="font-size:calc(40px*var(--fs));line-height:1">${st.ic}</div>
+      <h3 style="margin:10px 0 4px">${st.t}</h3></div>
+    <p style="text-align:left">${st.d}</p>
+    ${st.extra||''}
+    <div style="display:flex;gap:6px;justify-content:center;margin:16px 0 4px">${dots}</div>
+    <button class="btn btn-p" onclick="tourNext()">${last?'Am înțeles, să începem!':'Mai departe'}</button>
+    ${!last?'<button class="btn btn-g" onclick="closeTour()">Sar peste</button>':''}`;
+}
+function tourNext(){ if(TOUR<TOUR_STEPS.length-1){ TOUR++; renderTour(); } else closeTour(); }
+function closeTour(){ closeSheet(); renderQuickStart(); toast('Gata de folosit! 🎉'); }
+/* ================= DIAGNOSTIC =================
+   Arată de ce nu merge instalarea, în loc să ghicim. Util și pentru testeri:
+   „deschide Mai mult → Diagnostic și trimite-mi ce scrie". */
+function diagRow(k,v,ok){
+  const col = ok===true?'var(--ok)' : ok===false?'var(--low)' : 'var(--ink-soft)';
+  return `<div style="display:flex; gap:10px; padding:7px 0; border-bottom:1px solid var(--line); font-size:calc(13.5px*var(--fs))">
+    <span style="flex:none; width:44%; color:var(--ink-soft)">${esc(k)}</span>
+    <b style="flex:1; color:${col}; font-weight:700; overflow-wrap:anywhere">${esc(v)}</b></div>`;
+}
+/* Chrome pe Android „îngheață" intenționat șirul clasic (raportează mereu Android 10
+   și o versiune rotunjită), ca măsură de confidențialitate. Datele reale se cer
+   explicit, prin interfața de „client hints". Dacă nu există, cădem pe citirea
+   șirului clasic — corectă pe iOS și pe desktop. */
+async function deviceLabel(){
+  try{
+    const d=navigator.userAgentData;
+    if(d && d.getHighEntropyValues){
+      const h=await d.getHighEntropyValues(['platformVersion','model','fullVersionList']);
+      const out=[];
+      if(d.platform) out.push(d.platform+(h.platformVersion? ' '+String(h.platformVersion).split('.')[0] : ''));
+      const brands=(h.fullVersionList||d.brands||[]).filter(b=>!/not[^a-z]*a[^a-z]*brand/i.test(b.brand||''));
+      const pick=brands.find(b=>!/chromium/i.test(b.brand))||brands[0];
+      if(pick) out.push(pick.brand+' '+String(pick.version||'').split('.')[0]);
+      if(h.model) out.push(h.model);
+      if(out.length>1) return out.join(' · ');
+    }
+  }catch(e){}
+  return deviceLabelUA();
+}
+function deviceLabelUA(){
+  const ua=navigator.userAgent||'';
+  const out=[];
+  // Chrome pe Android „îngheață" intenționat aceste date: raportează mereu
+  // Android 10 și modelul „K", indiferent de telefon. Dacă vedem semnătura asta,
+  // spunem cinstit că versiunea e ascunsă, în loc să afișăm una falsă.
+  const frozen = /Android 10[;)]/.test(ua) && /;\s*K[;)]/.test(ua);
+  let m;
+  if(frozen) out.push('Android (versiune ascunsă de browser)');
+  else if((m=ua.match(/Android\s+([\d.]+)/))) out.push('Android '+m[1]);
+  else if((m=ua.match(/(?:iPhone )?OS\s+(\d+)[_.](\d+)/)) && /iPhone|iPad|iPod/.test(ua)) out.push('iOS '+m[1]+'.'+m[2]);
+  else if(/Windows NT 10/.test(ua)) out.push('Windows');
+  else if((m=ua.match(/Mac OS X\s+(\d+)[_.](\d+)/))) out.push('macOS '+m[1]+'.'+m[2]);
+  else if(/Linux/.test(ua)) out.push('Linux');
+  // browser (ordinea contează: Edge/Samsung/Opera se dau drept Chrome)
+  if((m=ua.match(/EdgA?\/([\d]+)/))) out.push('Edge '+m[1]);
+  else if((m=ua.match(/SamsungBrowser\/([\d]+)/))) out.push('Samsung Internet '+m[1]);
+  else if((m=ua.match(/OPR\/([\d]+)/))) out.push('Opera '+m[1]);
+  else if((m=ua.match(/FxiOS\/([\d]+)|Firefox\/([\d]+)/))) out.push('Firefox '+(m[1]||m[2]));
+  else if((m=ua.match(/CriOS\/([\d]+)/))) out.push('Chrome '+m[1]);
+  else if((m=ua.match(/Chrome\/([\d]+)/))) out.push('Chrome '+m[1]);
+  else if(/Safari/.test(ua)) out.push('Safari');
+  // modelul telefonului; pe Android modern e ascuns („K"), pe iOS nu e publicat
+  if(!frozen && (m=ua.match(/Android[^;]*;\s*([^;)]+?)(?:\s+Build\/|\))/))){
+    const model=m[1].trim();
+    if(model && !/^(wv|K)$/i.test(model) && model.length<40) out.push(model);
+  } else if(/iPhone/.test(ua)) out.push('iPhone');
+  else if(/iPad/.test(ua)) out.push('iPad');
+  return out.length? out.join(' · ') : 'nedetectat';
+}
+/* `ctx` vine din ecranele de avarie: pune subiectul potrivit și o primă frază
+   deja scrisă, ca omul stresat să nu fie nevoit să descrie singur ce s-a întâmplat. */
+async function sendFeedback(ctx){
+  const dev = await deviceLabel();
+  const bkOk = S.settings.lastBackup ? 'da' : 'nu';
+  const C = {
+    salvare: {subj:'nu pot salva', desc:'Aplicația nu a reușit să salveze pe telefon.'},
+    citire:  {subj:'jurnalul nu se poate citi', desc:'Aplicația nu a reușit să citească jurnalul salvat.'}
+  }[ctx];
+  const intro = C
+    ? C.desc+'\n\n[Adaugă aici orice altceva observi: ce făceai când s-a întâmplat, dacă se repetă.]'
+    : '[Scrie aici ce vrei să-mi zici: o problemă, o idee sau o observație. Orice mă ajută.]';
+  const body =
+    'Salut Costi,\n\n' + intro + '\n\n' +
+    '\n---\n' +
+    'Detalii tehnice (pentru diagnostic; șterge dacă preferi):\n' +
+    'Versiune: ' + APP_VER + '\n' +
+    'Dispozitiv: ' + dev + '\n' +
+    'Intrări în jurnal: ' + S.events.length + '\n' +
+    'Backup făcut vreodată: ' + bkOk + '\n';
+  const subiect = 'Nivelo '+APP_VER+' — '+(C ? C.subj : 'feedback');
+  const capul = C
+    ? `<p style="margin-bottom:12px">Îmi trimiți direct ce s-a întâmplat. Mesajul e deja scris, cu tot ce am nevoie ca să înțeleg problema.</p>`
+    : `<p style="margin-bottom:12px">Orice îmi scrii aici ajunge direct la mine. Se deschide aplicația ta de e-mail cu un mesaj deja pregătit; îl schimbi cum vrei și îl trimiți.</p>`;
+  openSheet2(`<h3>${C?'Scrie-i autorului':'Trimite feedback'}</h3>
+    ${capul}
+    <p class="muted" style="margin-bottom:12px">La final vei găsi câteva rânduri tehnice: versiunea, telefonul, câte intrări ai în jurnal și dacă ai făcut vreodată un backup. Mă ajută mult atunci când e ceva de reparat, însă nu conțin nimic din datele tale personale. Le poți lăsa sau șterge, cum preferi.</p>
+    <p class="muted" style="margin-bottom:14px">Sunt singur la Nivelo, așa că răspund cât pot de repede, de obicei în câteva zile. Orice mi-ai scrie, chiar citesc.</p>
+    <a class="btn btn-p" href="mailto:hello.nivelo@gmail.com?subject=${encodeURIComponent(subiect)}&body=${encodeURIComponent(body)}" onclick="setTimeout(closeSheet2,300)" style="display:block; text-align:center; text-decoration:none">Deschide e-mail</a>
+    <button class="btn btn-g" onclick="closeSheet2()">Anulează</button>`);
+}
+async function shDiag(){
+  openSheet(`<h3>Diagnostic tehnic</h3><div id="diagbody"><p class="muted">Se verifică…</p></div>
+    <button class="btn btn-g" style="margin-top:14px" onclick="closeSheet()">Închide</button>`);
+  const R=[];
+  R.push(['Versiune', APP_VER, null]);
+  R.push(['Adresă', location.origin+location.pathname, null]);
+  R.push(['Conexiune securizată', location.protocol==='https:'?'da':'NU', location.protocol==='https:']);
+  R.push(['Instalată pe ecran', isInstalled()?'da':'nu (rulează în browser)', null]);
+
+  let sw='nesuportat de browser', swOk=false;
+  if('serviceWorker' in navigator){
+    try{
+      const reg=await navigator.serviceWorker.getRegistration();
+      if(!reg) sw='NEÎNREGISTRAT';
+      else if(navigator.serviceWorker.controller){ sw='activ'; swOk=true; }
+      else sw='înregistrat, dar încă nu controlează pagina (redeschide aplicația)';
+    }catch(e){ sw='eroare: '+e.name; }
+  }
+  R.push(['Service worker', sw, swOk]);
+
+  let mf='nu s-a putut citi', mfOk=false, ic='—', icOk=null;
+  try{
+    const r=await fetch('manifest.webmanifest',{cache:'no-store'});
+    if(!r.ok) mf='eroare HTTP '+r.status;
+    else{
+      const j=await r.json();
+      const has192=(j.icons||[]).some(i=>String(i.sizes||'').includes('192'));
+      const has512=(j.icons||[]).some(i=>String(i.sizes||'').includes('512'));
+      const okDisp=['standalone','fullscreen','minimal-ui'].includes(j.display);
+      mfOk = !!(j.name||j.short_name) && !!j.start_url && okDisp && has192 && has512;
+      mf = mfOk ? 'OK · '+(j.name||j.short_name) : 'incomplet: '
+        + [!(j.name||j.short_name)&&'lipsă nume', !j.start_url&&'lipsă start_url',
+           !okDisp&&('display='+(j.display||'lipsă')), !has192&&'lipsă iconiță 192',
+           !has512&&'lipsă iconiță 512'].filter(Boolean).join(', ');
+      // verificăm și că iconițele chiar se pot descărca
+      const src=(j.icons||[]).map(i=>i.src);
+      let bad=[];
+      for(const s of src){ try{ const ir=await fetch(s,{cache:'no-store'}); if(!ir.ok) bad.push(s+' ('+ir.status+')'); }catch(e){ bad.push(s+' (eroare)'); } }
+      icOk = bad.length===0; ic = icOk ? 'toate se descarcă' : 'PROBLEME: '+bad.join(', ');
+    }
+  }catch(e){ mf='eroare: '+e.name; }
+  R.push(['Manifest', mf, mfOk]);
+  R.push(['Iconițe', ic, icOk]);
+  R.push(['Stocare persistentă', PERSIST_OK===true?'da':PERSIST_OK===false?'nu (browserul poate șterge datele)':'necunoscut', PERSIST_OK]);
+
+  // versiunea din service worker: dacă nu coincide cu a aplicației, a rămas cod vechi în cache
+  let swv='—', swvOk=null;
+  try{
+    const keys=await caches.keys();
+    const mine=keys.filter(k=>k.indexOf('glucolog-')===0).map(k=>k.replace('glucolog-',''));
+    if(mine.length){
+      swv=mine.join(', ');
+      swvOk = mine.length===1 && mine[0]===APP_VER;
+      if(!swvOk) swv+= (mine.length>1 ? ' (mai multe versiuni în cache)' : ' (diferă de aplicație: '+APP_VER+')');
+    }
+  }catch(e){}
+  R.push(['Versiune în cache', swv, swvOk]);
+
+  // spațiu folosit: pe iPhone cota e mică, iar jurnalul crește cu anii
+  let sp='necunoscut';
+  try{
+    if(navigator.storage && navigator.storage.estimate){
+      const q=await navigator.storage.estimate();
+      const mb=v=>fmtN(v/1048576)+' MB';   // virgulă zecimală, ca peste tot
+      sp = q.usage!=null ? mb(q.usage)+(q.quota? ' din '+mb(q.quota):'') : 'necunoscut';
+    }
+  }catch(e){}
+  R.push(['Spațiu folosit', sp, null]);
+  R.push(['Intrări în jurnal', String(S.events.length), null]);
+  R.push(['Dispozitiv', await deviceLabel(), null]);
+
+  const verdict = (swOk && mfOk && icOk===true && location.protocol==='https:')
+    ? '<p class="muted" style="margin:12px 0 0">Toate condițiile de instalare sunt îndeplinite. Dacă Chrome tot oferă doar „Create shortcut", închide complet aplicația și redeschide-o de două ori, apoi reîncearcă.</p>'
+    : '<p class="muted" style="margin:12px 0 0">Rândurile marcate cu roșu sunt motivul pentru care instalarea nu e oferită.</p>';
+  const el=$('diagbody');
+  if(el) el.innerHTML=R.map(r=>diagRow(r[0],r[1],r[2])).join('')+verdict
+    +'<button class="btn btn-g" style="margin-top:12px" onclick="copyDiag()">Copiază raportul</button>';
+  DIAG_TEXT = R.map(r=>r[0]+': '+r[1]).join('\n');
+}
+let DIAG_TEXT='';
+async function copyDiag(){
+  const t='Nivelo — diagnostic\n'+DIAG_TEXT;
+  try{
+    if(navigator.clipboard && navigator.clipboard.writeText){ await navigator.clipboard.writeText(t); toast('Raport copiat'); return; }
+    throw 0;
+  }catch(e){
+    // fără acces la clipboard: îl arătăm ca text, de unde poate fi selectat manual
+    openSheet2(`<h3>Raport diagnostic</h3>
+      <textarea class="inp" rows="12" readonly style="font-size:calc(12px*var(--fs)); font-family:monospace">${esc(t)}</textarea>
+      <button class="btn btn-p" style="margin-top:10px" onclick="closeSheet2()">Închide</button>`);
+  }
+}
+function shAbout(){
+  openSheet(`<h3>Despre Nivelo</h3>
+
+    <div class="card" style="padding:14px">
+      <p style="margin:0 0 8px"><b style="font-size:calc(15px*var(--fs))">O aplicație făcută dintr-o nevoie reală.</b></p>
+      <p style="margin:0 0 8px">La început a fost un fișier Excel imens, în care autorul își ținea propriul jurnal de diabet. Soția lui, care are și ea diabet, n-a reușit să se adapteze la Excel, iar ea avea nevoie de ceva care să o ajute cu adevărat, zi de zi. De aici s-a născut Nivelo: o aplicație în care o masă se notează în câteva atingeri, nu într-un tabel.</p>
+      <p style="margin:0">Autorul e <b>Constantin Enache</b>, care o dezvoltă singur. O folosesc amândoi, zilnic. Când vezi o schimbare în Nivelo, e pentru că unuia dintre ei i-a lipsit ceva în ziua respectivă.</p>
+    </div>
+
+    <div class="card" style="padding:14px">
+      <p style="margin:0 0 8px"><b style="font-size:calc(15px*var(--fs))">Cui folosește.</b></p>
+      <p style="margin:0">Oricui vrea să-și țină un <b>jurnal personal</b> de diabet: glicemii, mese cu carbohidrați, insulină, activitate, greutate. Ai grafice, rezumate ale datelor, un raport pe care îl poți duce la doctor. Datele stau <b>doar</b> pe telefonul tău. Nu există conturi, nu există reclame, nu există abonament.</p>
+    </div>
+
+    <div class="card" style="padding:14px; border-left:3px solid var(--high)">
+      <p style="margin:0 0 8px"><b style="font-size:calc(15px*var(--fs))">Ce Nivelo NU face.</b></p>
+      <ul style="margin:0 0 0 18px; padding:0; line-height:1.6">
+        <li>Nu e un dispozitiv medical.</li>
+        <li>Nu îți spune ce doze să faci și nu îți sugerează corecții.</li>
+        <li>Nu îți dă diagnostice, sfaturi de tratament sau recomandări medicale.</li>
+        <li>Nu înlocuiește glucometrul, senzorul, analizele sau medicul.</li>
+      </ul>
+      <p style="margin:8px 0 0">Cifrele afișate (medii, TIR, HbA1c estimat, ICR și ISF observate) sunt <b>descrieri ale datelor tale</b>, nu recomandări. Se citesc împreună cu medicul.</p>
+      <p style="margin:8px 0 0"><b>În urgență, sună la 112.</b></p>
+    </div>
+
+    <div class="card" style="padding:14px">
+      <p style="margin:0 0 8px"><b style="font-size:calc(15px*var(--fs))">Contact și cod.</b></p>
+      <p class="muted" style="margin:0 0 6px">Autor și titular: Constantin Enache</p>
+      <p class="muted" style="margin:0 0 6px">Contact: <a href="mailto:hello.nivelo@gmail.com" style="color:var(--petrol); font-weight:700">hello.nivelo@gmail.com</a></p>
+      <p class="muted" style="margin:0 0 6px">Cod și istoric public: <a href="https://github.com/costi1622/nivelo-beta-stabil" style="color:var(--petrol); font-weight:700">github.com/costi1622/nivelo-beta-stabil</a></p>
+      <p class="muted" style="margin:0">Versiune: ${APP_VER}</p>
+    </div>
+
+    <p class="muted" style="margin-top:12px; font-size:calc(12px*var(--fs))">© 2026 Constantin Enache. Oferită gratuit pentru uz personal și necomercial. Utilizarea comercială, copierea sau republicarea codului sub alt nume necesită acordul scris al autorului.</p>
+
+    <button class="btn btn-g" onclick="closeSheet()" style="margin-top:12px">Închide</button>`);
+}
+function shPromises(){
+  openSheet(`<h3>Promisiunile mele</h3>
+    <p class="muted" style="margin-bottom:14px">Un manifest cinstit despre ce garantez și ce nu, spus deschis. Preferabil să știi asta înainte, decât să afli în timpul folosirii.</p>
+
+    <div class="card" style="border-left:3px solid var(--ok); padding:12px 14px">
+      <p style="margin:0 0 6px"><b>Ce îți promit:</b></p>
+      <ul style="margin:0 0 0 18px; padding:0; line-height:1.7">
+        <li><b>Datele tale rămân pe telefonul tău.</b> Nu se trimit nicăieri, nu se colectează, nu se vând. Nu există server la mijloc.</li>
+        <li><b>Fără abonament, fără reclame, fără paywall.</b> Aplicația e gratuită, integral, și va rămâne așa pentru uz personal.</li>
+        <li><b>Fără cont.</b> Nu îți cer nume real, e-mail sau parolă. Deschizi și folosești.</li>
+        <li><b>Fără urmărire.</b> Nu știu cine ești, nu știu că exiști, nu am cum să știu.</li>
+        <li><b>Cifrele afișate sunt oneste.</b> Rezumatele arată valoarea tipică și zona din mijloc a datelor, nu o medie care ascunde extremele; ICR și ISF au metoda de calcul declarată. Nu vezi cifre înfrumusețate.</li>
+        <li><b>Îți răspund la e-mail.</b> Poate în câteva zile, dar răspund. Adresa e hello.nivelo@gmail.com.</li>
+        <li><b>Ce nu merge, îmi spui, repar.</b> Nivelo e în dezvoltare activă; feedback-ul chiar ajunge în cod.</li>
+      </ul>
+    </div>
+
+    <div class="card" style="border-left:3px solid var(--high); padding:12px 14px">
+      <p style="margin:0 0 6px"><b>Ce NU îți promit:</b></p>
+      <ul style="margin:0 0 0 18px; padding:0; line-height:1.7">
+        <li><b>Nu îți spun ce doze să faci.</b> Aplicația nu recomandă și nu sugerează niciodată doze de insulină. Deciziile de tratament sunt între tine și medic.</li>
+        <li><b>Nu înlocuiește glucometrul, senzorul, analizele sau medicul.</b> E un jurnal, nu un dispozitiv medical.</li>
+        <li><b>Nu îți garantez memento-uri fiabile.</b> Bannerul de backup e cel mai apropiat de un memento; alarme reale nu am încă.</li>
+        <li><b>Nu îți sincronizez datele între telefoane.</b> Muți backupul manual când schimbi telefonul.</li>
+        <li><b>Nu îți traduc încă interfața.</b> Momentan doar în română.</li>
+        <li><b>Nu am o companie în spate.</b> Sunt un singur om care lucrează la asta în timpul lui. Dacă mi se întâmplă ceva, codul rămâne public.</li>
+      </ul>
+    </div>
+
+    <div class="card" style="padding:12px 14px">
+      <p style="margin:0"><b>Codul e proprietar, dar deschis la vedere.</b> Poți verifica oricând cum funcționează pe <a href="https://github.com/costi1622/nivelo-beta-stabil" style="color:var(--petrol); font-weight:700">GitHub</a>. Nu îl poți vinde sau republica sub alt nume fără acordul meu.</p>
+    </div>
+
+    <button class="btn btn-g" onclick="closeSheet()" style="margin-top:12px">Închide</button>`);
+}
+function shGuide(){
+  openSheet(`<h3>Ghid rapid</h3>
+    <p class="muted" style="margin-bottom:14px">Aplicația are 5 butoane pe bara de jos. Iată ce face fiecare, în ordinea lor.</p>
+
+    <div class="card"><h2>1 · Azi <span class="tag">aici stai 90% din timp</span></h2>
+      <p style="margin:8px 0 0">Inima aplicației: ziua în curs.</p>
+      <p style="margin:8px 0 0">Sus, cadranul cu ultima ta glicemie, colorat după încadrarea în țintă: verde dacă e bine, galben dacă e sus, roșu dacă e jos. Sub el, graficul zilei pe 24 h.</p>
+      <p style="margin:8px 0 0">Mai jos, patru butoane mari pentru adăugat rapid: <b>Glicemie</b>, <b>Masă</b>, <b>Insulină</b> și <b>Altele</b> (notă, activitate, greutate).</p>
+      <p style="margin:8px 0 0">Tot ce introduci apare dedesubt, în ordine cronologică, grupat pe momentele zilei.</p>
+    </div>
+
+    <div class="card"><h2>2 · Istoric</h2>
+      <p style="margin:8px 0 0">Tot ce ai notat vreodată, pe zile.</p>
+      <p style="margin:8px 0 0">Sus e o bară de căutare: scrii „pâine" sau „kebab" și vezi toate dățile când ai mâncat acel lucru. Atingi o masă din rezultate și vezi contextul: ce glicemii ai avut înainte și după, ce insulină.</p>
+      <p style="margin:8px 0 0">Util când vrei să-ți amintești ce ai făcut data trecută într-o situație similară.</p>
+    </div>
+
+    <div class="card"><h2>3 · Alimente</h2>
+      <p style="margin:8px 0 0">Biblioteca ta de alimente.</p>
+      <p style="margin:8px 0 0">Fiecare aliment are carbohidrații lui, ca la masă să-l alegi dintr-o atingere, în loc să-l scrii. Aplicația vine cu vreo 30 de alimente comune; le adaugi pe ale tale cu „+ Aliment nou".</p>
+      <p style="margin:8px 0 0">Cele marcate cu stea apar primele când adaugi o masă.</p>
+    </div>
+
+    <div class="card"><h2>4 · Statistici</h2>
+      <p style="margin:8px 0 0">Imaginea de ansamblu.</p>
+      <p style="margin:8px 0 0">Alegi perioada sus (7, 30 sau 90 de zile) și vezi: media glicemică, HbA1c estimat, timpul în țintă, mediile pe momentele zilei, dozele tipice de insulină. Pentru discuția cu medicul, mai jos apar ICR și ISF observate.</p>
+      <p style="margin:8px 0 0">Toate sunt rezumate descriptive din datele tale, orientative, nu recomandări.</p>
+    </div>
+
+    <div class="card"><h2>5 · Mai mult</h2>
+      <p style="margin:8px 0 0">Tot ce ține de date și setări.</p>
+      <p style="margin:8px 0 0">Aici faci <b>Backup acum</b> (important!) și export Excel sau CSV. Tot de aici generezi raportul pentru doctor și îl salvezi ca PDF, sau pui la loc un backup cu <b>Import</b>.</p>
+      <p style="margin:8px 0 0">Setările sunt tot aici: numele tău, țintele de glicemie, insulinele tale, tema și mărimea textului.</p>
+      <p style="margin:8px 0 0">Dacă te blochezi, la <b>Cum se face</b> găsești răspunsuri scurte la întrebările care apar des, iar cu <b>Trimite feedback</b> îmi scrii direct. Plus secțiunile Despre, Promisiuni, Confidențialitate și Diagnostic tehnic.</p>
+    </div>
+
+    <div class="card" style="border-left:4px solid var(--petrol)">
+      <b style="display:block; margin-bottom:10px">3 lucruri de reținut</b>
+      <p style="margin:0 0 10px"><b>1. Fă-ți backup din când în când.</b> Datele stau doar pe telefonul tău, iar backupul e plasa de siguranță dacă schimbi telefonul.</p>
+      <p style="margin:0 0 10px"><b>2. Adaugă întâi alimentele pe care le mănânci des.</b> După aceea, logarea meselor devine foarte rapidă.</p>
+      <p style="margin:0"><b>3. E un jurnal, nu un dispozitiv medical.</b> Nu-ți spune ce doze să faci; deciziile de tratament rămân între tine și medic.</p>
+    </div>
+
+    <button class="btn btn-g" onclick="closeSheet()" style="margin-top:12px">Închide</button>`);
+}
+/* Ghid pe întrebări practice. Ghidul rapid spune CE e fiecare secțiune; aici
+   scrie CUM faci un lucru anume, adică exact ce caută cineva blocat. Fiecare
+   răspuns e pliat, ca lista să se poată parcurge din priviri, nu citită în
+   întregime. Perechea cu Diagnosticul: ultima întrebare leagă cele două,
+   pentru cazul „nu merge ceva". */
+function qa(q, a){
+  return `<details class="qa"><summary>${q}</summary><div>${a}</div></details>`;
+}
+function shHelp(){
+  openSheet(`<h3>Cum se face</h3>
+    <p class="muted" style="margin-bottom:12px">Întrebările care apar cel mai des. Atinge una ca să vezi răspunsul.</p>
+
+    <div class="qagroup">Notare și corecturi</div>
+    ${qa('Am notat greșit. Cum corectez?',
+      '<p>Atinge intrarea, fie pe <b>Azi</b>, fie în <b>Istoric</b>. Se deschide aceeași fereastră în care ai adăugat-o, cu titlul „Modifică…" și cu toate valorile completate.</p>'+
+      '<p>Schimbi ce vrei și apeși <b>Salvează</b>. Din aceeași fereastră poți și șterge intrarea.</p>')}
+    ${qa('Cum schimb ora sau data unei intrări?',
+      '<p>În orice fereastră de adăugare sau modificare, jos, sunt două câmpuri: <b>Data</b> și <b>Ora</b>. Le poți schimba oricând, înainte de a salva.</p>'+
+      '<p>De aceea poți nota liniștit și mai târziu ceva ce s-a întâmplat dimineață: pui ora reală, iar intrarea se așază singură la locul ei în cronologie.</p>')}
+    ${qa('Cum notez ceva pentru o zi trecută?',
+      '<p>Tot din câmpul <b>Data</b>: alegi ziua respectivă. Intrarea apare în <b>Istoric</b>, la ziua aleasă, nu pe Azi.</p>'+
+      '<p>Util când completezi câteva zile dintr-o dată sau când muți notări de pe hârtie.</p>')}
+    ${qa('Am șters din greșeală. Se poate recupera?',
+      '<p>Da. Imediat după ștergere apare jos o bară cu <b>Anulează</b>. Oferta rămâne valabilă <b>10 minute</b>, chiar dacă bara dispare din ochi: o găsești din nou dacă redeschizi aplicația în acest timp.</p>'+
+      '<p>Anularea merge și pentru o zi ștearsă întreagă și pentru un import.</p>')}
+    ${qa('Cum șterg o zi întreagă?',
+      '<p><b>Mai mult → Șterge o zi din jurnal</b>, apoi alegi data. Se șterg toate intrările din ziua respectivă, cu confirmare care îți spune câte sunt.</p>'+
+      '<p>Se poate anula, ca orice ștergere.</p>')}
+
+    <div class="qagroup">Mese și alimente</div>
+    ${qa('Cum notez o masă?',
+      '<p>Apeși <b>Masă</b>, apoi scrii 2-3 litere din numele alimentului și îl alegi din listă. Alimentele marcate cu stea apar direct la <b>Rapide</b>, fără căutare.</p>'+
+      '<p>Pentru alimentele măsurate la 100 g, completezi gramele; aplicația calculează singură carbohidrații. Poți pune mai multe alimente în aceeași masă.</p>')}
+    ${qa('Cum adaug un aliment nou?',
+      '<p><b>Alimente → + Aliment nou</b>. Îi dai un nume, alegi cum îl măsori și scrii carbohidrații.</p>'+
+      '<p>Bifează <b>★ Favorit</b> pentru alimentele pe care le mănânci des: apar primele când adaugi o masă.</p>')}
+    ${qa('„HC la 100 g" sau „HC pe porție"? Care din ele?',
+      '<p><b>HC la 100 g</b> pentru ce cântărești sau ce are etichetă: pâine, orez, paste, cartofi. Scrii valoarea de pe ambalaj, iar la masă completezi gramele.</p>'+
+      '<p><b>HC pe porție</b> pentru ce vine în bucăți de fiecare dată la fel: un iaurt, o napolitană, un sandviș de la același loc. La masă nu mai cântărești nimic.</p>')}
+    ${qa('De ce mi-au fost adunate două mese într-una?',
+      '<p>Nu au fost unite: rămân intrări separate. Dacă două mese sunt notate la mai puțin de <b>45 de minute</b> una de alta, aplicația arată dedesubt și un <b>total</b>, pentru că de obicei e vorba de aceeași masă notată în doi pași.</p>')}
+
+    <div class="qagroup">Cifre și raportul pentru medic</div>
+    ${qa('Cum scot raportul pentru doctor?',
+      '<p><b>Mai mult → Raport pentru doctor</b>. Alegi perioada, iar raportul se deschide în fereastra de tipărire a telefonului, de unde îl poți <b>salva ca PDF</b> și trimite sau printa.</p>'+
+      '<p>Sus, raportul are o legendă care explică fiecare cifră, ca medicul să-l poată citi fără tine lângă el.</p>')}
+    ${qa('Ce înseamnă ICR și ISF din Statistici?',
+      '<p>Sunt observații asupra propriului tău istoric, nu recomandări. <b>ICR</b> arată câți carbohidrați ai acoperit, în medie, cu o unitate de insulină la masă. <b>ISF</b> arată cu cât ți-a scăzut glicemia, în medie, după o unitate de corecție.</p>'+
+      '<p>Sunt utile la discuția cu medicul. <b>Aplicația nu calculează și nu sugerează doze</b>, iar deciziile de tratament se iau doar împreună cu medicul.</p>')}
+    ${qa('Cât de exact e HbA1c estimat?',
+      '<p>E o aproximare statistică, din media glicemiilor pe care le-ai notat. Nu înlocuiește analiza de laborator și poate diferi de ea, mai ales dacă notezi puține valori sau mai ales la anumite ore.</p>')}
+    ${qa('De ce nu văd încă statistici?',
+      '<p>Rezumatele au nevoie de câteva zile de notări ca să însemne ceva. Până atunci, secțiunile îți spun de ce sunt goale, în loc să arate cifre pe care nu te poți sprijini.</p>')}
+
+    <div class="qagroup">Date și siguranță</div>
+    ${qa('Cum mut jurnalul pe alt telefon?',
+      '<p>Pe telefonul vechi: <b>Mai mult → Backup acum</b> și salvezi fișierul unde ajungi de pe celălalt telefon (de exemplu Drive).</p>'+
+      '<p>Pe telefonul nou: instalezi aplicația, apoi <b>Mai mult → Import</b> și alegi fișierul salvat. Importul verifică fișierul înainte de a atinge datele existente și se poate anula.</p>')}
+    ${qa('Cât de des să fac backup?',
+      '<p>Săptămânal e suficient. Aplicația îți amintește singură dacă a trecut prea mult timp (<b>Mai mult → Backup acum</b>), iar pe Azi vezi mereu cât de vechi e ultimul backup.</p>'+
+      '<p>Datele stau doar pe telefonul tău, deci backupul e singura plasă de siguranță dacă pierzi telefonul.</p>')}
+    ${qa('Am pus din greșeală alt backup. Se poate da înapoi?',
+      '<p>Da. Înainte de a înlocui jurnalul, aplicația pune deoparte o copie a celui de acum. Imediat după restaurare, în fereastra care confirmă apare butonul <b>„Nu era backupul potrivit, anulează"</b>: un tap și jurnalul dinainte revine întreg.</p>'+
+      '<p>Dacă ai închis deja fereastra, copia nu se pierde. O găsești la <b>Mai mult → Confidențialitate → Datele mele pe acest telefon</b>, sub <b>„Jurnalul dinainte de ultima restaurare"</b>, cu butonul <b>Pune jurnalul acesta înapoi</b>.</p>'+
+      '<p>Spre deosebire de anularea unei ștergeri, aceasta <b>nu expiră după 10 minute</b>. La o restaurare îți dai seama de obicei mult mai târziu, când cauți o zi și n-o găsești. Copia rămâne până o ștergi tu sau până la următoarea restaurare.</p>')}
+    ${qa('Unde stau datele mele, exact?',
+      '<p>Doar pe acest telefon, în trei locuri: jurnalul principal, o copie de siguranță pe care aplicația o face automat, și, doar dacă a existat vreodată o avarie, datele puse deoparte atunci.</p>'+
+      '<p>Le poți vedea toate, cu dimensiunile lor, și le poți șterge: <b>Mai mult → Confidențialitate → Datele mele pe acest telefon</b>.</p>')}
+
+    <div class="qagroup">Când nu merge ceva</div>
+    ${qa('Aplicația nu arată noutățile despre care am citit',
+      '<p>Când apare o versiune nouă, jos se ivește o bară verde: <b>„O versiune nouă e gata"</b>, cu butonul <b>Reîncarcă</b>. O atingi și aplicația repornește pe versiunea nouă, apoi îți arată pe scurt ce s-a schimbat.</p>'+
+      '<p>Dacă bara nu apare, închide complet aplicația și redeschide-o. Telefonul verifică singur, la fiecare pornire, dar poate dura un minut până vede versiunea nouă.</p>'+
+      '<p>Ca să fii sigur, deschide <b>Mai mult → Diagnostic tehnic</b>: rândurile <b>Versiune</b> și <b>Versiune în cache</b> trebuie să arate același număr. Dacă diferă, a rămas cod vechi și mai e nevoie de o redeschidere.</p>')}
+    ${qa('Ceva nu funcționează. Ce trimit ca să pot fi ajutat?',
+      '<p>Deschide <b>Mai mult → Diagnostic tehnic</b> și apasă <b>Copiază raportul</b>: strânge într-un text starea instalării, versiunea și dispozitivul, fără nimic din datele tale.</p>'+
+      '<p>Apoi <b>Suport → Trimite feedback</b> și lipește raportul în e-mail, cu o frază despre ce ai încercat să faci. Așa problema se găsește mult mai repede.</p>')}
+
+    <button class="btn btn-g" onclick="closeSheet()">Închide</button>`);
+}
+function shPrivacy(){
+  openSheet(`<h3>Confidențialitate</h3>
+    <p>Toate datele tale (glicemii, mese, insulină, note) sunt stocate <b>exclusiv pe acest dispozitiv</b>, în memoria locală a aplicației.</p>
+    <p style="margin-top:10px">Nivelo <b>nu trimite nicio informație</b> către niciun server, autor sau terț. Nu există conturi, nu există urmărire, nu există publicitate. Funcționează complet offline.</p>
+    <p style="margin-top:10px">Ca să nu-ți pierzi jurnalul dacă memoria principală se strică, aplicația ține pe același telefon și <b>o a doua copie</b> a datelor. Nu pleacă nicăieri, dar e bine să știi că există: o poți vedea și șterge din <b>Datele mele pe acest telefon</b>.</p>
+    <p style="margin-top:10px">Backupurile (fișierele .json/.csv) și rapoartele pentru medic sunt generate local și partajate <b>doar de tine</b>, unde alegi tu (ex. Google Drive). Ai control complet asupra lor.</p>
+    <p style="margin-top:10px">Dacă dezinstalezi aplicația sau ștergi datele browserului, informațiile se pierd, de aceea backupul periodic e recomandat.</p>
+    <p style="margin-top:10px"><a href="privacy.html" style="color:var(--petrol);font-weight:700">Citește politica de confidențialitate completă →</a></p>
+    <button class="btn btn-g" onclick="shLocalData()">Datele mele pe acest telefon</button>
+    <button class="btn btn-g" onclick="closeSheet()">Închide</button>`);
+}
+/* Transparență asupra locurilor în care stau datele. Din v1.30–v1.31 nu mai există
+   un singur loc: jurnalul principal, oglinda de siguranță și, dacă a existat o
+   avarie, copia pusă deoparte. Dacă spunem „datele sunt la tine", omul trebuie să
+   le poată și vedea și șterge, altfel promisiunea e pe jumătate. */
+async function shLocalData(){
+  openSheet(`<h3>Datele mele pe acest telefon</h3><div id="ldbody"><p class="muted">Se verifică…</p></div>
+    <button class="btn btn-g" style="margin-top:14px" onclick="closeSheet()">Închide</button>`);
+  let principal=0;
+  try{ principal=(localStorage.getItem(KEY)||'').length; }catch(e){}
+  const avariat=rescueSize();
+  const m=await idbLoad();
+  const prev=await idbLoad(IDB_PREV);
+  const kb=n=>n?Math.max(1,Math.round(n/1024))+' KB':'—';
+  const el=$('ldbody'); if(!el) return;
+  el.innerHTML=`
+    <div class="card" style="padding:12px">
+      <b>Jurnalul principal</b>
+      <p class="muted" style="margin:3px 0 0">${nUnit(S.events.length,'intrări','o intrare')} · ${kb(principal)}. Aici scrie și citește aplicația.</p>
+    </div>
+    <div class="card" style="padding:12px">
+      <b>Copia de siguranță din telefon</b>
+      <p class="muted" style="margin:3px 0 0">${m ? nUnit(m.n,'intrări','o intrare')+' · actualizată automat, ultima dată '+dNice(m.ts)+' '+tHM(m.ts) : 'încă nu există'}. Se folosește doar dacă jurnalul principal nu mai poate fi citit.</p>
+      ${m?'<button class="btn btn-g" style="margin-top:8px" onclick="wipeMirror()">Șterge copia de siguranță</button>':''}
+    </div>
+    ${avariat?`<div class="card" style="padding:12px; border-left:4px solid var(--high)">
+      <b>Date puse deoparte după o avarie</b>
+      <p class="muted" style="margin:3px 0 0">${kb(avariat)}. Au fost salvate când jurnalul nu s-a putut citi, ca să nu se piardă. Dacă ți-ai recuperat deja datele, nu mai sunt necesare.</p>
+      <button class="btn btn-g" style="margin-top:8px" onclick="wipeRescue()">Șterge datele puse deoparte</button>
+    </div>`:''}
+    ${prev?`<div class="card" style="padding:12px; border-left:4px solid var(--petrol)">
+      <b>Jurnalul dinainte de ultima restaurare</b>
+      <p class="muted" style="margin:3px 0 0">${nUnit(prev.n,'intrări','o intrare')} · pus deoparte pe ${dNice(prev.ts)} ${tHM(prev.ts)}, când ai restaurat un backup. Îl păstrez ca să poți reveni dacă backupul nu era cel potrivit.</p>
+      <button class="btn btn-g" style="margin-top:8px" onclick="undoRestore()">Pune jurnalul acesta înapoi</button>
+      <button class="btn btn-g" onclick="wipePrev()">Șterge copia</button>
+    </div>`:''}
+    <p class="muted" style="margin-top:10px">Nimic din ce e aici nu părăsește telefonul. Ca să ștergi absolut tot, dezinstalează aplicația sau șterge datele site-ului din setările browserului.</p>`;
+}
+function wipePrev(){
+  shConfirm('Ștergi copia jurnalului dinainte de restaurare? După asta nu mai poți reveni la ea.',
+    ()=>{ idbDelete(IDB_PREV).then(()=>{ closeSheet2(); toast('Copia a fost ștearsă'); shLocalData(); }); },
+    {title:'Ștergi copia dinainte de restaurare?', confirmLabel:'Șterge'});
+}
+function wipeRescue(){
+  shConfirm('Ștergi datele puse deoparte după avarie? Dacă nu ți-ai recuperat încă jurnalul din ele, nu mai pot fi aduse înapoi.',
+    ()=>{ try{ localStorage.removeItem(RESCUE_KEY); }catch(e){}
+          closeSheet2(); toast('Datele puse deoparte au fost șterse'); shLocalData(); },
+    {title:'Ștergi datele de avarie?', confirmLabel:'Șterge'});
+}
+function wipeMirror(){
+  shConfirm('Ștergi copia de siguranță din telefon? Aplicația va face automat una nouă la următoarea notare, dar până atunci rămâi doar cu jurnalul principal.',
+    ()=>{ idbWipe().then(()=>{ closeSheet2(); toast('Copia de siguranță a fost ștearsă'); shLocalData(); }); },
+    {title:'Ștergi copia de siguranță?', confirmLabel:'Șterge'});
+}
+async function idbWipe(){
+  try{
+    const db=await idbOpen();
+    await new Promise((res,rej)=>{
+      const tx=db.transaction(IDB_STORE,'readwrite');
+      tx.objectStore(IDB_STORE).delete(IDB_ROW);
+      tx.oncomplete=res; tx.onerror=()=>rej(tx.error); tx.onabort=()=>rej(tx.error);
+    });
+    db.close();
+  }catch(e){}
+}
+/* ================= INDICATOR BACKUP ================= */
+function bkAge(){
+  const lb=S.settings.lastBackup;
+  if(!lb) return {never:true, d:null};
+  return {never:false, d:Math.floor((Date.now()-lb)/MS_D), ts:lb};
+}
+function bkText(){
+  const a=bkAge();
+  if(a.never) return 'Niciun backup făcut încă';
+  if(a.d<=0) return 'Ultimul backup: azi';
+  if(a.d===1) return 'Ultimul backup: ieri';
+  return 'Ultimul backup: acum '+nUnit(a.d,'zile','o zi');
+}
+function renderBkLine(){
+  const el=$('bkline'); if(!el) return;
+  if(S.events.length<=3){ el.innerHTML=''; return; }   // jurnal aproape gol: nu deranjăm
+  const a=bkAge();
+  const cls = a.never||a.d>=14 ? 'bad' : a.d>=7 ? 'warn' : '';
+  el.innerHTML=`<div class="bkline ${cls}"><i></i><span>${bkText()}</span>
+    <button onclick="backupNow()">Fă unul acum</button></div>`;
+}
+function renderMore(){
+  const s=S.settings;
+  $('setSummary').textContent=(s.name||'Fără nume')+' · țintă '+s.low+'–'+s.high+' · '+s.insulins.join(' + ');
+  const a=bkAge(), bi=$('bkinfo');
+  if(bi){
+    bi.innerHTML = a.never
+      ? 'Niciun backup făcut încă.<br>Datele trăiesc doar pe acest telefon.'
+      : esc(bkText())+'<br>Recomandat săptămânal.';
+  }
+}
+
+/* ================= BACKUP REMINDER ================= */
+function bannerCheck(){
+  const b=$('banner');
+  if(S.events.length<=3){ b.style.display='none'; return; }
+  const dd=Math.floor((Date.now()-(S.settings.lastBackup||0))/MS_D);
+  const never=!S.settings.lastBackup;
+  if(!never && dd<7){ b.style.display='none'; return; }
+  b.style.display='block';
+  b.classList.remove('urgent');
+  if(never){
+    b.innerHTML='<b>Nu ai făcut încă niciun backup.</b>Datele tale trăiesc doar pe acest telefon. Dacă îl schimbi sau ștergi aplicația, se pierd. Un backup durează 30 de secunde.<br><button onclick="backupNow()">Fă primul backup →</button>';
+  } else if(dd>=21){
+    b.classList.add('urgent');
+    b.innerHTML='<b>⚠ Au trecut '+nUnit(dd,'zile')+' fără backup!</b>Riști să pierzi tot jurnalul dacă se întâmplă ceva cu telefonul. Fă un backup chiar acum, durează 30 de secunde.<br><button onclick="backupNow()">Fă backup acum →</button>';
+  } else if(dd>=14){
+    b.innerHTML='<b>Au trecut '+nUnit(dd,'zile')+' de la ultimul backup.</b>Jurnalul e doar pe acest telefon. Merită 30 de secunde de siguranță.<br><button onclick="backupNow()">Fă backup acum →</button>';
+  } else {
+    b.innerHTML='<b>A trecut o săptămână de la ultimul backup.</b>30 de secunde de siguranță pentru jurnalul tău.<br><button onclick="backupNow()">Fă backup acum →</button>';
+  }
+}
+
+/* ================= START ================= */
+sortEv();
+applyTheme(); applyFontScale();
+renderToday(); renderMore(); bannerCheck(); renderBkLine(); storageWarn(); quotaWarn();
+askPersist();
+// după un refresh, revenim pe secțiunea unde eram
+try{ const lv=sessionStorage.getItem('nivelo_view');
+     if(lv && lv!=='today' && $('v-'+lv)) go(lv); }catch(e){}
+if(getUndo()) showUndoBar(getUndo());
+// utilizatorii existenți (aveau deja evenimente când s-a introdus lista) NU trebuie
+// să vadă lista de pornire brusc. Dacă au măcar câteva zile de jurnal, o marcăm dispensată.
+if(S.settings.qsDone==null && S.events.length>=5){ S.settings.qsDone=1; save(); }
+// Dacă datele existau dar nu s-au putut citi, asta e prima veste pe care o dăm:
+// altfel utilizatorul crede că aplicația s-a resetat singură.
+if(LOAD_PROBLEM){
+  // Întâi încercăm recuperarea automată din a doua copie locală; dacă nu există,
+  // explicăm avaria și oferim fișierul original pentru recuperare manuală.
+  setTimeout(async ()=>{
+    const gasit = await offerMirror('Nu am reușit să citesc jurnalul salvat pe telefon.');
+    if(!gasit) shLoadProblem();
+  }, 250);
+}
+else if(!S.settings.accepted){
+  // Storage golit de browser sau de utilizator: dacă oglinda are jurnal, oferim
+  // recuperarea în loc să pornim ca la prima instalare.
+  setTimeout(async ()=>{
+    if(S.events.length) return;
+    const gasit = await offerMirror('Jurnalul de pe telefon apare gol.');
+    if(!gasit) shConsent();
+  }, 250);
+}
+else if(!S.settings.name) shSettings(true);
+/* ===== VERSIUNE NOUĂ: anunț și „Ce e nou" =====
+   Până acum aplicația înregistra service worker-ul și îl uita. Când urcam o
+   versiune, omul afla doar dacă închidea și redeschidea de două ori, din
+   întâmplare. Pentru un jurnal de sănătate asta contează: o reparație la
+   pierderea de date nu are cum să ajute pe cine nu știe că există. */
+function showUpdateBar(){
+  const el=$('updbar');
+  if(!el || el.classList.contains('on')) return;
+  el.innerHTML='<span><b>O versiune nouă e gata.</b> Se aplică la reîncărcare.</span>'
+    +'<button onclick="applyUpdate()">Reîncarcă</button>';
+  el.classList.add('on');
+}
+function applyUpdate(){ try{ location.reload(); }catch(e){} }
+
+/* Ce s-a schimbat, pe versiuni. Se arată doar ce e mai nou decât versiunea
+   cu care omul a folosit ultima dată aplicația. La prima instalare nu se arată
+   nimic: cine tocmai a intrat n-are ce compara. */
+const NOUTATI=[
+  {v:'v1.43', ce:[
+    'La „Cum se face\" găsești acum și ce faci dacă ai pus din greșeală alt backup decât voiai.'
+  ]},
+  {v:'v1.42', ce:[
+    'Ecranul acesta arată mai clar ce s-a schimbat, cu punctele scrise pe înțeles, nu în limbaj tehnic.'
+  ]},
+  {v:'v1.41', ce:[
+    'Datele tale nu pot pleca de pe telefon nici din greșeală: browserul blochează acum orice trimitere către un server, indiferent ce ar cere aplicația.',
+    'Ghidul rapid și celelalte documente arată ca aplicația, cu aceleași culori și aceeași structură.'
+  ]},
+  {v:'v1.40', ce:[
+    'Afli când apare o versiune nouă, în loc să o descoperi din întâmplare.',
+    'Ecranul acesta: după fiecare actualizare vezi pe scurt ce s-a schimbat.',
+    'Dacă se strică ceva la salvare sau la citirea jurnalului, poți scrie autorului direct de acolo, cu mesajul deja pregătit.'
+  ]},
+  {v:'v1.39', ce:[
+    'Zecimalele se scriu cu virgulă, ca în română: „5,5 U" în loc de „5.5U".'
+  ]},
+  {v:'v1.38', ce:[
+    'Căutarea din Istoric ajunge la tot jurnalul. Înainte se oprea la primele 300 de potriviri, deci la un aliment mâncat des nu ajungeai la anii vechi.'
+  ]},
+  {v:'v1.37', ce:[
+    'Dacă pui din greșeală alt backup decât voiai, restaurarea se poate anula și jurnalul dinainte revine întreg.'
+  ]},
+  {v:'v1.35', ce:[
+    'Istoricul se derulează până la prima zi notată. Înainte se oprea după 60 de zile.'
+  ]}
+];
+function verParts(v){ return String(v||'').replace(/^v/,'').split('.').map(n=>parseInt(n,10)||0); }
+function verGT(a,b){
+  const A=verParts(a), B=verParts(b);
+  for(let i=0;i<Math.max(A.length,B.length);i++){
+    const x=A[i]||0, y=B[i]||0;
+    if(x!==y) return x>y;
+  }
+  return false;
+}
+function checkWhatsNew(){
+  const vazut=S.settings.lastVer;
+  if(vazut===APP_VER) return;
+  S.settings.lastVer=APP_VER; save();
+  if(!vazut) return;                        // prima instalare: n-are cu ce compara
+  const noi=NOUTATI.filter(n=>verGT(n.v, vazut));
+  if(!noi.length) return;
+  // Fraza se construiește ca să nu înceapă niciodată cu literă mică după punct:
+  // varianta cu numărătoare intră în propoziție, nu după ea.
+  const drum = noi.length>1
+    ? `Ai trecut de la ${esc(vazut)} la ${esc(APP_VER)}, prin ${nUnit(noi.length,'versiuni','o versiune')}.`
+    : `Ai trecut de la ${esc(vazut)} la ${esc(APP_VER)}.`;
+  openSheet(`<h3>Ce e nou</h3>
+    <p class="muted" style="margin-bottom:14px">${drum}</p>
+    ${noi.map(n=>`<div class="card wn-card">
+      <span class="wn-ver">${esc(n.v)}</span>
+      <ul class="wn-list">${n.ce.map(t=>`<li><i></i><span>${esc(t)}</span></li>`).join('')}</ul>
+    </div>`).join('')}
+    <div class="wn-foot">Dacă ceva nu merge cum te aștepți, scrie-mi din <b>Mai mult → Trimite feedback</b>. Chiar citesc tot.</div>
+    <button class="btn btn-p" style="margin-top:12px" onclick="closeSheet()">Am înțeles</button>`);
+}
+if('serviceWorker' in navigator && location.protocol==='https:'){
+  navigator.serviceWorker.register('./sw.js').then(reg=>{
+    reg.addEventListener('updatefound', ()=>{
+      const nou=reg.installing;
+      if(!nou) return;
+      nou.addEventListener('statechange', ()=>{
+        // „installed" CU un controller existent înseamnă actualizare, nu prima instalare
+        if(nou.state==='installed' && navigator.serviceWorker.controller) showUpdateBar();
+      });
+    });
+    try{ reg.update(); }catch(e){}          // căutăm o versiune nouă la fiecare pornire
+  }).catch(()=>{});
+}
+setTimeout(()=>{ try{ checkWhatsNew(); }catch(e){} }, 900);
+</script>
+
+</body>
+</html>
