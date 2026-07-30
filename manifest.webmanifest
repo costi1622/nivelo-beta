@@ -1,0 +1,39 @@
+{
+  "name": "Nivelo — Jurnal de diabet",
+  "short_name": "Nivelo",
+  "description": "Jurnal personal de glicemii, mese și insulină, cu statistici și rapoarte pentru medic.",
+  "lang": "ro",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0E3C42",
+  "theme_color": "#12242E",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Adaugă glicemie",
+      "short_name": "Glicemie",
+      "description": "Notează o glicemie acum",
+      "url": "./index.html?adauga=glicemie",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Adaugă masă",
+      "short_name": "Masă",
+      "description": "Notează o masă acum",
+      "url": "./index.html?adauga=masa",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Adaugă insulină",
+      "short_name": "Insulină",
+      "description": "Notează o doză de insulină acum",
+      "url": "./index.html?adauga=insulina",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}
