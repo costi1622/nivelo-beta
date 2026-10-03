@@ -115,6 +115,13 @@ main{max-width:560px; margin:0 auto; padding:14px 14px calc(96px + env(safe-area
 .ev.evnou{ animation:evNou .24s ease-out, evLumina 1.5s ease-out }
 @keyframes barIn{ from{opacity:0; transform:translateY(16px)} to{opacity:1; transform:none} }
 #undobar.on{ animation:barIn .2s ease-out }
+/* Rotița din butonul care lucrează. Fără text de progres: nu știm cât durează, iar un
+   procent inventat ar fi mai rău decât nimic. */
+@keyframes rotire{ to{transform:rotate(360deg)} }
+.spin{ display:inline-block; width:15px; height:15px; margin-right:9px; vertical-align:-2px;
+  border:2px solid currentColor; border-right-color:transparent; border-radius:50%;
+  animation:rotire .7s linear infinite; opacity:.85 }
+.btn.asteapta, .mrow.asteapta{ opacity:.75 }
 @keyframes puls{ 0%{transform:scale(1)} 42%{transform:scale(1.34)} 100%{transform:scale(1)} }
 .fstar.puls{ animation:puls .34s ease-out }
 
@@ -335,6 +342,7 @@ body.noscroll{position:fixed; left:0; right:0; width:100%; overflow:hidden}
    umplutura pe verticală rămâne mică, spațiul îl dă min-height + centrarea. */
   .chip{border:1.5px solid var(--line); border-radius:99px; padding:7px 14px; font-size:calc(14px*var(--fs)); font-weight:600; background:#fff;
     min-height:44px; display:inline-flex; align-items:center; justify-content:center}
+.chip{ transition:background-color .13s ease-out, border-color .13s ease-out, color .13s ease-out, transform .09s ease-out }
 .chip.on{background:var(--petrol); border-color:var(--petrol); color:#fff}
 .btn{display:block; width:100%; padding:14px; border-radius:14px; font-size:calc(16px*var(--fs)); font-weight:800; text-align:center}
 .btn-p{background:var(--petrol); color:#fff}
@@ -547,6 +555,8 @@ html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28;
   #sheet{transition:none} #toast{transition:opacity .1s}
   .view.on, #dial .arc, #veil.on, #veil2.on, .ev.evnou, #undobar.on, .fstar.puls,
   .tirbar, .bars .b i, .sparkline, .sparkdot{animation:none}
+  .chip{transition:none}
+  /* rotița rămâne: e singurul semn că aplicația lucrează, nu un ornament */
   .sparkline{stroke-dasharray:none}
   .btn:active, #quick button:active, #tabs button:active, .chip:active,
   .foodhit:active, .ev:active, .mrow:active{transform:none}
@@ -642,8 +652,8 @@ html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28;
     <div class="card">
       <h2>Date & siguranță</h2>
       <button class="mrow" onclick="backupNow()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><circle cx="12" cy="12" r="9" fill="#E05A4D" stroke="#B8382E" stroke-width="0.9"/><path d="M12 3a9 9 0 0 1 9 9h-9z" fill="#DCE6EC"/><path d="M12 21a9 9 0 0 1-9-9h9z" fill="#DCE6EC"/><circle cx="12" cy="12" r="3.9" fill="#F7FAFB" stroke="#B8382E" stroke-width="0.9"/></svg></span><span>Backup acum<small id="bkinfo">Salvează tot jurnalul într-un fișier</small></span></button>
-      <button class="mrow" onclick="exportXLSX()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M5.6 3.4h8l5 5v12.2a1 1 0 0 1-1 1H5.6a1 1 0 0 1-1-1V4.4a1 1 0 0 1 1-1z" fill="#3E9E6B"/> <path d="M13.6 3.4l5 5h-5z" fill="#2F7B52"/> <path d="M7.6 12.4h8.8M7.6 15.6h8.8M12 11.2v5.6" stroke="#FFFFFF" stroke-width="1.5"/></svg></span><span>Export Excel (.xlsx)<small>Fișier Excel cu două foi: jurnalul și biblioteca de alimente</small></span></button>
-      <button class="mrow" onclick="exportCSV()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M5.6 3.4h8l5 5v12.2a1 1 0 0 1-1 1H5.6a1 1 0 0 1-1-1V4.4a1 1 0 0 1 1-1z" fill="#5B8FBF"/> <path d="M13.6 3.4l5 5h-5z" fill="#3F6D99"/> <path d="M7.8 11.6h8.4M7.8 14.4h8.4M7.8 17.2h8.4" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round"/></svg></span><span>Export CSV<small>Tabel simplu, bun pentru reimport în Nivelo</small></span></button>
+      <button class="mrow" onclick="cuAsteptare(this,'Se pregătește fișierul…',exportXLSX)"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M5.6 3.4h8l5 5v12.2a1 1 0 0 1-1 1H5.6a1 1 0 0 1-1-1V4.4a1 1 0 0 1 1-1z" fill="#3E9E6B"/> <path d="M13.6 3.4l5 5h-5z" fill="#2F7B52"/> <path d="M7.6 12.4h8.8M7.6 15.6h8.8M12 11.2v5.6" stroke="#FFFFFF" stroke-width="1.5"/></svg></span><span>Export Excel (.xlsx)<small>Fișier Excel cu două foi: jurnalul și biblioteca de alimente</small></span></button>
+      <button class="mrow" onclick="cuAsteptare(this,'Se pregătește fișierul…',exportCSV)"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M5.6 3.4h8l5 5v12.2a1 1 0 0 1-1 1H5.6a1 1 0 0 1-1-1V4.4a1 1 0 0 1 1-1z" fill="#5B8FBF"/> <path d="M13.6 3.4l5 5h-5z" fill="#3F6D99"/> <path d="M7.8 11.6h8.4M7.8 14.4h8.4M7.8 17.2h8.4" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round"/></svg></span><span>Export CSV<small>Tabel simplu, bun pentru reimport în Nivelo</small></span></button>
       <button class="mrow" onclick="document.getElementById('impfile').click()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M12 3.6v9.4" stroke="#0E7C7B" stroke-width="2.3" stroke-linecap="round"/> <path d="M8.1 9.6l3.9 4 3.9-4" fill="none" stroke="#0E7C7B" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/> <path d="M4 15.2v3.6a1.6 1.6 0 0 0 1.6 1.6h12.8a1.6 1.6 0 0 0 1.6-1.6v-3.6" fill="none" stroke="#0A5F5E" stroke-width="2.3" stroke-linecap="round"/></svg></span><span>Import<small>Backup Nivelo (.json) sau tabel CSV</small></span></button>
       <input type="file" id="impfile" aria-label="Alege fișierul de backup" accept=".json,.csv" style="display:none" onchange="importFile(this)">
       <button class="mrow" onclick="shDelDay()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M15.2 3.2l5.6 5.6" stroke="#5C7480" stroke-width="0" /> <path d="M19.9 3.3a1.6 1.6 0 0 1 .1 2.3l-6.1 6.1-2.4-2.4 6.1-6.1a1.6 1.6 0 0 1 2.3.1z" fill="#8A6A4B"/> <path d="M11.6 9.2l3.2 3.2-1.5 1.5a4.6 4.6 0 0 0-5.6.6l-3.3 3.3 6.4 6.4" fill="none" stroke="none"/> <path d="M11.4 9.4l3.2 3.2-6.2 6.2H4.6l-1-3z" fill="#E3A72F"/> <path d="M5.1 15.8l3.3 3.3" stroke="#C08A1E" stroke-width="1.3"/> <path d="M7.2 13.8l3.3 3.3M9.3 11.7l3.3 3.3" stroke="#C08A1E" stroke-width="1.1"/></svg></span><span>Șterge o zi din jurnal<small>Util dacă o zi a ajuns dublată (Excel + aplicație)</small></span></button>
@@ -675,8 +685,8 @@ html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28;
       <button class="mrow" onclick="shUpdate()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M7.4 9.4A5.2 5.2 0 0 1 17 8.6h1.6a4 4 0 0 1 .6 8" fill="#5B8FBF" opacity="0"/> <path d="M6.8 18.4a4.4 4.4 0 0 1 .6-8.8 5.6 5.6 0 0 1 10.8 1 3.9 3.9 0 0 1-.6 7.8z" fill="#5B8FBF"/> <path d="M12 10.6v6.6" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/> <path d="M9.2 14.6l2.8 2.8 2.8-2.8" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Adu versiunea nouă<small>Dacă tocmai a apărut o actualizare și încă nu a ajuns la tine</small></span></button>
       <button class="mrow" onclick="shDiag()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M19.4 4.6a5.2 5.2 0 0 1-6.8 6.8L6.2 17.8a2 2 0 1 1-2.8-2.8l6.4-6.4a5.2 5.2 0 0 1 6.8-6.8l-3 3 .6 3.4 3.4.6z" fill="#5C7480"/></svg></span><span>Diagnostic tehnic<small>Starea instalării, util dacă ceva nu merge</small></span></button>
     </div>
-    <p class="muted" style="padding:0 6px">Nivelo v1.84 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
-      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v1.84%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
+    <p class="muted" style="padding:0 6px">Nivelo v1.85 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
+      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v1.85%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
   </section>
 </main>
 
@@ -765,7 +775,7 @@ var PORNIT = false, ULTIMA_EROARE = null;
 })();
 
 /* ================= STOCARE ================= */
-const APP_VER='v1.84';
+const APP_VER='v1.85';
 /* Android citește manifestul — numele, iconița, scurtăturile — o singură dată, la
    instalare, și îl păstrează așa până la reinstalare. Codul se actualizează singur,
    configurarea nu. De aceea ținem minte când s-a schimbat ultima dată configurarea:
@@ -1130,6 +1140,28 @@ function rangeSign(v){ const s=S.settings;
    nu vede deloc culoarea. Perechea culoare + text acoperă ambele cazuri. */
 function rangeWord(v){ const s=S.settings;
   if(v<s.low) return 'jos'; if(v<=s.high) return 'în țintă'; if(v<=250) return 'sus'; return 'foarte sus'; }
+/* Lucrul care ține vizibil ecranul blocat.
+
+   Raportul se construiește într-o singură trecere sincronă: pe un telefon mediu,
+   varianta detaliată pe 365 de zile ia aproape o secundă și jumătate (măsurat), timp
+   în care nu se mișcă absolut nimic. Nu e un bug, e volum de muncă reală — dar fără
+   niciun semn pe ecran, apăsarea pare pur și simplu ignorată, iar omul apasă din nou.
+
+   Butonul își spune starea, apoi lăsăm browserul să deseneze DOUĂ cadre înainte de a
+   porni lucrul: unul singur nu ajunge, fiindcă schimbarea de text și prima pictare nu
+   se întâmplă neapărat în același cadru, iar munca sincronă pornită prea devreme
+   înghite exact randarea pe care o așteptam. */
+function cuAsteptare(btn, eticheta, treaba){
+  if(!btn || btn.disabled) return;
+  const vechi=btn.innerHTML;
+  btn.disabled=true;
+  btn.classList.add('asteapta');
+  btn.innerHTML=`<span class="spin" aria-hidden="true"></span>${esc(eticheta)}`;
+  const gata=()=>{ btn.disabled=false; btn.classList.remove('asteapta'); btn.innerHTML=vechi; };
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    try{ treaba(); } finally { setTimeout(gata, 120); }
+  }));
+}
 function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(t._x); t._x=setTimeout(()=>t.classList.remove('on'),1900); }
 function sortEv(){ DAYMAP=null; S.events.sort((a,b)=>a.ts-b.ts); }
 /* Intrarea tocmai notată se luminează o clipă în cronologie, ca să se vadă UNDE a
@@ -2935,7 +2967,7 @@ function shReport(){
       <button class="chip" data-v="micro">Detaliat (plus jurnalul pe zile)</button></div></div>
     <p class="muted" style="margin:-4px 0 12px">Raportul detaliat include jurnalul complet al perioadei alese; la 90+ zile pot ieși multe pagini.</p>
     <p class="muted">Se deschide fereastra de tipărire. Alege „Salvează ca PDF", apoi trimite-l din Fișiere sau pune-l în folderul Drive partajat.</p>
-    <button class="btn btn-p" onclick="doReport(parseInt(chipVal('rper')), chipVal('rlvl')==='micro')">Generează raportul</button>`);
+    <button class="btn btn-p" onclick="cuAsteptare(this,'Se pregătește raportul…',()=>doReport(parseInt(chipVal('rper')), chipVal('rlvl')==='micro'))">Generează raportul</button>`);
   chipify('rper'); chipify('rlvl');
 }
 function bucketLabel(ts, byWeek){
@@ -4382,6 +4414,10 @@ function applyUpdate(){
    cu care omul a folosit ultima dată aplicația. La prima instalare nu se arată
    nimic: cine tocmai a intrat n-are ce compara. */
 const NOUTATI=[
+  {v:'v1.85', ce:[
+    'Butonul de raport și cele de export spun acum că lucrează. Pe un telefon mediu, raportul detaliat pe 180 de zile ia peste o jumătate de secundă în care ecranul părea pur și simplu blocat.',
+    'Chips-urile (sursă, tip de insulină, perioadă) se sting și se aprind în loc să sară dintr-o stare în alta.'
+  ]},
   {v:'v1.84', ce:[
     'Bara timpului în țintă se descoperă de la stânga la dreapta, iar barele pe momentele zilei cresc de jos, una după alta.',
     'Graficul de pe Azi se trasează, cu punctele apărând în urma liniei.',
