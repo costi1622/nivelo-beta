@@ -14,15 +14,15 @@ Nu este un dispozitiv medical. Nu oferă sfaturi medicale, nu pune diagnostice �
 
 **Ziua în curs.** Ultima glicemie într-un cadran colorat după încadrarea în țintă, graficul zilei pe 24 h și patru butoane mari pentru adăugat rapid. Tot ce notezi apare dedesubt, cronologic, grupat pe momentele zilei.
 
-**Istoric și căutare.** Toate zilele notate, până la prima. Cauți un aliment și vezi fiecare dată când l-ai mâncat, cu glicemiile și insulina din jurul mesei.
+**Istoric și căutare.** Toate zilele notate, până la prima. Cauți un aliment și vezi fiecare dată când l-ai mâncat, cu glicemiile și insulina din jurul mesei. Căutarea nu ține cont de diacritice, deci „paine" găsește și „pâine". Poți filtra pe tipuri de intrări și poți sări direct la o dată, fără să derulezi.
 
 **Bibliotecă de alimente.** Fiecare aliment cu carbohidrații lui, la 100 g sau pe porție, ca la masă să-l alegi dintr-un tap. Vine cu alimente comune românești; le adaugi pe ale tale.
 
-**Statistici.** Media glicemică, HbA1c estimat, timpul în țintă, mediile pe momentele zilei, dozele tipice de insulină. Pentru discuția cu medicul: ICR și ISF observate, derivate din istoric, cu metodologia declarată.
+**Statistici.** Media glicemică, HbA1c estimat, timpul în țintă pe patru benzi, variabilitatea (deviație standard și CV), hipoglicemiile numărate ca episoade și separate pe severitate, mediile pe momentele zilei, dozele tipice de insulină. Pentru discuția cu medicul: ICR și ISF observate, derivate din istoric, cu metodologia și numărul de observații declarate. Perioada (7, 30 sau 90 de zile) se schimbă de oriunde din pagină.
 
 **Ciclul menstrual, opțional.** Se pornește din Setări. Marchezi începutul și sfârșitul, iar aplicația compară apoi zilele de ciclu cu restul: media glicemică, timpul în țintă și insulina rapidă pe zi. Util fiindcă sensibilitatea la insulină se modifică frecvent pe parcursul ciclului. Cât timp funcția e oprită, nu apare nicăieri nimic.
 
-**Raport pentru medic.** Pe 30, 90 sau 180 de zile, cu rezumatul general, dozele, parametrii derivați și, dacă e cazul, secțiunea de ciclu. Se salvează ca PDF din fereastra de tipărire.
+**Raport pentru medic.** Pe 30, 90 sau 180 de zile, în variantă sumară sau cu jurnalul complet pe zile. Conține rezumatul general, cifrele așezate lângă valorile de referință publicate, variabilitatea și hipoglicemiile pe severitate și pe momente ale zilei, evoluția pe luni, graficul „ziua tipică", comparația între zilele lucrătoare și weekend, dozele cu insulinele numite, parametrii derivați cu metodologia lor și, dacă e cazul, secțiunea de ciclu. Fiecare pagină tipărită poartă numele și perioada. Se salvează ca PDF din fereastra de tipărire.
 
 **Export.** Excel (.xlsx, două foi) sau CSV, plus backup complet în format JSON.
 
@@ -36,11 +36,13 @@ Pe desktop merge la fel: deschizi adresa în browser.
 
 Când apare o versiune nouă, aplicația te anunță printr-o bară jos și îți arată pe scurt ce s-a schimbat după actualizare.
 
-Aplicația e în probă cu un grup mic: autorul, soția lui și cinci testeri, toți pe aceeași versiune. Feedbackul lor intră direct în versiunile următoare.
+Aplicația e folosită zilnic de autor și de soția lui. Nu e publicată într-un magazin de aplicații; se instalează direct de la adresa de mai sus.
 
 ## Confidențialitate
 
 Nu se colectează și nu se transmite niciun fel de date. Totul stă local pe dispozitiv.
+
+Versiunea curentă este **v1.90** (4 octombrie 2026). Ciclul principal de dezvoltare s-a încheiat la 31 iulie 2026; de atunci, aplicația a continuat să primească îmbunătățiri ieșite din folosirea zilnică — raportul pentru medic adus la nivelul ecranului, căutarea insensibilă la diacritice, interfața trecută integral pe desene proprii, și o serie de reparații găsite prin verificare sistematică. Istoricul complet e în [CHANGELOG.md](CHANGELOG.md).
 
 Din v1.41, aplicația are o politică de securitate a conținutului care face ca **browserul însuși** să refuze orice încercare de a trimite date către un server. Promisiunea nu mai depinde doar de codul aplicației, ci e impusă din afara lui.
 
@@ -56,6 +58,7 @@ Aplicația mai are, peste asta:
 - **A doua copie locală a jurnalului,** ca rezervă dacă datele principale devin necitibile.
 - **Anulare pentru orice acțiune distructivă:** ștergerea unei intrări sau a unei zile, importul unui CSV și restaurarea unui backup. Restaurarea nu expiră: dacă ai pus alt fișier decât voiai, poți reveni și mai târziu.
 - **Avertisment dacă salvarea eșuează,** în loc să pretindă că a mers.
+- **Backupurile deteriorate sunt refuzate la restaurare,** nu acceptate pe jumătate: se verifică și că fiecare intrare își are conținutul, nu doar că fișierul e un JSON valid. Un fișier trunchiat sau făcut de o versiune mai nouă e respins cu explicația potrivită, iar datele de pe telefon rămân neatinse.
 
 ## Ajutor și suport
 
