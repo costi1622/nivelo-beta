@@ -114,6 +114,28 @@ main{max-width:560px; margin:0 auto; padding:14px 14px calc(96px + env(safe-area
 @keyframes evLumina{ 0%,45%{background:rgba(14,124,123,.16)} 100%{background:transparent} }
 .ev.evnou{ animation:evNou .24s ease-out, evLumina 1.5s ease-out }
 @keyframes barIn{ from{opacity:0; transform:translateY(16px)} to{opacity:1; transform:none} }
+@keyframes barOut{ from{opacity:1; transform:none} to{opacity:0; transform:translateY(16px)} }
+/* Benzile de avertizare — versiune nouă, salvare eșuată, memorie aproape plină — sunt
+   exact lucrurile pe care trebuie să le observi, și apăreau fără niciun semn: dacă te
+   uitai în altă parte o secundă, nu aveai de unde să știi că s-a schimbat ceva. */
+@keyframes bandaIn{ from{opacity:0; transform:translateY(-9px)} to{opacity:1; transform:none} }
+#savefail[style*="block"], #quotawarn[style*="block"], #banner[style*="block"]{ animation:bandaIn .24s ease-out }
+#updbar.on{ animation:barIn .22s ease-out }
+/* Ecranele goale urcă ușor: sunt singurul lucru de pe ecran, deci apariția bruscă a
+   unui bloc de text pe un ecran altfel gol se citește ca o eroare. */
+@keyframes urcaUsor{ from{opacity:0; transform:translateY(9px)} to{opacity:1; transform:none} }
+.empty{ animation:urcaUsor .3s ease-out both }
+/* Bannerul de backup se pliază când nu mai e nevoie de el (adică după ce chiar ai
+   făcut backup). E singura animație din aplicație care atinge așezarea paginii —
+   înălțimea unui singur element, o singură dată, la o acțiune pornită de om. */
+#banner{ transition:height .24s ease-in, opacity .18s ease-in, margin-bottom .24s ease-in,
+  padding-top .24s ease-in, padding-bottom .24s ease-in; overflow:hidden }
+#banner.pliaza{ height:0 !important; opacity:0; margin-bottom:0; padding-top:0; padding-bottom:0 }
+/* Schimbarea temei: culorile trec, nu sar. Clasa `gata` se pune după prima pictare,
+   altfel tranziția ar porni chiar la deschiderea aplicației, iar ecranul ar părea că
+   se încarcă în două etape. */
+html.gata body, html.gata .card, html.gata #tabs, html.gata #topbar, html.gata .ev,
+html.gata #banner, html.gata .chip{ transition:background-color .2s ease, color .2s ease, border-color .2s ease }
 #undobar.on{ animation:barIn .2s ease-out }
 /* Rotița din butonul care lucrează. Fără text de progres: nu știm cât durează, iar un
    procent inventat ar fi mai rău decât nimic. */
@@ -124,6 +146,23 @@ main{max-width:560px; margin:0 auto; padding:14px 14px calc(96px + env(safe-area
 .btn.asteapta, .mrow.asteapta{ opacity:.75 }
 @keyframes puls{ 0%{transform:scale(1)} 42%{transform:scale(1.34)} 100%{transform:scale(1)} }
 .fstar.puls{ animation:puls .34s ease-out }
+
+/* ===== ISTORICUL: DE CE NU FOLOSIM `content-visibility` =====
+   Istoricul era cel mai lent lucru din aplicație. Măsurat pe jurnalul real, cu frâna
+   de procesor pe ×6: timpul NU se ducea în calcul (sub 35 ms) și nici în construirea
+   textului, ci în ce face browserul după aceea — citirea HTML-ului și așezarea a zeci
+   de mii de elemente, dintre care se vede un ecran.
+
+   Soluția evidentă e `content-visibility:auto`, care îi spune browserului să sară
+   peste așezarea a ce e în afara ecranului. Încercată și măsurată: deschiderea
+   Istoricului scade de la 658 la 276 ms, iar „arată mai multe" rămâne ieftin oricât
+   de mult cobori. Dar costul apare exact unde se simte cel mai des: derularea pe o
+   listă lungă cade de la 56 la 22 de cadre pe secundă, fiindcă browserul așază
+   conținutul pe măsură ce îl descoperi.
+
+   Respinsă. Derulezi tot timpul; cobori șase tranșe rar, și pentru asta există mersul
+   la dată. Ce a rămas e lucrul care ajută pe ambele axe, fără niciun compromis:
+   jumătate de tranșă, adică jumătate de pagină de desenat la fiecare randare. */
 
 /* ===== DATELE SE CONSTRUIESC =====
    Bara timpului în țintă se descoperă dintr-o singură mișcare, de la stânga la dreapta,
@@ -481,6 +520,13 @@ html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28;
   padding:11px 8px 11px 15px; display:none; align-items:center; justify-content:space-between; gap:10px;
   font-size:calc(13.5px*var(--fs)); z-index:59; box-shadow:0 6px 24px rgba(0,0,0,.3)}
 #undobar.on{display:flex}
+#undobar.pleaca{ animation:barOut .2s ease-in both }
+
+/* Indicatorul tabului activ. Stă pe muchia de sus a barei și alunecă între taburi. */
+#tabmark{ position:absolute; top:0; left:0; height:3px; border-radius:0 0 3px 3px;
+  width:calc(100% / var(--tn, 5)); background:var(--petrol);
+  transform:translateX(calc(var(--ti, 0) * 100%));
+  transition:transform .24s cubic-bezier(.33,.12,.22,1) }
 #undobar b{font-weight:700}
 #undobar button{color:#7FD1C8; font-weight:800; font-size:calc(14px*var(--fs)); white-space:nowrap; padding:6px 12px; flex:none}
 /* Bara de versiune nouă. Stă puțin mai sus decât cea de anulare, ca să nu se
@@ -554,7 +600,10 @@ html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28;
 @media (prefers-reduced-motion:reduce){
   #sheet{transition:none} #toast{transition:opacity .1s}
   .view.on, #dial .arc, #veil.on, #veil2.on, .ev.evnou, #undobar.on, .fstar.puls,
-  .tirbar, .bars .b i, .sparkline, .sparkdot{animation:none}
+  .tirbar, .bars .b i, .sparkline, .sparkdot, .empty, #updbar.on, #undobar.pleaca,
+  #savefail[style*="block"], #quotawarn[style*="block"], #banner[style*="block"]{animation:none}
+  #tabmark, #banner, html.gata body, html.gata .card, html.gata #tabs, html.gata #topbar,
+  html.gata .ev, html.gata .chip{transition:none}
   .chip{transition:none}
   /* rotița rămâne: e singurul semn că aplicația lucrează, nu un ornament */
   .sparkline{stroke-dasharray:none}
@@ -685,12 +734,12 @@ html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28;
       <button class="mrow" onclick="shUpdate()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M7.4 9.4A5.2 5.2 0 0 1 17 8.6h1.6a4 4 0 0 1 .6 8" fill="#5B8FBF" opacity="0"/> <path d="M6.8 18.4a4.4 4.4 0 0 1 .6-8.8 5.6 5.6 0 0 1 10.8 1 3.9 3.9 0 0 1-.6 7.8z" fill="#5B8FBF"/> <path d="M12 10.6v6.6" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/> <path d="M9.2 14.6l2.8 2.8 2.8-2.8" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Adu versiunea nouă<small>Dacă tocmai a apărut o actualizare și încă nu a ajuns la tine</small></span></button>
       <button class="mrow" onclick="shDiag()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M19.4 4.6a5.2 5.2 0 0 1-6.8 6.8L6.2 17.8a2 2 0 1 1-2.8-2.8l6.4-6.4a5.2 5.2 0 0 1 6.8-6.8l-3 3 .6 3.4 3.4.6z" fill="#5C7480"/></svg></span><span>Diagnostic tehnic<small>Starea instalării, util dacă ceva nu merge</small></span></button>
     </div>
-    <p class="muted" style="padding:0 6px">Nivelo v1.85 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
-      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v1.85%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
+    <p class="muted" style="padding:0 6px">Nivelo v1.87 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
+      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v1.87%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
   </section>
 </main>
 
-<nav id="tabs">
+<nav id="tabs"><i id="tabmark" aria-hidden="true"></i>
   <button class="on" data-v="today" onclick="go('today')"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="25" height="25"><g transform="translate(12 12) scale(0.9) translate(-12 -12)"><g stroke="#F0A830" stroke-width="2.6" stroke-linecap="round"> <path d="M12 1.9v2.8M12 19.3v2.8M4.3 4.3l1.9 1.9M17.8 17.8l1.9 1.9M1.9 12h2.8M19.3 12h2.8M4.3 19.7l1.9-1.9M17.8 6.2l1.9-1.9"/></g> <circle cx="12" cy="12" r="5.7" fill="#FFC24D"/> <path d="M12 6.3a5.7 5.7 0 0 1 0 11.4 5.7 5.7 0 0 0 0-11.4z" fill="#F0A830"/></g></svg></span>Azi</button>
   <button data-v="hist" onclick="go('hist')"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="25" height="25"><circle cx="12" cy="12.3" r="8.6" fill="#5B8FBF"/> <circle cx="12" cy="12.3" r="6.6" fill="#EAF2F8"/> <path d="M12 8.1v4.4l3 1.9" stroke="#2F5A82" stroke-width="1.9" stroke-linecap="round" fill="none"/> <path d="M3.9 8.3V4.6M3.9 8.3h3.7" stroke="#2F5A82" stroke-width="1.9" stroke-linecap="round" fill="none"/></svg></span>Istoric</button>
   <button data-v="foods" onclick="go('foods')"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="25" height="25"><g transform="translate(12 12) scale(1.32) translate(-12 -12)"><path d="M12 8.6c-1.1-1.6-4.1-2.1-5.5.1-1.5 2.2-.5 6.5 1.7 8.6.9.9 2 .6 2.8.2.6-.3 1.4-.3 2 0 .8.4 1.9.7 2.8-.2 2.2-2.1 3.2-6.4 1.7-8.6-1.4-2.2-4.4-1.7-5.5-.1z" fill="#E05A4D"/> <path d="M12 8.6c1.1-1.6 4.1-2.1 5.5.1 1.5 2.2.5 6.5-1.7 8.6-.9.9-2 .6-2.8.2-.3-.15-.66-.22-1-.22z" fill="#C74538"/> <path d="M12 8.4V5.4" stroke="#7A4A2B" stroke-width="1.7" stroke-linecap="round"/> <path d="M12.3 5.8c1.1-1.9 3.2-1.8 3.2-1.8s0 2.1-1.8 2.7c-.9.3-1.4-.9-1.4-.9z" fill="#57A85C"/></g></svg></span>Alimente</button>
@@ -775,7 +824,7 @@ var PORNIT = false, ULTIMA_EROARE = null;
 })();
 
 /* ================= STOCARE ================= */
-const APP_VER='v1.85';
+const APP_VER='v1.87';
 /* Android citește manifestul — numele, iconița, scurtăturile — o singură dată, la
    instalare, și îl păstrează așa până la reinstalare. Codul se actualizează singur,
    configurarea nu. De aceea ținem minte când s-a schimbat ultima dată configurarea:
@@ -1335,7 +1384,15 @@ function histLastDose(name){
 function go(v){
   document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));
   $('v-'+v).classList.add('on');
-  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on', b.dataset.v===v));
+  const taburi=[...document.querySelectorAll('#tabs button')];
+  taburi.forEach(b=>b.classList.toggle('on', b.dataset.v===v));
+  /* Indicatorul alunecă de la tabul vechi la cel nou, deci se vede ÎNCOTRO te-ai dus,
+     nu doar unde ai ajuns. Poziția e un simplu număr de ordine pus pe bară; lățimea
+     lui e o fracțiune din bară, deci merge oricâte taburi ar fi. */
+  const i=taburi.findIndex(b=>b.dataset.v===v);
+  if(i>=0){ const t=$('tabs');
+    t.style.setProperty('--tn', taburi.length);
+    t.style.setProperty('--ti', i); }
   if(v==='today') renderToday();
   if(v==='hist') renderHist();
   if(v==='foods') renderFoods();
@@ -2000,9 +2057,9 @@ let HFILT='tot';
    nu se mai afișează deasupra, ca să nu trebuiască să derulezi prin ele. */
 let HIST_FROM='';
 const HFILTERS=[['tot','Tot'],['gluc','Glicemie'],['ins','Insulină'],['meal','Mese'],['alte','Altele']];
-function hFilt(v){ HFILT=v; HIST_SHOWN=60; SEARCH_SHOWN=SEARCH_PAGE; renderHist(); }
-function hJump(v){ HIST_FROM=v||''; HIST_SHOWN=60; renderHist(); }
-function hJumpClear(){ HIST_FROM=''; HIST_SHOWN=60; renderHist(); }
+function hFilt(v){ HFILT=v; HIST_SHOWN=HIST_PAS; SEARCH_SHOWN=SEARCH_PAGE; renderHist(); }
+function hJump(v){ HIST_FROM=v||''; HIST_SHOWN=HIST_PAS; renderHist(); }
+function hJumpClear(){ HIST_FROM=''; HIST_SHOWN=HIST_PAS; renderHist(); }
 function hJumpRow(){
   const azi=dKey(Date.now());
   return `<div class="hjump">
@@ -2023,7 +2080,7 @@ function hChips(){
 function renderHist(){
   const q=fold($('q').value.trim());
   if(q){
-    HIST_SHOWN=60;   // când se caută, lista plină de dedesubt revine la starea inițială
+    HIST_SHOWN=HIST_PAS;   // când se caută, lista plină de dedesubt revine la starea inițială
     if(q!==LAST_Q){ SEARCH_SHOWN=SEARCH_PAGE; LAST_Q=q; }   // cuvânt nou: pornim de la prima tranșă
     // în căutare rămânem la lista plată filtrată (potriviri răzlețe), cu context la mese
     const all=[...S.events].reverse().filter(e=>hKeep(e) && fold(evText(e)).includes(q));
@@ -2068,14 +2125,15 @@ function renderHist(){
   });
   if(allDays.length>HIST_SHOWN){
     const rest=allDays.length-HIST_SHOWN;
-    const next=Math.min(60, rest);
+    const next=Math.min(HIST_PAS, rest);
     html+=`<button class="btn-more" onclick="histMore()">Arată încă ${nUnit(next,'zile','o zi')} <small>· ${nUnit(rest,'rămase','rămasă')}</small><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>`;
   } else if(allDays.length>60){
     html+=`<p class="muted" style="text-align:center; margin:14px 0 4px">Ai ajuns la începutul jurnalului. ${nUnit(allDays.length,'zile','o zi')} cu date, prima pe ${dNice(S.events[0].ts)}.</p>`;
   }
   $('histbody').innerHTML=html;
 }
-function histMore(){ HIST_SHOWN+=60; renderHist(); }
+function histMore(){ HIST_SHOWN+=HIST_PAS; renderHist(); }
+
 function searchMore(){ SEARCH_SHOWN+=SEARCH_PAGE; renderHist(); }
 function ctx(id){
   const e=S.events.find(x=>x.id===id); if(!e){return;}
@@ -2242,7 +2300,12 @@ function cicluCompara(evs, zile){
   return {mens:rez(G.mens), rest:rez(G.rest)};
 }
 let PERIOD=30;
-let HIST_SHOWN=60;   // câte zile de istoric sunt afișate acum; crește cu „Arată mai multe"
+/* Tranșa de zile din Istoric. A fost 60; măsurată pe jurnalul real, cu frâna de
+   procesor pe ×6, o tranșă de 60 de zile costă 615 ms de randare, una de 30 doar 382.
+   Jumătate de tranșă nu înseamnă jumătate de informație utilă: ecranul arată oricum
+   câteva zile odată, iar pentru salturi mari există mersul la dată. */
+const HIST_PAS=30;
+let HIST_SHOWN=HIST_PAS;   // câte zile de istoric sunt afișate acum; crește cu „Arată mai multe"
 /* Căutarea are propria tranșă. Fără ea, un aliment mâncat des (pâine, cartofi) dădea
    mai multe potriviri decât limita, iar cele mai vechi rămâneau inaccesibile: exact
    invers de ce vrei la o căutare istorică. LAST_Q ține minte căutarea, ca tranșa să
@@ -2581,11 +2644,22 @@ function getUndo(){
 function clearUndo(){ try{ localStorage.removeItem(UNDO_KEY); }catch(e){} hideUndoBar(); }
 function showUndoBar(rec){
   const el=$('undobar'); if(!el) return;
+  clearTimeout(el._iesire); el.classList.remove('pleaca');   // o ieșire pornită se anulează
   el.innerHTML=`<span><b>${esc(rec.label)}</b></span><button onclick="runUndo()">Anulează</button>`;
   el.classList.add('on');
   clearTimeout(el._x); el._x=setTimeout(hideUndoBar, 12000);
 }
-function hideUndoBar(){ const el=$('undobar'); if(el){ el.classList.remove('on'); clearTimeout(el._x); } }
+/* Bara intra alunecând de jos și dispărea instantaneu. Asimetria se simte mai ales la
+   dispariția de la sine, după douăsprezece secunde: ceva de pe ecran pur și simplu nu
+   mai e. Acum coboară la loc pe unde a venit. */
+function hideUndoBar(){
+  const el=$('undobar'); if(!el) return;
+  clearTimeout(el._x);
+  if(!el.classList.contains('on')) return;
+  el.classList.add('pleaca');
+  clearTimeout(el._iesire);
+  el._iesire=setTimeout(()=>{ el.classList.remove('on','pleaca'); }, 210);
+}
 function runUndo(){
   const r=getUndo();
   if(!r){ hideUndoBar(); toast('Nu mai pot anula operațiunea'); return; }
@@ -4309,12 +4383,22 @@ function renderMore(){
 }
 
 /* ================= BACKUP REMINDER ================= */
+/* Ascunderea bannerului: dacă e pe ecran, se pliază; dacă nu era oricum vizibil, se
+   stinge direct, ca să nu pornim o animație pentru nimic. */
+function ascundeBanner(b){
+  if(!b || b.style.display==='none' || !b.offsetHeight){ if(b) b.style.display='none'; return; }
+  b.style.height=b.offsetHeight+'px';
+  requestAnimationFrame(()=>b.classList.add('pliaza'));
+  clearTimeout(b._pliere);
+  b._pliere=setTimeout(()=>{ b.style.display='none'; b.style.height=''; b.classList.remove('pliaza'); }, 270);
+}
 function bannerCheck(){
   const b=$('banner');
-  if(S.events.length<=3){ b.style.display='none'; return; }
+  if(S.events.length<=3){ ascundeBanner(b); return; }
   const dd=S.settings.lastBackup ? zileCalendar(S.settings.lastBackup, Date.now()) : 9999;
   const never=!S.settings.lastBackup;
-  if(!never && dd<7){ b.style.display='none'; return; }
+  if(!never && dd<7){ ascundeBanner(b); return; }
+  clearTimeout(b._pliere); b.classList.remove('pliaza'); b.style.height='';
   b.style.display='block';
   b.classList.remove('urgent');
   if(never){
@@ -4332,6 +4416,8 @@ function bannerCheck(){
 /* ================= START ================= */
 sortEv();
 applyTheme(); applyFontScale();
+// culorile pot trece dintr-una într-alta abia după ce prima pictare s-a așezat
+setTimeout(()=>document.documentElement.classList.add('gata'), 350);
 renderToday(); renderMore(); bannerCheck(); renderBkLine(); storageWarn(); quotaWarn();
 askPersist();
 // după un refresh, revenim pe secțiunea unde eram
@@ -4414,6 +4500,16 @@ function applyUpdate(){
    cu care omul a folosit ultima dată aplicația. La prima instalare nu se arată
    nimic: cine tocmai a intrat n-are ce compara. */
 const NOUTATI=[
+  {v:'v1.87', ce:[
+    'Benzile de avertizare — versiune nouă, salvare eșuată, memorie aproape plină — coboară în loc să apară din senin. Sunt exact lucrurile pe care trebuie să le observi.',
+    'Bara de anulare iese pe unde a intrat, în loc să dispară instantaneu după 12 secunde.',
+    'Un indicator alunecă între taburile din bara de jos, deci se vede încotro te-ai dus.',
+    'Schimbarea temei trece prin culori în loc să sară. Ecranele goale urcă ușor. Bannerul de backup se pliază când nu mai e nevoie de el.'
+  ]},
+  {v:'v1.86', ce:[
+    'Istoricul se deschide de două ori mai repede, iar „arată mai multe" nu mai blochează aplicația. La a cincea apăsare, pe un telefon mediu, înainte îngheța peste zece secunde; acum sub două și jumătate.',
+    'Tranșa de zile e acum 30 în loc de 60. Jumătate de pagină de desenat la fiecare randare, aceleași zile la câteva apăsări.'
+  ]},
   {v:'v1.85', ce:[
     'Butonul de raport și cele de export spun acum că lucrează. Pe un telefon mediu, raportul detaliat pe 180 de zile ia peste o jumătate de secundă în care ecranul părea pur și simplu blocat.',
     'Chips-urile (sursă, tip de insulină, perioadă) se sting și se aprind în loc să sară dintr-o stare în alta.'
