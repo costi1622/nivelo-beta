@@ -91,7 +91,58 @@ h1,h2,h3{margin:0; line-height:1.2}
 #topbar .who{font-size:13px; opacity:.85}
 main{max-width:560px; margin:0 auto; padding:14px 14px calc(96px + env(safe-area-inset-bottom))}
 .view{display:none}
-.view.on{display:block}
+.view.on{display:block; animation:viewIn .13s ease-out}
+
+/* ===== MIȘCARE =====
+   Patru mișcări, toate pe `transform`, `opacity` și `stroke-dashoffset` — adică pe
+   placa video, nu pe așezarea paginii: nu declanșează recalcularea aspectului, deci nu
+   se simt pe un telefon cu un jurnal de treisprezece mii de intrări. Niciuna nu
+   întârzie o acțiune: arcul și încrucișarea rulează peste conținutul deja desenat,
+   apăsarea e instantanee. Tot blocul se stinge la „reduce motion". */
+@keyframes viewIn{ from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:none} }
+@keyframes arcIn{ from{stroke-dashoffset:var(--arc)} to{stroke-dashoffset:0} }
+@keyframes veilIn{ from{opacity:0} to{opacity:1} }
+/* Arcul pornește ascuns (decalajul acoperă partea colorată) și se descoperă de la
+   vârf, fiindcă SVG-ul e rotit cu -90°. Cifra NU se animă: într-un jurnal medical, o
+   valoare care se schimbă sub ochi se poate citi greșit dacă te uiți o secundă. */
+#dial .arc{ animation:arcIn .72s cubic-bezier(.33,.12,.22,1) both; }
+/* Intrarea tocmai notată: coboară scurt la locul ei și se stinge dintr-o lumină caldă.
+   Lumina ține mai mult decât mișcarea, fiindcă ea e cea care răspunde la „unde a
+   ajuns?"; mișcarea doar atrage ochiul acolo. Culoarea e aceeași în ambele teme,
+   fiind o transparență peste fundalul cardului. */
+@keyframes evNou{ from{opacity:0; transform:translateY(-7px)} to{opacity:1; transform:none} }
+@keyframes evLumina{ 0%,45%{background:rgba(14,124,123,.16)} 100%{background:transparent} }
+.ev.evnou{ animation:evNou .24s ease-out, evLumina 1.5s ease-out }
+@keyframes barIn{ from{opacity:0; transform:translateY(16px)} to{opacity:1; transform:none} }
+#undobar.on{ animation:barIn .2s ease-out }
+@keyframes puls{ 0%{transform:scale(1)} 42%{transform:scale(1.34)} 100%{transform:scale(1)} }
+.fstar.puls{ animation:puls .34s ease-out }
+
+/* ===== DATELE SE CONSTRUIESC =====
+   Bara timpului în țintă se descoperă dintr-o singură mișcare, de la stânga la dreapta,
+   cu `clip-path`. Varianta evidentă — să crească fiecare bandă din flex — ar fi fost o
+   animație pe așezarea paginii, cu toate recalculările pe care le aduce, și ar fi lăsat
+   goluri între benzi cât timp durează. Aici se mișcă o singură mască. */
+@keyframes tirIn{ from{clip-path:inset(0 100% 0 0)} to{clip-path:inset(0 0 0 0)} }
+.tirbar{ animation:tirIn .62s cubic-bezier(.33,.12,.22,1) both }
+/* Barele pe momente cresc de jos, una după alta. Scalarea pe verticală nu atinge
+   așezarea: cifra din capul barei urcă odată cu ea. */
+@keyframes barUp{ from{transform:scaleY(0)} to{transform:scaleY(1)} }
+.bars .b i{ transform-origin:bottom; animation:barUp .46s cubic-bezier(.33,.12,.22,1) both;
+  animation-delay:calc(var(--i, 0) * 70ms) }
+/* Linia graficului se trasează. `pathLength="1"` normalizează lungimea traseului la 1,
+   deci nu trebuie măsurat nimic în cod, oricâte puncte ar avea ziua. */
+@keyframes traseu{ from{stroke-dashoffset:1} to{stroke-dashoffset:0} }
+.sparkline{ stroke-dasharray:1; animation:traseu .85s cubic-bezier(.4,.05,.2,1) both }
+/* Punctele apar în urma liniei, fiecare la rândul lui. */
+@keyframes punct{ from{opacity:0; transform:scale(.4)} to{opacity:1; transform:scale(1)} }
+.sparkdot{ transform-box:fill-box; transform-origin:center;
+  animation:punct .22s ease-out both; animation-delay:calc(var(--i, 0) * .72s + .1s) }
+#veil.on, #veil2.on{ animation:veilIn .22s ease-out }
+/* Apăsarea: scurtă, pe apăsare, nu pe eliberare, ca să se simtă imediat. */
+.btn:active, #quick button:active, #tabs button:active, .chip:active,
+.foodhit:active, .ev:active, .mrow:active{ transform:scale(.97) }
+.btn, #quick button, .chip, .foodhit, .ev, .mrow{ transition:transform .09s ease-out }
 
 #tabs{position:fixed; bottom:0; left:0; right:0; z-index:30; background:var(--card);
   border-top:1px solid var(--line); display:flex; padding-bottom:env(safe-area-inset-bottom)}
@@ -473,6 +524,7 @@ html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28;
      se descoperă abia când medicul întoarce pagina. */
   #report h2{break-after:avoid; page-break-after:avoid; break-inside:avoid}
   #report tr{break-inside:avoid; page-break-inside:avoid}
+  #report *{animation:none !important}        /* hârtia nu are nevoie de mișcare */
   #report thead{display:table-header-group}   /* capul de tabel se repetă pe fiecare pagină */
   #report tfoot{display:table-footer-group}
   /* Identificarea pe FIECARE pagină. Paginile 2 și 3 nu aveau nici numele, nici
@@ -491,7 +543,14 @@ html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28;
   #report p, #report div{orphans:3; widows:3}
   #report .keep{break-inside:avoid; page-break-inside:avoid}
 }
-@media (prefers-reduced-motion:reduce){ #sheet{transition:none} #toast{transition:opacity .1s} }
+@media (prefers-reduced-motion:reduce){
+  #sheet{transition:none} #toast{transition:opacity .1s}
+  .view.on, #dial .arc, #veil.on, #veil2.on, .ev.evnou, #undobar.on, .fstar.puls,
+  .tirbar, .bars .b i, .sparkline, .sparkdot{animation:none}
+  .sparkline{stroke-dasharray:none}
+  .btn:active, #quick button:active, #tabs button:active, .chip:active,
+  .foodhit:active, .ev:active, .mrow:active{transform:none}
+}
 /* ---------- ecran culcat (landscape) ---------- */
 @media (orientation:landscape) and (max-height:540px){
   #topbar{padding:calc(5px + env(safe-area-inset-top)) 18px 5px}
@@ -616,8 +675,8 @@ html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28;
       <button class="mrow" onclick="shUpdate()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M7.4 9.4A5.2 5.2 0 0 1 17 8.6h1.6a4 4 0 0 1 .6 8" fill="#5B8FBF" opacity="0"/> <path d="M6.8 18.4a4.4 4.4 0 0 1 .6-8.8 5.6 5.6 0 0 1 10.8 1 3.9 3.9 0 0 1-.6 7.8z" fill="#5B8FBF"/> <path d="M12 10.6v6.6" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/> <path d="M9.2 14.6l2.8 2.8 2.8-2.8" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Adu versiunea nouă<small>Dacă tocmai a apărut o actualizare și încă nu a ajuns la tine</small></span></button>
       <button class="mrow" onclick="shDiag()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M19.4 4.6a5.2 5.2 0 0 1-6.8 6.8L6.2 17.8a2 2 0 1 1-2.8-2.8l6.4-6.4a5.2 5.2 0 0 1 6.8-6.8l-3 3 .6 3.4 3.4.6z" fill="#5C7480"/></svg></span><span>Diagnostic tehnic<small>Starea instalării, util dacă ceva nu merge</small></span></button>
     </div>
-    <p class="muted" style="padding:0 6px">Nivelo v1.81 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
-      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v1.81%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
+    <p class="muted" style="padding:0 6px">Nivelo v1.84 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
+      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v1.84%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
   </section>
 </main>
 
@@ -706,7 +765,7 @@ var PORNIT = false, ULTIMA_EROARE = null;
 })();
 
 /* ================= STOCARE ================= */
-const APP_VER='v1.81';
+const APP_VER='v1.84';
 /* Android citește manifestul — numele, iconița, scurtăturile — o singură dată, la
    instalare, și îl păstrează așa până la reinstalare. Codul se actualizează singur,
    configurarea nu. De aceea ținem minte când s-a schimbat ultima dată configurarea:
@@ -1073,6 +1132,36 @@ function rangeWord(v){ const s=S.settings;
   if(v<s.low) return 'jos'; if(v<=s.high) return 'în țintă'; if(v<=250) return 'sus'; return 'foarte sus'; }
 function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(t._x); t._x=setTimeout(()=>t.classList.remove('on'),1900); }
 function sortEv(){ DAYMAP=null; S.events.sort((a,b)=>a.ts-b.ts); }
+/* Intrarea tocmai notată se luminează o clipă în cronologie, ca să se vadă UNDE a
+   ajuns. Într-un jurnal ordonat pe oră, o intrare de acum două ore apare la mijlocul
+   listei, nu la capăt, iar până acum singura confirmare era un toast care nu spunea
+   nimic despre loc. Marcajul se stinge singur, ca o randare ulterioară (o schimbare de
+   filtru, o revenire pe ecran) să nu reaprindă aceeași intrare. */
+let EV_NOU=null, EV_NOU_T=null;
+function marcheazaNou(id){
+  EV_NOU=id;
+  clearTimeout(EV_NOU_T);
+  EV_NOU_T=setTimeout(()=>{ EV_NOU=null; }, 1800);
+}
+/* Lumina de pe intrarea nouă nu ajută dacă intrarea a căzut sub marginea ecranului —
+   iar la cineva care notează de câteva ori pe zi, exact acolo ajunge. După randare o
+   aducem în câmpul vizual, dar NUMAI dacă e în afara lui: altfel pagina ar sări sub
+   degete la fiecare salvare, deși nu era nimic de arătat.
+
+   Se face cu întârziere, nu imediat: închiderea ferestrei readuce derularea la poziția
+   de dinainte (deblocarea paginii face asta, și o face și butonul „înapoi" al
+   telefonului, prin istoricul navigării). O derulare pornită mai devreme era pur și
+   simplu anulată de restaurarea aceea. */
+function aratăIntrareaNouă(){
+  if(!EV_NOU) return;
+  const el=document.querySelector('.ev.evnou');
+  if(!el || !el.getBoundingClientRect) return;
+  const r=el.getBoundingClientRect();
+  const jos=(window.innerHeight||760)-76;        // bara de jos acoperă ultimii pixeli
+  if(r.top>=56 && r.bottom<=jos) return;         // deja se vede: nu mișcăm nimic
+  try{ el.scrollIntoView({block:'center', behavior:'smooth'}); }
+  catch(e){ try{ el.scrollIntoView(); }catch(_){} }
+}
 /* Harta zi -> evenimente. `evOfDay` parcurgea tot jurnalul la fiecare apel, iar
    Istoricul o cheamă pentru fiecare din cele șaizeci de zile afiășate: la un jurnal de
    treisprezece mii de evenimente înseamnă aproape opt sute de mii de treceri la fiecare
@@ -1305,6 +1394,25 @@ function timeRow(id, ts){
     <div class="frow"><label>Ora</label><input class="inp" type="time" id="${id}t" value="${tHM(d.getTime())}"></div>
   </div>`;
 }
+/* Citirea unui număr zecimal dintr-un câmp.
+
+   De ce nu mai folosim type="number": într-un câmp numeric, browserul aruncă tăcut
+   caracterele care nu fac parte dintr-un număr „valid" în sensul HTML — adică punct,
+   niciodată virgulă. Cine tasta 6,5 unități primea în câmp 65, fără niciun semn că
+   s-a schimbat ceva, iar 65 trece de verificarea de maxim 80. Aceeași tastare dădea
+   845 kg la greutate și 125 HC la un aliment nou. Într-un jurnal din care se citesc
+   doza totală zilnică și ICR-ul, o virgulă pierdută nu e o neplăcere de interfață, e
+   o cifră falsă dusă la medic.
+
+   Câmpurile sunt acum text cu tastatură numerică (`inputmode="decimal"`, deci pe
+   telefon apare același keypad), iar virgula ajunge întreagă aici. Verificarea de
+   interval, care înainte era și în atributele câmpului, se face integral în cod. */
+function readNum(id){
+  const brut=String(($(''+id)||{}).value||'').trim().replace(/\s+/g,'').replace(',','.');
+  if(!brut || !/^-?\d*\.?\d+$/.test(brut)) return null;
+  const v=parseFloat(brut);
+  return isFinite(v) ? v : null;
+}
 function readTime(id){
   const dv=$(''+id+'d').value, tv=$(''+id+'t').value;
   if(!dv||!tv) return null;
@@ -1330,12 +1438,14 @@ function shGluc(ev){
 function chipify(id){ $(''+id).querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ $(''+id).querySelectorAll('.chip').forEach(x=>x.classList.remove('on')); c.classList.add('on'); }); }
 function chipVal(id){ const c=$(''+id).querySelector('.chip.on'); return c?c.dataset.v:null; }
 function okGluc(id){
-  const v=parseFloat($('gv').value), ts=readTime('g');
+  const v=readNum('gv'), ts=readTime('g');
   if(!v||v<20||v>900){ toast('Introdu o valoare validă'); return; }
   if(!ts){ toast('Verifică data și ora'); return; }
+  let nid=id;
   if(id){ const e=S.events.find(x=>x.id===id); e.ts=ts; e.gluc={v,src:chipVal('gsrc')}; }
-  else S.events.push({id:uid(), ts, type:'gluc', gluc:{v, src:chipVal('gsrc')}});
-  sortEv(); save(); closeSheet(); renderToday(); toast('Glicemie salvată');
+  else { nid=uid(); S.events.push({id:nid, ts, type:'gluc', gluc:{v, src:chipVal('gsrc')}}); }
+  marcheazaNou(nid);
+  sortEv(); save(); closeSheet(); renderToday(); setTimeout(aratăIntrareaNouă,280); toast('Glicemie salvată');
 }
 
 /* ================= INSULINĂ ================= */
@@ -1346,7 +1456,7 @@ function shIns(ev){
   openSheet(`<h3>${ev?'Modifică insulina':'Insulină'}</h3>
     <div class="frow"><label>Insulină</label><div class="chips" id="iname">${insChips}</div></div>
     <div class="frow"><label>Unități</label>
-      <div class="bigwrap"><input class="inp bignum num" id="uv" type="number" step="0.5" min="0.5" max="80" inputmode="decimal" value="${e.ins.u}"><span class="unit" aria-hidden="true">U</span></div></div>
+      <div class="bigwrap"><input class="inp bignum num" id="uv" type="text" inputmode="decimal" autocomplete="off" value="${e.ins.u}"><span class="unit" aria-hidden="true">U</span></div></div>
     <div class="frow"><label>Scop</label><div class="chips" id="ikind">
       <button class="chip ${e.ins.kind==='bolus'?'on':''}" data-v="bolus">La masă</button>
       <button class="chip ${e.ins.kind==='corectie'?'on':''}" data-v="corectie">Corecție</button>
@@ -1371,14 +1481,16 @@ function shIns(ev){
   if(!ev) setTimeout(()=>{ const u=$('uv'); if(u) u.focus(); },250);
 }
 function okIns(id){
-  const u=parseFloat(String($('uv').value).replace(',','.')), ts=readTime('i');
-  if(!u||u<=0||u>80){ toast('Introdu unitățile de insulină'); return; }
+  const u=readNum('uv'), ts=readTime('i');
+  if(u===null||u<=0||u>80){ toast('Introdu unitățile de insulină (maximum 80)'); return; }
   if(!ts){ toast('Verifică data și ora'); return; }
   const rec={u, name:chipVal('iname'), kind:chipVal('ikind')};
   S.settings.lastU=Object.assign(S.settings.lastU||{}, {[rec.name]:u});
+  let nid=id;
   if(id){ const e=S.events.find(x=>x.id===id); e.ts=ts; e.ins=rec; }
-  else S.events.push({id:uid(), ts, type:'ins', ins:rec});
-  sortEv(); save(); closeSheet(); renderToday(); toast('Insulină salvată');
+  else { nid=uid(); S.events.push({id:nid, ts, type:'ins', ins:rec}); }
+  marcheazaNou(nid);
+  sortEv(); save(); closeSheet(); renderToday(); setTimeout(aratăIntrareaNouă,280); toast('Insulină salvată');
 }
 
 /* ================= MASĂ ================= */
@@ -1427,19 +1539,19 @@ function pickFood(fid){
 function askGrams(f){
   openSheet2(`<h3>Câte grame?</h3>
     <p class="muted" style="margin:-4px 0 12px">${esc(f.name)} · ${fmtHC(f.val)} HC / 100 g</p>
-    <div class="bigwrap"><input class="inp bignum num" id="gramin" type="number" inputmode="numeric" step="1" min="1" style="text-align:center; font-size:calc(26px*var(--fs)); font-weight:800"><span class="unit" aria-hidden="true">g</span></div>
+    <div class="bigwrap"><input class="inp bignum num" id="gramin" type="text" inputmode="decimal" autocomplete="off" style="text-align:center; font-size:calc(26px*var(--fs)); font-weight:800"><span class="unit" aria-hidden="true">g</span></div>
     <div class="hcprev" id="grampv" style="text-align:center; font-size:calc(14px*var(--fs)); color:var(--hc-ink); font-weight:700; min-height:20px; margin-top:10px"></div>
     <button class="btn btn-p" style="margin-top:14px" onclick="okGrams('${f.id}')">Adaugă la masă</button>
     <button class="btn btn-g" onclick="closeSheet2()">Anulează</button>`);
   const inp=$('gramin');
-  inp.oninput=()=>{ const gr=parseFloat(String(inp.value).replace(',','.'));
+  inp.oninput=()=>{ const gr=readNum('gramin');
     $('grampv').textContent = gr>0 ? '= '+fmtHC(gr*f.val/100)+' HC' : ''; };
   inp.onkeydown=(e)=>{ if(e.key==='Enter') okGrams(f.id); };
   setTimeout(()=>inp.focus(),250);
 }
 function okGrams(fid){
   const f=S.foods.find(x=>x.id===fid);
-  const gr=parseFloat(String($('gramin').value).replace(',','.'));
+  const gr=readNum('gramin');
   if(!gr||gr<=0){ toast('Introdu gramajul'); return; }
   addItem(f.name, gr, gr*f.val/100, fid);
   closeSheet2();
@@ -1465,9 +1577,11 @@ function okMeal(){
   M.hc=Math.round(M.items.reduce((a,i)=>a+(i.hc||0),0)*10)/10;
   M.items.forEach(i=>{ const f=S.foods.find(x=>x.id===i.fid); if(f) f.uses++; });
   const rec={items:M.items, hc:M.hc, note:M.note};
+  let nid=M._edit;
   if(M._edit){ const e=S.events.find(x=>x.id===M._edit); e.ts=ts; e.meal=rec; }
-  else S.events.push({id:uid(), ts, type:'meal', meal:rec});
-  sortEv(); save(); closeSheet(); renderToday(); toast('Masă salvată');
+  else { nid=uid(); S.events.push({id:nid, ts, type:'meal', meal:rec}); }
+  marcheazaNou(nid);
+  sortEv(); save(); closeSheet(); renderToday(); setTimeout(aratăIntrareaNouă,280); toast('Masă salvată');
 }
 
 /* ================= NOTE / ACTIVITATE / GREUTATE ================= */
@@ -1485,7 +1599,7 @@ function shNote(ev){
     <div class="frow" id="ntextrow" style="display:${isKg||isCiclu?'none':'block'}"><label>Text</label>
       <textarea class="inp" id="ntext" rows="3" placeholder="ex: plimbare 1h / condus / răcit">${esc(e.note?e.note.text:'')}</textarea></div>
     <div class="frow" id="nkgrow" style="display:${isKg?'block':'none'}"><label>Kg</label>
-      <input class="inp bignum num" id="nkg" type="number" step="0.1" inputmode="decimal" value="${isKg?e.kg.v:''}"></div>
+      <input class="inp bignum num" id="nkg" type="text" inputmode="decimal" autocomplete="off" value="${isKg?e.kg.v:''}"></div>
     <div class="frow" id="ncicrow" style="display:${isCiclu?'block':'none'}"><label>Ce notezi</label>
       <div class="chips" id="ncic">
         <button class="chip ${!isCiclu||(e.ciclu&&e.ciclu.faza)!=='stop'?'on':''}" data-v="start">A început</button>
@@ -1505,8 +1619,10 @@ function shNote(ev){
 function okNote(id){
   const ts=readTime('n'); if(!ts){ toast('Verifică data și ora'); return; }
   const tp=chipVal('ntype');
-  let rec;
-  if(tp==='kg'){ const v=parseFloat($('nkg').value); if(!v){ toast('Introdu greutatea'); return; } rec={type:'kg', kg:{v}}; }
+  let rec, nid=id;
+  if(tp==='kg'){ const v=readNum('nkg');
+    if(v===null||v<20||v>400){ toast('Introdu greutatea în kg (între 20 și 400)'); return; }
+    rec={type:'kg', kg:{v}}; }
   else if(tp==='ciclu'){ rec={type:'ciclu', ciclu:{faza:chipVal('ncic')||'start'}}; }
   else{ const tx=$('ntext').value.trim(); if(!tx){ toast('Scrie ceva mai întâi'); return; } rec={type:tp, note:{text:tx}}; }
   if(id){ const e=S.events.find(x=>x.id===id); e.ts=ts; e.type=rec.type;
@@ -1514,8 +1630,9 @@ function okNote(id){
     if(rec.type==='kg') e.kg=rec.kg;
     else if(rec.type==='ciclu') e.ciclu=rec.ciclu;
     else e.note=rec.note; }
-  else S.events.push({id:uid(), ts, ...rec});
-  sortEv(); save(); closeSheet(); renderToday(); toast('Salvat');
+  else { nid=uid(); S.events.push({id:nid, ts, ...rec}); }
+  marcheazaNou(nid);
+  sortEv(); save(); closeSheet(); renderToday(); setTimeout(aratăIntrareaNouă,280); toast('Salvat');
 }
 
 /* ================= ȘTERGERE / EDITARE ================= */
@@ -1556,7 +1673,7 @@ function eventCard(e){
   }else{
     body=`<div class="hl">${e.type==='act'?'<svg class="evi" viewBox="0 0 24 24" aria-hidden="true"><circle cx="14.6" cy="4.9" r="2.3" fill="#3E9E6B"/> <path d="M12.9 8.2l3.3-.7 3 3.2 2.6 1.1-.9 2-3.3-1.3-1.5-1.5-.9 3.2 3 2.8 1 5-2.2.4-.9-4.2-4.4-3.6.9-5.4-2.2 1-1 2.9-2.1-.7 1.3-3.9z" fill="#3E9E6B"/> <path d="M8.6 14.6l-2.2 4.3-2-1 2.5-4.6z" fill="#2F7B52"/></svg> Activitate':'<svg class="evi" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.6 3.2l5.2 5.2-2.3 2.3-5.2-5.2z" fill="#C9A227"/> <path d="M12.9 5.9l5.2 5.2-8.4 8.4-5.2-5.2z" fill="#E0B84B"/> <path d="M9.7 19.5l-5.2-5.2-1.4 5a1 1 0 0 0 1.3 1.3z" fill="#8A6A4B"/></svg> Notă'}</div><div class="sub">${esc((e.note&&e.note.text)||'')}</div>`;
   }
-  return `<button class="ev" onclick="editEv('${e.id}')">${t}<span class="body">${body}</span></button>`;
+  return `<button class="ev${e.id===EV_NOU?' evnou':''}" onclick="editEv('${e.id}')">${t}<span class="body">${body}</span></button>`;
 }
 /* Ecranele goale foloseau emoji de sistem — ultima zonă rămasă. Harta de mai jos
    traduce fiecare emoji în desenul potrivit, ca să nu fie nevoie să atingem cele
@@ -1685,8 +1802,8 @@ function renderToday(){
         <div class="gauge">
         <svg width="96" height="96" viewBox="0 0 104 104">
           <circle cx="52" cy="52" r="46" fill="none" stroke="var(--line)" stroke-width="9"/>
-          <circle cx="52" cy="52" r="46" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round"
-            stroke-dasharray="${(C*pct).toFixed(1)} ${C.toFixed(1)}"/>
+          <circle class="arc" cx="52" cy="52" r="46" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round"
+            stroke-dasharray="${(C*pct).toFixed(1)} ${C.toFixed(1)}" style="--arc:${(C*pct).toFixed(1)}"/>
         </svg>
         <div class="v"><b class="num" style="color:${ink}">${last.gluc.v}</b><small>mg/dl</small></div>
         </div>
@@ -1793,7 +1910,10 @@ function renderSpark(evs){
   const yLab=[s.low,s.high].map(v=>`<text x="${LP-4}" y="${(Y(v)+3).toFixed(1)}" font-size="8.5" fill="var(--ink-soft)" text-anchor="end">${v}</text>`
     +`<line x1="${LP}" y1="${Y(v).toFixed(1)}" x2="${W-P}" y2="${Y(v).toFixed(1)}" stroke="var(--petrol)" stroke-opacity=".28" stroke-width="1"/>`).join('');
   const line=pts.map((p,i)=>(i?'L':'M')+X(p.x).toFixed(1)+' '+Y(p.v).toFixed(1)).join(' ');
-  const dots=pts.map(p=>`<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.v).toFixed(1)}" r="4" fill="${rangeColor(p.v)}"/>`).join('');
+  /* `--i` dă fiecărui punct rândul lui: apar unul câte unul, în urma liniei care se
+     trasează, nu toate odată la final. Întârzierea e proporțională cu poziția, deci
+     merge la fel de bine cu trei puncte și cu treizeci. */
+  const dots=pts.map((p,i)=>`<circle class="sparkdot" style="--i:${(i/Math.max(pts.length-1,1)).toFixed(3)}" cx="${X(p.x).toFixed(1)}" cy="${Y(p.v).toFixed(1)}" r="4" fill="${rangeColor(p.v)}"/>`).join('');
   /* Ultima valoare NU se scrie pe grafic: stă deja mare în cadranul de deasupra, la
      câțiva centimetri. Scrisă și aici, nu adăuga nimic și, când ultimele măsurători
      sunt apropiate în timp, cădea peste punctele vecine. */
@@ -1804,7 +1924,7 @@ function renderSpark(evs){
   // textul vizibil stă deja sub titlul „Graficul în cuvinte", deci acolo prefixul ar fi de prisos
   $('spark').innerHTML=`<div role="img" aria-label="${esc('Graficul zilei. '+rez)}">
     <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-    ${band}${yLab}<path d="${line}" fill="none" stroke="var(--ink-soft)" stroke-width="1.8" opacity=".6"/>${dots}${ticks}</svg></div>
+    ${band}${yLab}<path class="sparkline" pathLength="1" d="${line}" fill="none" stroke="var(--ink-soft)" stroke-width="1.8" opacity=".6"/>${dots}${ticks}</svg></div>
     <details class="sparksum"><summary>Graficul în cuvinte</summary>${rezL.map(t=>`<p>${esc(t)}</p>`).join('')}</details>`;
 }
 
@@ -1944,16 +2064,23 @@ function shFood(f, presetName, fromMeal){
       <button class="chip ${(!f||f.mode==='per100')?'on':''}" data-v="per100">HC la 100 g</button>
       <button class="chip ${f&&f.mode==='portie'?'on':''}" data-v="portie">HC pe porție</button>
     </div></div>
-    <div class="frow"><label>Carbohidrați (HC)</label><div class="bigwrap"><input class="inp bignum num" id="fval" type="number" step="0.1" inputmode="decimal" value="${f?f.val:''}"><span class="unit" aria-hidden="true">HC</span></div></div>
+    <div class="frow"><label>Carbohidrați (HC)</label><div class="bigwrap"><input class="inp bignum num" id="fval" type="text" inputmode="decimal" autocomplete="off" value="${f?f.val:''}"><span class="unit" aria-hidden="true">HC</span></div></div>
     <div class="frow"><label class="chips"><button class="chip ${f&&f.fav?'on':''}" id="ffav" onclick="this.classList.toggle('on')">★ Favorit (apare la Rapide)</button></label></div>
     <button class="btn btn-p" onclick="okFood('${f?f.id:''}', ${fromMeal?'true':'false'})">Salvează alimentul</button>
     ${f?'<button class="btn btn-d" onclick="delFood(\''+f.id+'\')">Șterge din bibliotecă</button>':''}`);
   chipify('fmode');
 }
 function okFood(id, fromMeal){
-  const name=$('fname').value.trim(), val=parseFloat($('fval').value);
-  if(!name||!val){ toast('Completează numele și HC'); return; }
-  const rec={name, mode:chipVal('fmode'), val, fav:$('ffav').classList.contains('on')};
+  const name=$('fname').value.trim(), val=readNum('fval');
+  const mod=chipVal('fmode');
+  /* La „pe 100 g" nu se poate trece de 100: ar însemna mai mulți carbohidrați decât
+     alimentul însuși. La „pe porție" se poate oricât — o porție mare chiar are 120 g —
+     deci acolo limita e doar una de bun-simț, pusă ca să prindă o tastare greșită. */
+  const maxim = mod==='per100' ? 100 : 500;
+  if(!name||val===null||val<=0||val>maxim){
+    toast(mod==='per100' ? 'Completează numele și HC (cel mult 100 g la 100 g)'
+                         : 'Completează numele și HC pe porție'); return; }
+  const rec={name, mode:mod, val, fav:$('ffav').classList.contains('on')};
   let f;
   if(id){ f=S.foods.find(x=>x.id===id); Object.assign(f,rec); }
   else{ f={id:uid(), uses:0, ...rec}; S.foods.push(f); }
@@ -1978,6 +2105,8 @@ function favToggle(id){
   f.fav=!f.fav;
   save();
   renderFoods();
+  // steaua se redesenează la randare, deci pulsul se pune pe butonul NOU, nu pe cel vechi
+  const b=$('st_'+id); if(b) b.classList.add('puls');
   toast(f.fav?('„'+f.name+'" e acum favorit'):('„'+f.name+'" nu mai e favorit'));
 }
 function renderFoods(){
@@ -1994,7 +2123,7 @@ function renderFoods(){
        singur buton — un buton nu poate conține alt buton — deci e un rând cu două
        ținte separate, fiecare cu eticheta ei pentru cititoarele de ecran. */
     `<div class="fooditem">
-      <button class="fstar" aria-pressed="${f.fav?'true':'false'}"
+      <button class="fstar" id="st_${f.id}" aria-pressed="${f.fav?'true':'false'}"
         aria-label="${f.fav?'Scoate din favorite':'Pune la favorite'}: ${esc(f.name)}"
         onclick='favToggle("${f.id}")'>${f.fav?'★':'☆'}</button>
       <button class="fmain" onclick='shFood(S.foods.find(x=>x.id==="${f.id}"))'>
@@ -2267,7 +2396,7 @@ function renderStats(){
           <div class="baryl" style="bottom:${pc(s.high)}%">${s.high}</div>
           <div class="baryl" style="bottom:${pc(s.low)}%">${s.low}</div>
           <div class="barbase"></div>
-          <div class="bars">${byPart.map(b=>`<div class="b"><i style="height:${b.avg?Math.max(pc(b.avg),9):0}%; background:${b.avg?rangeInk(b.avg):'var(--line)'}">${b.avg||''}</i></div>`).join('')}</div>
+          <div class="bars">${byPart.map((b,i)=>`<div class="b"><i style="height:${b.avg?Math.max(pc(b.avg),9):0}%; background:${b.avg?rangeInk(b.avg):'var(--line)'}; --i:${i}">${b.avg||''}</i></div>`).join('')}</div>
         </div>
         <div class="barlabels">${byPart.map(b=>`<span>${short[b.p]}</span>`).join('')}</div>`;
       })()}
@@ -4253,6 +4382,22 @@ function applyUpdate(){
    cu care omul a folosit ultima dată aplicația. La prima instalare nu se arată
    nimic: cine tocmai a intrat n-are ce compara. */
 const NOUTATI=[
+  {v:'v1.84', ce:[
+    'Bara timpului în țintă se descoperă de la stânga la dreapta, iar barele pe momentele zilei cresc de jos, una după alta.',
+    'Graficul de pe Azi se trasează, cu punctele apărând în urma liniei.',
+    'Raportul tipărit rămâne complet nemișcat: hârtia nu are nevoie de animație.'
+  ]},
+  {v:'v1.83', ce:[
+    'IMPORTANT. Dacă scriai doza cu virgulă — 6,5 — câmpul o înghițea tăcut și rămânea 65. Nu dădea nicio eroare, iar 65 trecea de verificare. La fel pășeau 84,5 kg în 845 și 12,5 HC în 125. Acum virgula funcționează peste tot, iar ce nu e număr e respins cu mesaj clar.',
+    'Dacă ai notat doze cu virgulă în trecut, verifică-le în Istoric: o doză de zece ori mai mare ar fi rămas în jurnal.',
+    'Intrarea tocmai notată se luminează în cronologie și, dacă a căzut sub marginea ecranului, e adusă în câmpul vizual.',
+    'Bara de anulare urcă de jos, iar steaua de favorit pulsează scurt când o apeși.'
+  ]},
+  {v:'v1.82', ce:[
+    'Aplicația se mișcă puțin: arcul de pe Azi se desenează până la valoare, ecranele se încrucișează în loc să sară, fundalul ferestrelor se stinge odată cu ele, iar butoanele răspund la apăsare.',
+    'Cifra glicemiei NU se animă, intenționat: într-un jurnal medical, o valoare care se schimbă sub ochi se poate citi greșit.',
+    'Dacă ai „reduce motion" pornit în telefon, totul rămâne instant ca până acum.'
+  ]},
   {v:'v1.81', ce:[
     'Raportul așază cifrele lângă valorile de referință publicate: timp în țintă, sub 70, sub 54, peste 180, peste 250 și variabilitatea. Se citește singur, fără să fie nevoie să ții minte pragurile.',
     'Raportul scrie acum și CARE insuline sunt, nu doar câte unități: bazala și cele rapide, pe nume, în capul paginii.',
