@@ -599,8 +599,8 @@ html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28;
       <button class="mrow" onclick="shUpdate()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M7.4 9.4A5.2 5.2 0 0 1 17 8.6h1.6a4 4 0 0 1 .6 8" fill="#5B8FBF" opacity="0"/> <path d="M6.8 18.4a4.4 4.4 0 0 1 .6-8.8 5.6 5.6 0 0 1 10.8 1 3.9 3.9 0 0 1-.6 7.8z" fill="#5B8FBF"/> <path d="M12 10.6v6.6" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/> <path d="M9.2 14.6l2.8 2.8 2.8-2.8" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Adu versiunea nouă<small>Dacă tocmai a apărut o actualizare și încă nu a ajuns la tine</small></span></button>
       <button class="mrow" onclick="shDiag()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M19.4 4.6a5.2 5.2 0 0 1-6.8 6.8L6.2 17.8a2 2 0 1 1-2.8-2.8l6.4-6.4a5.2 5.2 0 0 1 6.8-6.8l-3 3 .6 3.4 3.4.6z" fill="#5C7480"/></svg></span><span>Diagnostic tehnic<small>Starea instalării, util dacă ceva nu merge</small></span></button>
     </div>
-    <p class="muted" style="padding:0 6px">Nivelo v1.79.1 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
-      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v1.79.1%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
+    <p class="muted" style="padding:0 6px">Nivelo v1.80 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
+      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v1.80%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
   </section>
 </main>
 
@@ -689,7 +689,7 @@ var PORNIT = false, ULTIMA_EROARE = null;
 })();
 
 /* ================= STOCARE ================= */
-const APP_VER='v1.79.1';
+const APP_VER='v1.80';
 /* Android citește manifestul — numele, iconița, scurtăturile — o singură dată, la
    instalare, și îl păstrează așa până la reinstalare. Codul se actualizează singur,
    configurarea nu. De aceea ținem minte când s-a schimbat ultima dată configurarea:
@@ -725,6 +725,25 @@ function bumpRev(){
    tot scriptul exact pe calea de avarie pe care voiam s-o tratăm. Deci: aici, sus. */
 const RESCUE_KEY = KEY+'_avariat';
 let LOAD_PROBLEM = null;   // null | 'ilizibil' | 'structura'
+let EV_DROPPED = 0;        // intrări cu conținut incomplet, lăsate deoparte la citire
+/* Un eveniment e desenabil doar dacă tipul lui își are conținutul. O intrare „gluc"
+   fără obiectul .gluc trece orice verificare de formă și apoi rupe Statisticile,
+   Istoricul și raportul la prima afișare — adică fix acolo unde omul se uită după o
+   restaurare. Verificăm o singură dată, într-un singur loc, folosit și de citire și
+   de import, ca cele două să nu poată ajunge să fie de acord doar din întâmplare. */
+const EV_SCHEMA={
+  gluc: e=>e.gluc && typeof e.gluc.v==='number',
+  ins:  e=>e.ins  && typeof e.ins.u==='number',
+  meal: e=>e.meal && Array.isArray(e.meal.items),
+  kg:   e=>e.kg   && typeof e.kg.v==='number',
+  note: e=>e.note && typeof e.note.text==='string',
+  act:  e=>!!e.note,
+  ciclu:e=>!!e.ciclu
+};
+function evValid(e){
+  return !!e && typeof e==='object' && typeof e.ts==='number' && !!e.type
+      && !!EV_SCHEMA[e.type] && !!EV_SCHEMA[e.type](e);
+}
 let S = load();
 /* Numărul de ordine rămâne pe telefon între porniri, deci la fiecare deschidere trebuie
    citit de acolo. Fără rândul ăsta, variabila pornea de la zero, nu se potrivea cu ce era
@@ -750,7 +769,22 @@ function load(){
   if(!raw) return freshState();          // chiar prima pornire: nimic salvat
   let d=null, lizibil=true;
   try{ d=JSON.parse(raw); }catch(e){ lizibil=false; }
-  if(lizibil && d && Array.isArray(d.events)) return d;   // cazul normal
+  if(lizibil && d && Array.isArray(d.events)){            // cazul normal
+    /* Intrările pe care nu le putem citi nu se desenează și nu intră în statistici —
+       altfel prima afișare se oprește cu eroare și ecranul rămâne gol. Dar NU se pierd:
+       se mută în `evInvalid`, care face parte din același obiect salvat, deci următoarea
+       salvare le scrie la loc. Prima versiune a acestei reparații le scotea pur și
+       simplu din listă, iar prima salvare de după le ștergea definitiv de pe telefon —
+       adică o pagubă mai mare decât bugul pe care îl repara. */
+    if(!Array.isArray(d.evInvalid)) d.evInvalid=[];
+    const bune=d.events.filter(evValid);
+    if(bune.length!==d.events.length){
+      d.evInvalid=d.evInvalid.concat(d.events.filter(e=>!evValid(e)));
+      d.events=bune;
+    }
+    EV_DROPPED = d.evInvalid.length;
+    return d;
+  }
   LOAD_PROBLEM = lizibil ? 'structura' : 'ilizibil';
   // Prima copie de salvare câștigă: e cea mai apropiată de datele reale.
   try{ if(!localStorage.getItem(RESCUE_KEY)) localStorage.setItem(RESCUE_KEY, raw); }catch(e){}
@@ -1503,7 +1537,7 @@ function eventCard(e){
     const st=e.ciclu && e.ciclu.faza==='stop';
     body=`<div class="hl"><svg class="evi" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.6a8.4 8.4 0 1 1-9.6-11 6.9 6.9 0 0 0 9.6 11z" fill="#B4699B"/> <circle cx="16.4" cy="5.6" r="1.5" fill="#D9A6C8"/><circle cx="19.6" cy="9" r="1" fill="#D9A6C8"/></svg> Ciclu menstrual</div><div class="sub">${st?'s-a terminat':'a început'}</div>`;
   }else{
-    body=`<div class="hl">${e.type==='act'?'<svg class="evi" viewBox="0 0 24 24" aria-hidden="true"><circle cx="14.6" cy="4.9" r="2.3" fill="#3E9E6B"/> <path d="M12.9 8.2l3.3-.7 3 3.2 2.6 1.1-.9 2-3.3-1.3-1.5-1.5-.9 3.2 3 2.8 1 5-2.2.4-.9-4.2-4.4-3.6.9-5.4-2.2 1-1 2.9-2.1-.7 1.3-3.9z" fill="#3E9E6B"/> <path d="M8.6 14.6l-2.2 4.3-2-1 2.5-4.6z" fill="#2F7B52"/></svg> Activitate':'<svg class="evi" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.6 3.2l5.2 5.2-2.3 2.3-5.2-5.2z" fill="#C9A227"/> <path d="M12.9 5.9l5.2 5.2-8.4 8.4-5.2-5.2z" fill="#E0B84B"/> <path d="M9.7 19.5l-5.2-5.2-1.4 5a1 1 0 0 0 1.3 1.3z" fill="#8A6A4B"/></svg> Notă'}</div><div class="sub">${esc(e.note.text)}</div>`;
+    body=`<div class="hl">${e.type==='act'?'<svg class="evi" viewBox="0 0 24 24" aria-hidden="true"><circle cx="14.6" cy="4.9" r="2.3" fill="#3E9E6B"/> <path d="M12.9 8.2l3.3-.7 3 3.2 2.6 1.1-.9 2-3.3-1.3-1.5-1.5-.9 3.2 3 2.8 1 5-2.2.4-.9-4.2-4.4-3.6.9-5.4-2.2 1-1 2.9-2.1-.7 1.3-3.9z" fill="#3E9E6B"/> <path d="M8.6 14.6l-2.2 4.3-2-1 2.5-4.6z" fill="#2F7B52"/></svg> Activitate':'<svg class="evi" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.6 3.2l5.2 5.2-2.3 2.3-5.2-5.2z" fill="#C9A227"/> <path d="M12.9 5.9l5.2 5.2-8.4 8.4-5.2-5.2z" fill="#E0B84B"/> <path d="M9.7 19.5l-5.2-5.2-1.4 5a1 1 0 0 0 1.3 1.3z" fill="#8A6A4B"/></svg> Notă'}</div><div class="sub">${esc((e.note&&e.note.text)||'')}</div>`;
   }
   return `<button class="ev" onclick="editEv('${e.id}')">${t}<span class="body">${body}</span></button>`;
 }
@@ -2102,7 +2136,7 @@ function renderStats(){
      măsurătoare sub 54 din câteva sute înseamnă 0,2%, care se rotunjește la 0: banda
      nu s-ar mai desena, iar legenda ar scrie „0%" fix acolo unde cardul de dedesubt
      spune că a existat un episod. Arătăm „<1%" și păstrăm o felie subțire în bară. */
-  const pctTxt=(n,p)=> (p===0 && n>0) ? '<1%' : p+'%';
+  const pctTxt=(n,p)=> (p===0 && n>0) ? '&lt;1%' : p+'%';
   const flexOf=p=>Math.max(p,0.6);
   // medii pe momente ale zilei
   const parts=['Dimineața','Prânz','Cină','Seara / noaptea'];
@@ -2602,8 +2636,24 @@ function importJSON(txt){
     shAlert('Datele tale actuale NU au fost modificate.', {ic:'📄', title:'Nu are structura unui backup Nivelo'}); return;
   }
   // validare minimală a câtorva evenimente (să fie cu adevărat Nivelo)
+  /* Până acum se verifica doar că intrarea are oră și tip. O intrare de tip „gluc"
+     fără obiectul .gluc trecea validarea și apoi rupea Statisticile, Istoricul și
+     raportul detaliat la prima afișare — adică fix acolo unde omul s-ar uita după
+     restaurare. Verificăm și că tipul își are conținutul, și că tipul e unul pe
+     care versiunea asta știe să-l deseneze. */
   const bad = d.events.some(e=>!e || typeof e!=='object' || typeof e.ts!=='number' || !e.type);
   if(bad){ shAlert('Datele tale actuale NU au fost modificate.', {ic:'⚠️', title:'Backupul conține intrări nevalide'}); return; }
+  const stricate = d.events.filter(e=>!evValid(e));
+  if(stricate.length){
+    const necun=[...new Set(stricate.filter(e=>!EV_SCHEMA[e.type]).map(e=>e.type))];
+    shAlert(necun.length
+      ? nUnit(stricate.length,'intrări nu pot fi citite de versiunea asta','o intrare nu poate fi citită de versiunea asta')
+        +' (tip necunoscut: '+esc(necun.slice(0,3).join(', '))+'). Backupul pare făcut de o versiune mai nouă a Nivelo; actualizează aplicația și încearcă din nou.'
+      : nUnit(stricate.length,'intrări au conținutul incomplet','o intrare are conținutul incomplet')
+        +' (de exemplu o glicemie fără valoare). Fișierul pare trunchiat sau modificat manual.',
+      {ic:'⚠️', title:'Backupul nu poate fi folosit întreg', ok:'Am înțeles'});
+    return;
+  }
   shConfirm('Înlocuiește COMPLET datele de pe acest telefon. Păstrez o copie a jurnalului actual, ca să poți reveni dacă ai pus alt fișier decât voiai.', async ()=>{
     if(!Array.isArray(d.foods)) d.foods=seedFoods();
     // copia se face ÎNAINTE de orice modificare; altfel nu mai are ce salva
@@ -2898,8 +2948,8 @@ function doReport(days, detailed){
      imaginea de ansamblu, și în tabelul de variabilitate, ca să nu poată apărea două
      procente diferite pentru același lucru pe aceeași pagină. */
   const [bVL,bL1,bI,bH]=bandPct([nvl,nl1,ni,vals.length-nvl-nl1-ni]);
-  const pcB=(n,p)=> (p===0&&n>0)?'<1%':p+'%';
-  const pcR=(n)=>{ const p=Math.round(n/vals.length*100); return (p===0&&n>0)?'<1%':p+'%'; };
+  const pcB=(n,p)=> (p===0&&n>0)?'&lt;1%':p+'%';
+  const pcR=(n)=>{ const p=Math.round(n/vals.length*100); return (p===0&&n>0)?'&lt;1%':p+'%'; };
   /* Cât de solide sunt cifrele. Un procent calculat din 12 măsurători arată pe hârtie
      exact ca unul din 500, deși nu se citește la fel. Cine primește raportul trebuie să
      știe pe ce se sprijină cifrele: în câte zile din perioadă există măsurători și cât
@@ -2989,15 +3039,21 @@ function doReport(days, detailed){
   // insulina pe perioade: doar zile complete
   const bDays={}, bBol={}, bBaz={};
   cEvs.forEach(e=>{ const k=bucketKey(e.ts,byWeek); (bDays[k]=bDays[k]||new Set()).add(dKey(e.ts)); });
-  cIns.forEach(e=>{ const k=bucketKey(e.ts,byWeek);
-    if(e.ins.kind==='bazala'){ const dk=dKey(e.ts); (bBaz[k]=bBaz[k]||{}); bBaz[k][dk]=(bBaz[k][dk]||0)+e.ins.u; }
-    else bBol[k]=(bBol[k]||0)+e.ins.u; });
+  /* Rapida se adună PE ZI, apoi se ia mediana, exact ca bazala de lângă ea și ca
+     rândul „Rapidă / zi" din tabelul mare. Până acum era o medie împărțită la toate
+     zilele cu orice notare, deci aceeași lună putea apărea cu două cifre diferite
+     în două tabele ale aceluiași raport. */
+  cIns.forEach(e=>{ const k=bucketKey(e.ts,byWeek), dk=dKey(e.ts);
+    if(e.ins.kind==='bazala'){ (bBaz[k]=bBaz[k]||{}); bBaz[k][dk]=(bBaz[k][dk]||0)+e.ins.u; }
+    else { (bBol[k]=bBol[k]||{}); bBol[k][dk]=(bBol[k][dk]||0)+e.ins.u; } });
   const trendRows=Object.keys(buckets).sort().map(k=>{
     const b=buckets[k], m=b.vs.reduce((a,x)=>a+x,0)/b.vs.length;
     const tir=Math.round(b.vs.filter(v=>v>=s.low&&v<=s.high).length/b.vs.length*100);
-    const hypo=b.vs.filter(v=>v<s.low).length;
-    const ndB=bDays[k]?bDays[k].size:0;
-    const rap=ndB? fmtN((bBol[k]||0)/ndB)+' U':'—';
+    /* Episoade, nu măsurători. Restul raportului numără hipoglicemiile ca episoade
+       și glosarul le definește așa; aici se numărau măsurători, deci coloana putea
+       însuma mai mult decât „Episoade sub 70" de mai sus, în același document. */
+    const hypo=hipoEp.filter(x=>bucketKey(x.start,byWeek)===k).length;
+    const rap=bBol[k]? fmtN(median(Object.values(bBol[k])))+' U':'—';
     const bz=bBaz[k]? fmtN(median(Object.values(bBaz[k])))+' U':'—';
     return `<tr><td>${byWeek?'Săpt. din ':''}${bucketLabel(b.ts,byWeek)}</td><td>${Math.round(m)}</td><td>${fmtN((m+46.7)/28.7)}%</td><td>${tir}%</td><td>${hypo}</td><td>${b.cor||0}</td><td>${rap}</td><td>${bz}</td><td>${b.vs.length}</td></tr>`;
   }).join('');
@@ -3086,6 +3142,7 @@ function doReport(days, detailed){
     <p style="color:#444; font-size:calc(12px*var(--fs))"><b>Episoadele</b> se numără grupat: măsurătorile sub țintă aflate la mai puțin de o oră una de alta se socotesc ca un singur episod, ca o hipoglicemie verificată de trei ori să nu apară ca trei. <b>Pragul de ${HIPO2} mg/dl</b> e fix, independent de ținta de jos aleasă în aplicație. <b>CV</b> = deviația standard raportată la medie; face variabilitatea comparabilă între perioade cu medii diferite. Deviația standard și CV apar de la 10 măsurători în perioadă.</p>
     <h2>Evoluția pe ${byWeek?'săptămâni':'luni'}</h2>
     <table><tr><th>${byWeek?'Săptămâna':'Luna'}</th><th>Medie</th><th>A1c est.</th><th>În țintă</th><th>Hipo</th><th>Corecții</th><th>Rapidă/zi</th><th>Bazală/zi</th><th>Măsurători</th></tr>${trendRows}</table>
+    <p style="color:#444; font-size:calc(12px*var(--fs))">Toate cifrele din tabel sunt calculate pe perioada arătată: medie pentru glicemie, <b>mediană pe zi</b> pentru insulină (doar zilele în care tipul respectiv a fost notat), iar <b>Hipo</b> numără <b>episoade</b>, la fel ca în restul raportului. Prima și ultima perioadă din tabel pot fi incomplete, fiindcă fereastra raportului nu începe și nu se termină neapărat la început de lună.</p>
     <h2>Ziua tipică</h2>
     <div class="keep">${agpSvg(g, s)}
     <div style="display:flex; flex-wrap:wrap; gap:12px; margin-top:6px; font-size:calc(11.5px*var(--fs)); color:#333">
@@ -3101,7 +3158,7 @@ function doReport(days, detailed){
     <p style="color:#444; font-size:calc(12px*var(--fs)); margin-top:4px"><b>De citit împreună cu banda de jos</b>, care arată câte măsurători există la fiecare oră. Măsurătorile din deget nu sunt repartizate uniform în zi: se fac mai ales când omul bănuiește ceva. La orele cu puține măsurători, valorile existente sunt adesea chiar motivul pentru care s-a măsurat, deci curba de acolo înclină spre extreme; unde nu sunt cel puțin 8 măsurători în fereastră, curba nu se desenează deloc.</p>
     <h2>Glicemii pe momente ale zilei</h2>
     <table><tr><th>Moment</th><th>Medie</th><th>Min</th><th>Max</th><th>Episoade hipo</th><th>Nr. măsurători</th></tr>${rowsPart}</table>
-    <p style="color:#444; font-size:calc(12px*var(--fs))">Coloana <b>Episoade hipo</b> arată câte episoade sub ${s.low} au început în fiecare parte a zilei; un episod se numără o singură dată, la momentul în care a început. „Dimineţa" acoperă și orele nopții, până la ora 11.</p>
+    <p style="color:#444; font-size:calc(12px*var(--fs))">Coloana <b>Episoade hipo</b> arată câte episoade sub ${s.low} au început în fiecare parte a zilei; un episod se numără o singură dată, la momentul în care a început. „Dimineața" acoperă și orele nopții, până la ora 11.</p>
     ${wkOk?`<h2>Zile lucrătoare față de weekend</h2>
     <table>
       <tr><th>Grup</th><th>Medie</th><th>În țintă</th><th>Hipoglicemii</th><th>HC tipic / zi</th><th>Zile</th><th>Măsurători</th></tr>
@@ -3120,13 +3177,13 @@ function doReport(days, detailed){
       ${tddOk?statRow('Total insulină / zi', dkBoth.map(k=>rapidByDay[k]+bazByDay[k]), ' U'):''}
     </table>
     ${tddOk?`<table>
-      <tr><th>Doză totală zilnică (tipic)</th><th>din care bazală</th><th>din care rapidă</th><th>Nr. zile</th></tr>
+      <tr><th>Doză totală zilnică (tipic)</th><th>Bazală (tipic)</th><th>Rapidă (tipic)</th><th>Nr. zile</th></tr>
       <tr><td><b>${fmtN(tddTip)} U</b></td>
           <td>${fmtN(bazTipD)} U · ${bazPct}%</td>
           <td>${fmtN(rapTipD)} U · ${100-bazPct}%</td>
           <td>${dkBoth.length}</td></tr>
     </table>
-    <p style="color:#444; font-size:calc(12px*var(--fs))"><b>Doza totală zilnică</b> se calculează doar pe zilele complete în care apar și bazală, și rapidă (${nUnit(dkBoth.length,'zile','o zi')} din ${nUnit(dk.length,'zile','o zi')} cu insulină notată). O zi în care bazala nu a fost notată nu e o zi fără bazală, ci o zi cu date lipsă, așa că nu intră în calcul. Procentele arată cât din doza zilei revine fondului și cât meselor și corecțiilor.${zileBaz<dk.length?` <b>De știut:</b> bazala apare notată în ${nUnit(zileBaz,'zile','o zi')} din ${nUnit(dk.length,'zile','o zi')}; dacă se face zilnic, dar nu se notează de fiecare dată, cifrele de mai sus descriu doar zilele notate complet.`:''}</p>`
+    <p style="color:#444; font-size:calc(12px*var(--fs))"><b>Doza totală zilnică</b> se calculează doar pe zilele complete în care apar și bazală, și rapidă (${nUnit(dkBoth.length,'zile','o zi')} din ${nUnit(dk.length,'zile','o zi')} cu insulină notată). O zi în care bazala nu a fost notată nu e o zi fără bazală, ci o zi cu date lipsă, așa că nu intră în calcul. Procentele arată cât din doza zilei revine fondului și cât meselor și corecțiilor; sunt mediana proporției din fiecare zi, deci stau între 0 și 100 și însumează 100. Fiecare dintre cele trei cifre în unități e mediana ei proprie, așa că bazala și rapida nu adună exact totalul: medianele nu se însumează.${zileBaz<dk.length?` <b>De știut:</b> bazala apare notată în ${nUnit(zileBaz,'zile','o zi')} din ${nUnit(dk.length,'zile','o zi')}; dacă se face zilnic, dar nu se notează de fiecare dată, cifrele de mai sus descriu doar zilele notate complet.`:''}</p>`
     :`<p style="color:#444; font-size:calc(12px*var(--fs))"><b>Doza totală zilnică</b> nu se poate calcula pentru această perioadă: ar fi nevoie de cel puțin 5 zile în care să fie notate și bazala, și rapida, iar aici sunt ${nUnit(dkBoth.length,'zile','o zi')}. Bazala apare notată în ${nUnit(zileBaz,'zile','o zi')} din ${nUnit(dk.length,'zile','o zi')} cu insulină. Zilele în care bazala lipsește nu se pot socoti ca zile fără bazală, fiindcă ar da un total mai mic decât realitatea.</p>`}
     <p style="color:#444; font-size:calc(12px*var(--fs))">„Jumătatea din mijloc" = zona în care se încadrează jumătatea din mijloc a valorilor, fără sfertul cel mai mic și cel mai mare; e mai aproape de realitate decât extremele, care pot veni dintr-o singură zi neobișnuită. „Nr. observații" = numărul de zile, cu excepția rândului „Rapidă / masă", unde sunt mese. <b>Corecțiile includ și zilele fără nicio corecție</b>, ca frecvența să fie reală. Pentru insulină și carbohidrați se numără doar zilele în care s-a notat ceva, fiindcă o zi nenotată nu înseamnă o zi fără mâncare sau fără insulină.${bazAnomaly}</p>
     ${(function(){
@@ -4067,6 +4124,13 @@ if(getUndo()) showUndoBar(getUndo());
 if(S.settings.qsDone==null && S.events.length>=5){ S.settings.qsDone=1; save(); }
 // Dacă datele existau dar nu s-au putut citi, asta e prima veste pe care o dăm:
 // altfel utilizatorul crede că aplicația s-a resetat singură.
+if(EV_DROPPED){
+  setTimeout(()=>shAlert(
+    nUnit(EV_DROPPED,'intrări din jurnal nu au putut fi citite','o intrare din jurnal nu a putut fi citită')
+    +' și nu apar în ecrane, statistici sau raport. Nimic nu a fost șters: sunt tot în datele salvate. '
+    +'Dacă ai un backup mai nou, pune-l la loc; altfel restul jurnalului funcționează normal.',
+    {ic:'⚠️', title:'Câteva intrări nu pot fi citite', ok:'Am înțeles'}), 900);
+}
 if(LOAD_PROBLEM){
   // Întâi încercăm recuperarea automată din a doua copie locală; dacă nu există,
   // explicăm avaria și oferim fișierul original pentru recuperare manuală.
@@ -4131,6 +4195,13 @@ function applyUpdate(){
    cu care omul a folosit ultima dată aplicația. La prima instalare nu se arată
    nimic: cine tocmai a intrat n-are ce compara. */
 const NOUTATI=[
+  {v:'v1.80', ce:[
+    'Raportul pentru medic numără hipoglicemiile la fel în tot documentul. În tabelul pe luni se numărau măsurători, nu episoade, deci coloana putea aduna mai mult decât „Episoade sub 70" de pe aceeași pagină.',
+    'În același tabel, insulina rapidă pe zi era o medie, iar bazala de lângă ea o mediană. Acum ambele sunt mediane, ca în tabelul mare, deci aceeași lună nu mai apare cu două cifre diferite în două locuri.',
+    'Doza totală zilnică spune explicit că bazala și rapida sunt mediane separate, deci nu adună exact totalul.',
+    'Reparat: o intrare de un tip pe care versiunea instalată nu-l cunoaște nu mai golește Istoricul și ecranul Azi.',
+    'Restaurarea unui backup verifică acum și că fiecare intrare își are conținutul, nu doar ora și tipul. Un fișier trunchiat era acceptat și rupea Statisticile după aceea.'
+  ]},
   {v:'v1.79.1', ce:[
     'Reparat: vechimea backupului se număra în blocuri de 24 de ore, nu în zile. Un backup făcut ieri dimineață apărea ca „azi" dacă te uitai azi dimineață, deci aplicația părea să spună că ești la zi când nu erai.'
   ]},
