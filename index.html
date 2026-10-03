@@ -451,6 +451,10 @@ html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28;
 
 /* raport medic: doar la tipărire */
 #report{display:none}
+/* Marginile foii. Fără regula asta, tipărirea folosea marginile implicite ale
+   browserului, diferite de la un dispozitiv la altul, iar `padding:6mm` de pe raport
+   era singurul lucru care ținea textul departe de marginea hârtiei. */
+@page{ size:A4; margin:13mm 11mm; }
 @media print{
   body>*{display:none !important}
   body{background:#fff}
@@ -471,6 +475,19 @@ html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28;
   #report tr{break-inside:avoid; page-break-inside:avoid}
   #report thead{display:table-header-group}   /* capul de tabel se repetă pe fiecare pagină */
   #report tfoot{display:table-footer-group}
+  /* Identificarea pe FIECARE pagină. Paginile 2 și 3 nu aveau nici numele, nici
+     perioada: despărțite în dosarul medicului, nu se mai știa ale cui sunt. Tot
+     raportul stă într-un tabel cu un singur rând, iar `<thead>`-ul lui se repetă pe
+     fiecare pagină — același mecanism care repetă deja capetele tabelelor. Numărul de
+     paginii nu se poate genera din CSS în Chrome; vine din subsolul browserului,
+     dacă e bifat „Headers and footers" în fereastra de tipărire. */
+  #report .rsheet{width:100%; border-collapse:collapse; margin:0}
+  #report .rsheet>thead>tr>td.rhead{border:0; border-bottom:1px solid #aaa; background:none;
+    padding:0 0 3px; margin:0; font-size:calc(10px*var(--fs)); color:#555}
+  #report .rsheet>tbody>tr>td{border:0; padding:0}
+  /* rândul uriaș al învelișului NU trebuie ținut pe o singură pagină */
+  #report .rsheet>tbody>tr{break-inside:auto; page-break-inside:auto}
+  #report .rsheet>thead>tr{break-inside:avoid}
   #report p, #report div{orphans:3; widows:3}
   #report .keep{break-inside:avoid; page-break-inside:avoid}
 }
@@ -599,8 +616,8 @@ html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28;
       <button class="mrow" onclick="shUpdate()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M7.4 9.4A5.2 5.2 0 0 1 17 8.6h1.6a4 4 0 0 1 .6 8" fill="#5B8FBF" opacity="0"/> <path d="M6.8 18.4a4.4 4.4 0 0 1 .6-8.8 5.6 5.6 0 0 1 10.8 1 3.9 3.9 0 0 1-.6 7.8z" fill="#5B8FBF"/> <path d="M12 10.6v6.6" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/> <path d="M9.2 14.6l2.8 2.8 2.8-2.8" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Adu versiunea nouă<small>Dacă tocmai a apărut o actualizare și încă nu a ajuns la tine</small></span></button>
       <button class="mrow" onclick="shDiag()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M19.4 4.6a5.2 5.2 0 0 1-6.8 6.8L6.2 17.8a2 2 0 1 1-2.8-2.8l6.4-6.4a5.2 5.2 0 0 1 6.8-6.8l-3 3 .6 3.4 3.4.6z" fill="#5C7480"/></svg></span><span>Diagnostic tehnic<small>Starea instalării, util dacă ceva nu merge</small></span></button>
     </div>
-    <p class="muted" style="padding:0 6px">Nivelo v1.80 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
-      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v1.80%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
+    <p class="muted" style="padding:0 6px">Nivelo v1.81 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
+      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v1.81%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
   </section>
 </main>
 
@@ -689,7 +706,7 @@ var PORNIT = false, ULTIMA_EROARE = null;
 })();
 
 /* ================= STOCARE ================= */
-const APP_VER='v1.80';
+const APP_VER='v1.81';
 /* Android citește manifestul — numele, iconița, scurtăturile — o singură dată, la
    instalare, și îl păstrează așa până la reinstalare. Codul se actualizează singur,
    configurarea nu. De aceea ținem minte când s-a schimbat ultima dată configurarea:
@@ -2948,6 +2965,11 @@ function doReport(days, detailed){
      imaginea de ansamblu, și în tabelul de variabilitate, ca să nu poată apărea două
      procente diferite pentru același lucru pe aceeași pagină. */
   const [bVL,bL1,bI,bH]=bandPct([nvl,nl1,ni,vals.length-nvl-nl1-ni]);
+  /* Pentru tabelul cu ținte de referință: banda peste 250 se numără separat, fiindcă
+     e cea pe care consensul o tratează distinct. Pragul de 250 exista deja în aplicație
+     (îl folosesc culorile de pe ecran), dar nu ajungea niciodată în raport. */
+  const nFoarteSus=vals.filter(v=>v>250).length;
+  const nSus=vals.length-nvl-nl1-ni;            // tot ce e peste ținta de sus
   const pcB=(n,p)=> (p===0&&n>0)?'&lt;1%':p+'%';
   const pcR=(n)=>{ const p=Math.round(n/vals.length*100); return (p===0&&n>0)?'&lt;1%':p+'%'; };
   /* Cât de solide sunt cifrele. Un procent calculat din 12 măsurători arată pe hârtie
@@ -3101,6 +3123,18 @@ function doReport(days, detailed){
   const REP=withTheads(`
     <h1>Jurnal glicemic · ${esc(s.name||'')}</h1>
     <div class="rmeta">Perioada: ultimele ${nUnit(days,'zile','o zi')}, până la ${dNice(Date.now())} · ${nUnit(daysSet.length,'zile','o zi')} cu date · Țintă: ${s.low}–${s.high} mg/dl · Generat din Nivelo</div>
+    <div class="rmeta">${(function(){
+      /* Raportul spunea „Bazală / zi 18 U" fără să scrie niciodată CARE insulină.
+         Medicul care primește foaia nu are de unde să știe. Bazala se marchează
+         explicit; restul insulinelor din listă sunt cele rapide. */
+      const toate=(s.insulins||[]).filter(Boolean);
+      if(!toate.length) return 'Insuline: nenotate';
+      const baz=s.basal&&toate.includes(s.basal)?s.basal:null;
+      const rapide=toate.filter(x=>x!==baz);
+      return 'Insuline: '+[baz?esc(baz)+' (bazală)':null,
+             rapide.length?esc(rapide.join(', '))+(rapide.length>1?' (rapide)':' (rapidă)'):null]
+             .filter(Boolean).join(' · ');
+    })()}</div>
     <div style="border:1px solid #ccc; border-radius:8px; padding:10px 13px; margin:12px 0; font-size:calc(12px*var(--fs)); color:#333; line-height:1.55">
       <b style="display:block; margin-bottom:4px">Cum se citesc cifrele din raport</b>
       <div><b>Tipic</b> = valoarea din mijloc a datelor, cea în jurul căreia stau cele mai multe (mediana).</div>
@@ -3140,6 +3174,28 @@ function doReport(days, detailed){
       <tr><td><b>${hipoEp.length}</b></td>${splitHipo?`<td><b>${hipoSev}</b></td>`:''}<td>${hipoNoapte}</td><td>${minVal} mg/dl</td></tr>
     </table>
     <p style="color:#444; font-size:calc(12px*var(--fs))"><b>Episoadele</b> se numără grupat: măsurătorile sub țintă aflate la mai puțin de o oră una de alta se socotesc ca un singur episod, ca o hipoglicemie verificată de trei ori să nu apară ca trei. <b>Pragul de ${HIPO2} mg/dl</b> e fix, independent de ținta de jos aleasă în aplicație. <b>CV</b> = deviația standard raportată la medie; face variabilitatea comparabilă între perioade cu medii diferite. Deviația standard și CV apar de la 10 măsurători în perioadă.</p>
+    <h2>Cifrele față de valorile de referință</h2>
+    <table>
+      <tr><th>Indicator</th><th>Valoare de referință</th><th>În perioada asta</th></tr>
+      ${(function(){
+        /* Raportul dădea procentele și lăsa cititorul să ghicească dacă sunt bune.
+           Valorile din coloana a doua sunt ținte publicate (consensul internațional
+           pentru timpul în intervale, 2019), nu praguri alese de aplicație și nu
+           recomandări: ele se citesc împreună cu avertismentul de dedesubt. */
+        const r=(et,ref,val,ok)=>`<tr><td>${et}</td><td>${ref}</td><td><b>${val}</b>${ok===null?'':` ${ok?'✓':'✗'}`}</td></tr>`;
+        const p=n=>n/vals.length*100;
+        const f=n=>pcR(n);
+        return [
+          r('Timp în țintă ('+s.low+'–'+s.high+')', 'peste 70%', f(ni), p(ni)>70),
+          r('Sub '+s.low, 'sub 4%', f(nvl+nl1), p(nvl+nl1)<4),
+          splitHipo? r('Sub '+HIPO2, 'sub 1%', f(nvl), p(nvl)<1) : '',
+          r('Peste '+s.high, 'sub 25%', f(nSus), p(nSus)<25),
+          r('Peste 250', 'sub 5%', f(nFoarteSus), p(nFoarteSus)<5),
+          sdOk? r('Variabilitate (CV)', 'sub 36%', fmtN(cv)+'%', cv<36) : ''
+        ].join('');
+      })()}
+    </table>
+    <p style="color:#444; font-size:calc(12px*var(--fs))"><b>De citit cu o rezervă importantă.</b> Valorile de referință au fost stabilite pentru măsurători continue de senzor, care acoperă fiecare minut al zilei. Aici sunt măsurători din deget, care nu se fac uniform: se fac mai ales când omul bănuiește ceva, deci procentele descriu fidel momentele măsurate, nu neapărat ziua întreagă. Comparația e orientativă și arată ordinul de mărime, nu o evaluare. Bifele și crucile spun doar dacă cifra e de o parte sau de alta a valorii de referință; ce înseamnă pentru tratament e discuția cu medicul.</p>
     <h2>Evoluția pe ${byWeek?'săptămâni':'luni'}</h2>
     <table><tr><th>${byWeek?'Săptămâna':'Luna'}</th><th>Medie</th><th>A1c est.</th><th>În țintă</th><th>Hipo</th><th>Corecții</th><th>Rapidă/zi</th><th>Bazală/zi</th><th>Măsurători</th></tr>${trendRows}</table>
     <p style="color:#444; font-size:calc(12px*var(--fs))">Toate cifrele din tabel sunt calculate pe perioada arătată: medie pentru glicemie, <b>mediană pe zi</b> pentru insulină (doar zilele în care tipul respectiv a fost notat), iar <b>Hipo</b> numără <b>episoade</b>, la fel ca în restul raportului. Prima și ultima perioadă din tabel pot fi incomplete, fiindcă fereastra raportului nu începe și nu se termină neapărat la început de lună.</p>
@@ -3256,7 +3312,9 @@ function doReport(days, detailed){
     })()}
     <p>*HbA1c estimat din media măsurătorilor capilare (formula ADA eAG→A1c); tendință orientativă, nu înlocuiește dozarea de laborator.</p>
     ${journal}`);
-  $('report').innerHTML=REP;
+  const capPagina=`${esc(s.name||'Jurnal glicemic')} · ultimele ${nUnit(days,'zile','o zi')}, până la ${dNice(Date.now())} · Nivelo ${APP_VER}`;
+  $('report').innerHTML=`<table class="rsheet"><thead><tr><td class="rhead">${capPagina}</td></tr></thead>`
+    +`<tbody><tr><td>${REP}</td></tr></tbody></table>`;
   closeSheet();
   window.print();
 }
@@ -4195,6 +4253,11 @@ function applyUpdate(){
    cu care omul a folosit ultima dată aplicația. La prima instalare nu se arată
    nimic: cine tocmai a intrat n-are ce compara. */
 const NOUTATI=[
+  {v:'v1.81', ce:[
+    'Raportul așază cifrele lângă valorile de referință publicate: timp în țintă, sub 70, sub 54, peste 180, peste 250 și variabilitatea. Se citește singur, fără să fie nevoie să ții minte pragurile.',
+    'Raportul scrie acum și CARE insuline sunt, nu doar câte unități: bazala și cele rapide, pe nume, în capul paginii.',
+    'La tipărire, fiecare pagină poartă numele, perioada și versiunea. Până acum paginile 2 și 3 erau anonime, iar marginile foii erau cele implicite ale browserului.'
+  ]},
   {v:'v1.80', ce:[
     'Raportul pentru medic numără hipoglicemiile la fel în tot documentul. În tabelul pe luni se numărau măsurători, nu episoade, deci coloana putea aduna mai mult decât „Episoade sub 70" de pe aceeași pagină.',
     'În același tabel, insulina rapidă pe zi era o medie, iar bazala de lângă ea o mediană. Acum ambele sunt mediane, ca în tabelul mare, deci aceeași lună nu mai apare cu două cifre diferite în două locuri.',

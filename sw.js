@@ -1,5 +1,5 @@
 /* Nivelo service worker — funcționare 100% offline */
-const CACHE = 'glucolog-v1.80';
+const CACHE = 'glucolog-v1.81';
 const SHELL = ['./', './index.html', './privacy.html',
                './icon-192.png', './icon-512.png', './icon-maskable-512.png'];
 
