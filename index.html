@@ -100,12 +100,11 @@ main{max-width:560px; margin:0 auto; padding:14px 14px calc(96px + env(safe-area
    întârzie o acțiune: arcul și încrucișarea rulează peste conținutul deja desenat,
    apăsarea e instantanee. Tot blocul se stinge la „reduce motion". */
 @keyframes viewIn{ from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:none} }
-@keyframes arcIn{ from{stroke-dashoffset:var(--arc)} to{stroke-dashoffset:0} }
 @keyframes veilIn{ from{opacity:0} to{opacity:1} }
 /* Arcul pornește ascuns (decalajul acoperă partea colorată) și se descoperă de la
    vârf, fiindcă SVG-ul e rotit cu -90°. Cifra NU se animă: într-un jurnal medical, o
    valoare care se schimbă sub ochi se poate citi greșit dacă te uiți o secundă. */
-#dial .arc{ animation:arcIn .72s cubic-bezier(.33,.12,.22,1) both; }
+#dial .arc{ transition:stroke-dashoffset .72s cubic-bezier(.33,.12,.22,1), stroke .4s ease }
 /* Intrarea tocmai notată: coboară scurt la locul ei și se stinge dintr-o lumină caldă.
    Lumina ține mai mult decât mișcarea, fiindcă ea e cea care răspunde la „unde a
    ajuns?"; mișcarea doar atrage ochiul acolo. Culoarea e aceeași în ambele teme,
@@ -621,12 +620,12 @@ html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28;
 }
 @media (prefers-reduced-motion:reduce){
   #sheet{transition:none} #toast{transition:opacity .1s}
-  .view.on, #dial .arc, #veil.on, #veil2.on, .ev.evnou, #undobar.on, .fstar.puls,
+  .view.on, #veil.on, #veil2.on, .ev.evnou, #undobar.on, .fstar.puls,
   .tirbar, .bars .b i, .sparkline, .sparkdot, .empty, #updbar.on, #undobar.pleaca,
   .ev.pleaca, .mi.nou, .reinnoit,
   #savefail[style*="block"], #quotawarn[style*="block"], #banner[style*="block"]{animation:none}
-  #tabmark, #banner, html.gata body, html.gata .card, html.gata #tabs, html.gata #topbar,
-  html.gata .ev, html.gata .chip{transition:none}
+  #tabmark, #banner, #dial .arc, html.gata body, html.gata .card, html.gata #tabs,
+  html.gata #topbar, html.gata .ev, html.gata .chip{transition:none}
   .chip{transition:none}
   /* rotița rămâne: e singurul semn că aplicația lucrează, nu un ornament */
   .sparkline{stroke-dasharray:none}
@@ -758,8 +757,8 @@ html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28;
       <button class="mrow" onclick="shUpdate()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M7.4 9.4A5.2 5.2 0 0 1 17 8.6h1.6a4 4 0 0 1 .6 8" fill="#5B8FBF" opacity="0"/> <path d="M6.8 18.4a4.4 4.4 0 0 1 .6-8.8 5.6 5.6 0 0 1 10.8 1 3.9 3.9 0 0 1-.6 7.8z" fill="#5B8FBF"/> <path d="M12 10.6v6.6" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/> <path d="M9.2 14.6l2.8 2.8 2.8-2.8" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Adu versiunea nouă<small>Dacă tocmai a apărut o actualizare și încă nu a ajuns la tine</small></span></button>
       <button class="mrow" onclick="shDiag()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M19.4 4.6a5.2 5.2 0 0 1-6.8 6.8L6.2 17.8a2 2 0 1 1-2.8-2.8l6.4-6.4a5.2 5.2 0 0 1 6.8-6.8l-3 3 .6 3.4 3.4.6z" fill="#5C7480"/></svg></span><span>Diagnostic tehnic<small>Starea instalării, util dacă ceva nu merge</small></span></button>
     </div>
-    <p class="muted" style="padding:0 6px">Nivelo v1.90 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
-      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v1.90%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
+    <p class="muted" style="padding:0 6px">Nivelo v1.91 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
+      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v1.91%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
   </section>
 </main>
 
@@ -848,7 +847,7 @@ var PORNIT = false, ULTIMA_EROARE = null;
 })();
 
 /* ================= STOCARE ================= */
-const APP_VER='v1.90';
+const APP_VER='v1.91';
 /* Android citește manifestul — numele, iconița, scurtăturile — o singură dată, la
    instalare, și îl păstrează așa până la reinstalare. Codul se actualizează singur,
    configurarea nu. De aceea ținem minte când s-a schimbat ultima dată configurarea:
@@ -1242,6 +1241,7 @@ function sortEv(){ DAYMAP=null; S.events.sort((a,b)=>a.ts-b.ts); }
    listei, nu la capăt, iar până acum singura confirmare era un toast care nu spunea
    nimic despre loc. Marcajul se stinge singur, ca o randare ulterioară (o schimbare de
    filtru, o revenire pe ecran) să nu reaprindă aceeași intrare. */
+let DIAL_PCT=null;   // cât era umplut arcul la randarea anterioară (null = ecran proaspăt)
 let EV_NOU=null, EV_NOU_T=null;
 function marcheazaNou(id){
   EV_NOU=id;
@@ -1406,6 +1406,7 @@ function histLastDose(name){
 
 /* ================= NAVIGARE ================= */
 function go(v){
+  if(v!=='today') DIAL_PCT=null;   // la revenire, arcul se desenează din nou de la zero
   document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));
   $('v-'+v).classList.add('on');
   const taburi=[...document.querySelectorAll('#tabs button')];
@@ -1921,6 +1922,23 @@ function renderToday(){
       delta=`<div class="delta" style="color:${rangeInk(last.gluc.v)}">${d>5?'↗':(d<-5?'↘':'→')} ${d>0?'+':''}${d} față de ${tHM(prev.ts)}</div>`; }
     const pct=Math.max(.06, Math.min(1, last.gluc.v/300));
     const C=2*Math.PI*46;
+    /* Arcul pleacă de unde era, nu de la zero.
+
+       Cercul se desenează cu o linie punctată lungă cât tot cercul, iar cât se vede din
+       ea e dat de decalaj (`stroke-dashoffset`) — o singură proprietate, care se poate
+       trece dintr-o valoare în alta. Dasharray nu se pretează: e o listă, iar trecerea
+       între două liste arată sacadat.
+
+       Elementul se redesenează la fiecare randare, deci o tranziție pornită pe el ar
+       porni direct la valoarea finală. De aceea îl scriem în pagină la valoarea VECHE
+       și abia în cadrul următor îi dăm valoarea nouă: atunci tranziția are de unde
+       pleca și arcul chiar se vede urcând sau coborând.
+
+       La prima intrare pe ecran nu există valoare veche, deci pornește de la zero — ca
+       până acum. `DIAL_PCT` se uită la ieșirea de pe Azi, tocmai ca revenirea să arate
+       din nou desenarea, nu o săritură. */
+    const dePornire = (DIAL_PCT==null) ? 0 : DIAL_PCT;
+    DIAL_PCT = pct;
     const word=rangeWord(last.gluc.v), sign=rangeSign(last.gluc.v), ink=rangeInk(last.gluc.v);
     /* Starea („în țintă", „sus"…) stătea singură sub cadran, iar coloana din dreapta
        avea doar două rânduri, deci rămânea un gol sub ele. Mutată deasupra tendinței,
@@ -1930,7 +1948,8 @@ function renderToday(){
         <svg width="96" height="96" viewBox="0 0 104 104">
           <circle cx="52" cy="52" r="46" fill="none" stroke="var(--line)" stroke-width="9"/>
           <circle class="arc" cx="52" cy="52" r="46" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round"
-            stroke-dasharray="${(C*pct).toFixed(1)} ${C.toFixed(1)}" style="--arc:${(C*pct).toFixed(1)}"/>
+            stroke-dasharray="${C.toFixed(1)} ${C.toFixed(1)}"
+            style="stroke-dashoffset:${(C*(1-dePornire)).toFixed(1)}"/>
         </svg>
         <div class="v"><b class="num" style="color:${ink}">${last.gluc.v}</b><small>mg/dl</small></div>
         </div>
@@ -1940,6 +1959,13 @@ function renderToday(){
         ${delta}<div class="ago">${ago} · ${last.gluc.src==='senzor'?'senzor':'din deget'}</div></div>`;
   }
   $('hero').innerHTML=hero;
+  if(DIAL_PCT!=null){
+    const a=$('hero').querySelector('.arc');
+    if(a){ const C=2*Math.PI*46;
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        a.style.strokeDashoffset=(C*(1-DIAL_PCT)).toFixed(1); }));
+    }
+  }
   // mini-statistici azi
   const g=evs.filter(e=>e.type==='gluc').map(e=>e.gluc.v);
   const hc=evs.filter(e=>e.type==='meal').reduce((a,e)=>a+(e.meal.hc||0),0);
@@ -4593,6 +4619,10 @@ function applyUpdate(){
    cu care omul a folosit ultima dată aplicația. La prima instalare nu se arată
    nimic: cine tocmai a intrat n-are ce compara. */
 const NOUTATI=[
+  {v:'v1.91', ce:[
+    'Când notezi o glicemie nouă, arcul din cadran pleacă de la valoarea veche și urcă sau coboară până la cea nouă. Până acum sărea la zero și se desena de acolo, deci nu se vedea dacă ai urcat sau ai coborât.',
+    'Culoarea arcului trece dintr-una în alta când se schimbă încadrarea, în loc să comute brusc.'
+  ]},
   {v:'v1.90', ce:[
     'Politica de confidențialitate descrie acum toate locurile în care stau datele pe telefon. Îi lipseau două: jurnalul pus deoparte înainte de o restaurare și intrările ținute cât timp butonul „Anulează" are sens.'
   ]},
