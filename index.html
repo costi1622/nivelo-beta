@@ -773,8 +773,8 @@ html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28;
       <button class="mrow" onclick="shUpdate()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M7.4 9.4A5.2 5.2 0 0 1 17 8.6h1.6a4 4 0 0 1 .6 8" fill="#5B8FBF" opacity="0"/> <path d="M6.8 18.4a4.4 4.4 0 0 1 .6-8.8 5.6 5.6 0 0 1 10.8 1 3.9 3.9 0 0 1-.6 7.8z" fill="#5B8FBF"/> <path d="M12 10.6v6.6" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/> <path d="M9.2 14.6l2.8 2.8 2.8-2.8" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Adu versiunea nouă<small>Dacă tocmai a apărut o actualizare și încă nu a ajuns la tine</small></span></button>
       <button class="mrow" onclick="shDiag()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M19.4 4.6a5.2 5.2 0 0 1-6.8 6.8L6.2 17.8a2 2 0 1 1-2.8-2.8l6.4-6.4a5.2 5.2 0 0 1 6.8-6.8l-3 3 .6 3.4 3.4.6z" fill="#5C7480"/></svg></span><span>Diagnostic tehnic<small>Starea instalării, util dacă ceva nu merge</small></span></button>
     </div>
-    <p class="muted" style="padding:0 6px">Nivelo v1.97 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
-      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v1.97%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
+    <p class="muted" style="padding:0 6px">Nivelo v1.98 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
+      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v1.98%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
   </section>
 </main>
 
@@ -863,7 +863,7 @@ var PORNIT = false, ULTIMA_EROARE = null;
 })();
 
 /* ================= STOCARE ================= */
-const APP_VER='v1.97';
+const APP_VER='v1.98';
 /* Android citește manifestul — numele, iconița, scurtăturile — o singură dată, la
    instalare, și îl păstrează așa până la reinstalare. Codul se actualizează singur,
    configurarea nu. De aceea ținem minte când s-a schimbat ultima dată configurarea:
@@ -2900,21 +2900,47 @@ function riskyStorage(){ return isIOS() && !isInstalled(); }
    singurul lucru pe care îl mai putem face e să dăm o veste proastă; e mult mai
    util să prevenim. Cota pe iPhone e mult mai mică decât pe Android, deci pragul
    e ținut prudent. Verificarea e best-effort: unele browsere nu o oferă. */
-async function quotaWarn(){
+/* ── Cât loc mai are jurnalul ─────────────────────────────────────────────────
+   AICI A FOST O GREȘEALĂ, reparată în v1.98: avertismentul de spațiu citea
+   `navigator.storage.estimate()`, care NU vede localStorage — adică exact locul unde
+   stă jurnalul. Pe telefonul autorului, Diagnosticul arăta „1,1 MB din 10.241 MB"
+   în timp ce jurnalul lui de aproape 14.000 de intrări ocupa ~1,6 MB care nici măcar
+   nu intrau în acel 1,1 MB. Manometrul arăta 0,01% ocupat pentru un rezervor plin pe
+   sfert. Avertismentul n-ar fi pornit niciodată, iar prima veste ar fi fost o salvare
+   eșuată — fix ce fusese scris să prevină.
+
+   Peretele, măsurat prin umplere în Chromium: 5.242.880 de caractere (5 MiB de UTF-16,
+   adică 10 MiB de octeți), apoi QuotaExceededError. E valoarea pe care o au Chrome,
+   Firefox și Safari de mulți ani. Dacă un browser oferă mai mult, avertizăm doar mai
+   devreme decât e nevoie — greșeala sigură, nu cea periculoasă. */
+const LS_LIMITA = 5*1024*1024;
+function spatiuJurnal(){
+  try{
+    let folosit=0;
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      folosit += k.length + (localStorage.getItem(k)||'').length;
+    }
+    return {folosit, limita:LS_LIMITA, pct:folosit/LS_LIMITA};
+  }catch(e){ return null; }
+}
+function quotaWarn(){
   const el=$('quotawarn'); if(!el) return;
   el.innerHTML=''; el.style.display='none';
   if(S.events.length<=3) return;
-  try{
-    const est=await navigator.storage.estimate();
-    if(!est || !est.quota) return;
-    const pct=est.usage/est.quota;
-    if(pct < 0.8) return;
-    el.innerHTML='<b>Spațiul de pe telefon e aproape plin.</b>'
-      +'Jurnalul e la '+Math.round(pct*100)+'% din cât poate ține aplicația. '
-      +'Dacă se umple, notările noi nu se mai salvează. Salvează o copie acum, apoi eliberează spațiu pe telefon.'
-      +'<br><button onclick="backupNow()">Salvează o copie →</button>';
-    el.style.display='block';
-  }catch(e){}
+  const sp=spatiuJurnal();
+  if(!sp || sp.pct < 0.8) return;
+  /* Sfatul vechi era „eliberează spațiu pe telefon" — și era greșit. Limita nu ține de
+     spațiul liber al telefonului, ci e o cotă fixă pe care browserul o dă fiecărui site.
+     Ștersul pozelor nu ajută cu nimic. Ce ajută e un backup și, dacă chiar se umple,
+     scoaterea anilor vechi din jurnal după ce i-ai salvat. */
+  el.innerHTML='<b>Jurnalul se apropie de limita browserului.</b>'
+    +'E la '+Math.round(sp.pct*100)+'% din cât poate ține browserul pentru această aplicație '
+    +'('+fmtN(sp.folosit/1048576)+' MB din 5 MB). Dacă se umple, notările noi nu se mai salvează. '
+    +'Nu e vorba de spațiul telefonului, deci ștersul pozelor nu ajută: e o limită fixă a browserului. '
+    +'Salvează o copie acum — iar dacă ajunge la capăt, din ea poți păstra anii vechi și elibera jurnalul.'
+    +'<br><button onclick="backupNow()">Salvează o copie →</button>';
+  el.style.display='block';
 }
 function storageWarn(){
   const el=$('storagewarn'); if(!el) return;
@@ -4331,16 +4357,21 @@ async function shDiag(){
   }catch(e){}
   R.push(['Versiune în cache', swv, swvOk]);
 
-  // spațiu folosit: pe iPhone cota e mică, iar jurnalul crește cu anii
+  /* Două măsuri diferite, fiindcă sunt două rezervoare diferite — iar până în v1.98
+     se arăta doar al doilea, care nu conține jurnalul. */
+  const mb=v=>fmtN(v/1048576)+' MB';   // virgulă zecimală, ca peste tot
+  const spJ=spatiuJurnal();
+  R.push(['Jurnalul (limita care contează)',
+          spJ ? mb(spJ.folosit)+' din '+mb(spJ.limita)+' · '+Math.round(spJ.pct*100)+'%' : 'necunoscut',
+          spJ ? (spJ.pct<0.8) : null]);
   let sp='necunoscut';
   try{
     if(navigator.storage && navigator.storage.estimate){
       const q=await navigator.storage.estimate();
-      const mb=v=>fmtN(v/1048576)+' MB';   // virgulă zecimală, ca peste tot
       sp = q.usage!=null ? mb(q.usage)+(q.quota? ' din '+mb(q.quota):'') : 'necunoscut';
     }
   }catch(e){}
-  R.push(['Spațiu folosit', sp, null]);
+  R.push(['Copia de siguranță și cache-ul', sp, null]);
   R.push(['Intrări în jurnal', String(S.events.length), null]);
   R.push(['Dispozitiv', await deviceLabel(), null]);
   // o eroare apărută după pornire nu ia ecranul în primire, dar merită să apară
@@ -4853,6 +4884,10 @@ function applyUpdate(){
    cu care omul a folosit ultima dată aplicația. La prima instalare nu se arată
    nimic: cine tocmai a intrat n-are ce compara. */
 const NOUTATI=[
+  {v:'v1.98', ce:[
+    'Reparat: avertismentul de spațiu citea un indicator care nu vede jurnalul. Diagnosticul arăta „1,1 MB din 10.241 MB" în timp ce jurnalul ocupa 1,6 MB dintr-o limită de 5 MB — adică 32%, nu 0,01%. Avertismentul n-ar fi pornit niciodată, iar prima veste ar fi fost o salvare eșuată.',
+    'Diagnosticul arată acum două cifre separate: cât ocupă jurnalul din limita care chiar contează, și cât ocupă copia de siguranță și cache-ul.'
+  ]},
   {v:'v1.97', ce:[
     'În Statistici, bara timpului în țintă are acum bandă separată pentru valorile peste 250. Un 190 și un 320 nu mai arată la fel — consensul cere sub 25% peste ținta de sus, dar și sub 5% peste 250, iar până acum cifra exista doar în tabelul lunar al raportului.',
     'Setările spun acum, lângă câmpurile de țintă, că ținta se aplică și înapoi: Statisticile și raportul recalculează tot jurnalul cu pragurile actuale.',
