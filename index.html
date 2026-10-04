@@ -773,8 +773,8 @@ html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28;
       <button class="mrow" onclick="shUpdate()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M7.4 9.4A5.2 5.2 0 0 1 17 8.6h1.6a4 4 0 0 1 .6 8" fill="#5B8FBF" opacity="0"/> <path d="M6.8 18.4a4.4 4.4 0 0 1 .6-8.8 5.6 5.6 0 0 1 10.8 1 3.9 3.9 0 0 1-.6 7.8z" fill="#5B8FBF"/> <path d="M12 10.6v6.6" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/> <path d="M9.2 14.6l2.8 2.8 2.8-2.8" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Adu versiunea nouă<small>Dacă tocmai a apărut o actualizare și încă nu a ajuns la tine</small></span></button>
       <button class="mrow" onclick="shDiag()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M19.4 4.6a5.2 5.2 0 0 1-6.8 6.8L6.2 17.8a2 2 0 1 1-2.8-2.8l6.4-6.4a5.2 5.2 0 0 1 6.8-6.8l-3 3 .6 3.4 3.4.6z" fill="#5C7480"/></svg></span><span>Diagnostic tehnic<small>Starea instalării, util dacă ceva nu merge</small></span></button>
     </div>
-    <p class="muted" style="padding:0 6px">Nivelo v1.95 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
-      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v1.95%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
+    <p class="muted" style="padding:0 6px">Nivelo v1.96 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
+      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v1.96%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
   </section>
 </main>
 
@@ -863,7 +863,7 @@ var PORNIT = false, ULTIMA_EROARE = null;
 })();
 
 /* ================= STOCARE ================= */
-const APP_VER='v1.95';
+const APP_VER='v1.96';
 /* Android citește manifestul — numele, iconița, scurtăturile — o singură dată, la
    instalare, și îl păstrează așa până la reinstalare. Codul se actualizează singur,
    configurarea nu. De aceea ținem minte când s-a schimbat ultima dată configurarea:
@@ -3229,13 +3229,17 @@ function importCSV(txt){
   }
   const seen=new Set(S.events.map(e=>e.ts+'|'+e.type));
   const existingDays=new Set(S.events.map(e=>dKey(e.ts)));
-  const K2T={'Glicemie':'gluc','Masă':'meal','Masa':'meal','Insulină':'ins','Insulina':'ins','Greutate':'kg','Notă':'note','Nota':'note','Activitate':'act'};
+  /* Fiecare tip scris de export (TYPE_RO) trebuie să aibă aici drumul de întoarcere.
+     „Ciclu" lipsea: exportul îl scria, importul îl sărea la `if(!tp) return`, deci un
+     dus-întors prin CSV ștergea toate intrările de ciclu fără niciun mesaj. Formele cu
+     și fără diacritice stau amândouă, pentru fișierele trecute prin Excel. */
+  const K2T={'Glicemie':'gluc','Masă':'meal','Masa':'meal','Insulină':'ins','Insulina':'ins','Greutate':'kg','Notă':'note','Nota':'note','Activitate':'act','Ciclu':'ciclu'};
   // STAGING: construim în copii separate; comitem în S doar la final, dacă totul e ok
   const newEvents=[], newFoods=[]; const skipped=new Set();
   lines.forEach(c=>{
     if(c.length<2) return;
     if(c[ix('Tip')]==='Aliment'){
-      const name=(c[ix('Alimente')]||'').trim(), val=parseFloat(String(c[ix('HC')]).replace(',','.'));
+      const name=(c[ix('Alimente')]||'').trim(), val=zec(c[ix('HC')]);
       if(name&&val>0 && !S.foods.some(f=>f.name.toLowerCase()===name.toLowerCase()) && !newFoods.some(f=>f.name.toLowerCase()===name.toLowerCase()))
         newFoods.push({id:uid(),name,mode:c[ix('Scop')]==='portie'?'portie':'per100',val,fav:(c[ix('Sursa')]||'').includes('fav'),uses:0});
       return;
@@ -3247,16 +3251,21 @@ function importCSV(txt){
     const tp=K2T[c[ix('Tip')]]; if(!tp) return;
     if(seen.has(ts+'|'+tp)) return;
     const e={id:uid(), ts, type:tp};
-    if(tp==='gluc'){ const v=parseFloat(c[ix('Glicemie')]); if(!v||v<20||v>900) return; e.gluc={v, src:c[ix('Sursa')]||'deget'}; }
-    if(tp==='ins'){ const u=parseFloat(c[ix('Unitati')]); if(!u||u<=0||u>100) return; e.ins={name:c[ix('Insulina')]||'Fiasp', u, kind:c[ix('Scop')]||'bolus'}; }
+    /* zec(): aceeași citire a zecimalelor pentru TOATE coloanele numerice. Glicemia și
+       unitățile de insulină foloseau parseFloat direct, în timp ce HC, greutatea și gramele
+       înlocuiau virgula cu punct. Diferența se vedea doar pe un CSV trecut prin Excel cu
+       setări românești: „6,5" se citea ca 6 — exact bug-ul reparat în v1.83 la tastare,
+       rămas pe calea de import. */
+    if(tp==='gluc'){ const v=zec(c[ix('Glicemie')]); if(!v||v<20||v>900) return; e.gluc={v, src:c[ix('Sursa')]||'deget'}; }
+    if(tp==='ins'){ const u=zec(c[ix('Unitati')]); if(!u||u<=0||u>100) return; e.ins={name:c[ix('Insulina')]||'Fiasp', u, kind:c[ix('Scop')]||'bolus'}; }
     if(tp==='meal'){
       const items=(c[ix('Alimente')]||'').split(' + ').filter(Boolean).map(x=>{
         const m=x.match(/^(.*?)(?:\s*\[(\d+(?:[.,]\d+)?)g\])?\s*=\s*([\d.,]+)HC$/);
-        return m? {name:m[1].trim(), grams:m[2]?parseFloat(m[2].replace(',','.')):null, hc:parseFloat(m[3].replace(',','.'))||0} : {name:x.trim(), grams:null, hc:0};
+        return m? {name:m[1].trim(), grams:m[2]?zec(m[2]):null, hc:zec(m[3])||0} : {name:x.trim(), grams:null, hc:0};
       });
-      e.meal={items, hc:parseFloat(String(c[ix('HC')]).replace(',','.'))||items.reduce((a,i)=>a+i.hc,0), note:c[ix('Nota')]||''};
+      e.meal={items, hc:zec(c[ix('HC')])||items.reduce((a,i)=>a+i.hc,0), note:c[ix('Nota')]||''};
     }
-    if(tp==='kg'){ const v=parseFloat(String(c[ix('Greutate')]).replace(',','.')); if(!v||v<20||v>400) return; e.kg={v}; }
+    if(tp==='kg'){ const v=zec(c[ix('Greutate')]); if(!v||v<20||v>400) return; e.kg={v}; }
     if(tp==='note'||tp==='act'){ const t=(c[ix('Nota')]||'').trim(); if(!t) return; e.note={text:t}; }
     if(tp==='ciclu'){ const t=(c[ix('Nota')]||'').toLowerCase(); e.ciclu={faza: t.indexOf('termin')>=0?'stop':'start'}; }
     newEvents.push(e);
@@ -3267,6 +3276,12 @@ function importCSV(txt){
   sortEv(); save();
   return {added:newEvents.length, foodsAdded:newFoods.length, skipped:skipped.size,
           ids:newEvents.map(e=>e.id), foodIds:newFoods.map(f=>f.id)};
+}
+/* Citirea unui număr din CSV. Excel cu setări românești scrie zecimalele cu virgulă,
+   deci orice coloană numerică trece prin asta — nu doar unele. */
+function zec(v){
+  const n=parseFloat(String(v==null?'':v).trim().replace(',','.'));
+  return isFinite(n)?n:NaN;
 }
 function parseCSV(txt, sep){
   const out=[]; let row=[], cur='', inQ=false;
@@ -4769,6 +4784,10 @@ function applyUpdate(){
    cu care omul a folosit ultima dată aplicația. La prima instalare nu se arată
    nimic: cine tocmai a intrat n-are ce compara. */
 const NOUTATI=[
+  {v:'v1.96', ce:[
+    'Reparat: un dus-întors prin CSV ștergea în liniște toate intrările de ciclu menstrual. Exportul le scria, importul nu le recunoștea și le sărea fără niciun mesaj.',
+    'Reparat: la import, insulina și glicemia nu acceptau virgula zecimală — „6,5" se citea ca 6 unități. Un CSV deschis în Excel și salvat înapoi scrie virgulă. Acum toate coloanele numerice se citesc la fel.'
+  ]},
   {v:'v1.95', ce:[
     'Etichetele câmpurilor sunt acum legate de câmpuri: un cititor de ecran spune „Valoare, câmp de editare", nu doar „câmp de editare". Se aplică la toate cele 18 câmpuri și la cele 15 grupuri de butoane.',
     'Escape închide fereastra deschisă, iar Tab rămâne în ea. Înainte, Tab pleca în pagina de dedesubt, acoperită de voal: apăsai pe butoane pe care nu le vedeai.',
