@@ -337,6 +337,11 @@ body.noscroll{position:fixed; left:0; right:0; width:100%; overflow:hidden}
 #sheet2.on{transform:none}
 #sheet2 h3{font-size:calc(18px*var(--fs)); font-weight:800; margin-bottom:14px}
 #sheet h3{font-size:calc(18px*var(--fs)); font-weight:800; margin-bottom:14px}
+/* La deschidere mutăm focusul pe foaia însăși (are tabindex="-1"), ca un cititor de
+   ecran să anunțe fereastra și ca Tab să continue înăuntru, nu în pagina de dedesubt.
+   Fără linia asta, panoul ar primi conturul de focus al browserului — un dreptunghi
+   albastru în jurul întregii ferestre, de fiecare dată când o deschizi. */
+#sheet:focus, #sheet2:focus{outline:none}
 .frow{margin-bottom:13px}
 .frow label{display:block; font-size:calc(12.5px*var(--fs)); font-weight:700; color:var(--ink-soft); margin-bottom:5px; text-transform:uppercase; letter-spacing:.5px}
 .inp{width:100%; border:1.5px solid var(--line); border-radius:12px; padding:13px 12px; font-size:calc(16px*var(--fs)); background:#fff}
@@ -726,7 +731,7 @@ html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28;
   <!-- STATISTICI -->
   <section class="view" id="v-stats">
     <i id="perSentinel" aria-hidden="true"></i>
-    <div class="chips" id="periodChips"></div>
+    <div class="chips" id="periodChips" role="group" aria-label="Perioada afișată"></div>
     <div id="statsbody"></div>
   </section>
 
@@ -768,8 +773,8 @@ html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28;
       <button class="mrow" onclick="shUpdate()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M7.4 9.4A5.2 5.2 0 0 1 17 8.6h1.6a4 4 0 0 1 .6 8" fill="#5B8FBF" opacity="0"/> <path d="M6.8 18.4a4.4 4.4 0 0 1 .6-8.8 5.6 5.6 0 0 1 10.8 1 3.9 3.9 0 0 1-.6 7.8z" fill="#5B8FBF"/> <path d="M12 10.6v6.6" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/> <path d="M9.2 14.6l2.8 2.8 2.8-2.8" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Adu versiunea nouă<small>Dacă tocmai a apărut o actualizare și încă nu a ajuns la tine</small></span></button>
       <button class="mrow" onclick="shDiag()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M19.4 4.6a5.2 5.2 0 0 1-6.8 6.8L6.2 17.8a2 2 0 1 1-2.8-2.8l6.4-6.4a5.2 5.2 0 0 1 6.8-6.8l-3 3 .6 3.4 3.4.6z" fill="#5C7480"/></svg></span><span>Diagnostic tehnic<small>Starea instalării, util dacă ceva nu merge</small></span></button>
     </div>
-    <p class="muted" style="padding:0 6px">Nivelo v1.94 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
-      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v1.94%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
+    <p class="muted" style="padding:0 6px">Nivelo v1.95 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
+      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v1.95%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
   </section>
 </main>
 
@@ -781,10 +786,10 @@ html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28;
   <button data-v="more" onclick="go('more')"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="25" height="25"><rect x="3.4" y="5.6" width="17.2" height="3.1" rx="1.55" fill="#4E8FA8"/> <rect x="3.4" y="10.45" width="17.2" height="3.1" rx="1.55" fill="#6FA98C"/> <rect x="3.4" y="15.3" width="17.2" height="3.1" rx="1.55" fill="#93A3AC"/></svg></span>Mai mult</button>
 </nav>
 
-<div id="veil" onclick="closeSheet()"></div>
-<div id="sheet"></div>
-<div id="veil2" onclick="closeSheet2()"></div>
-<div id="sheet2"></div>
+<div id="veil" onclick="closeSheet()" aria-hidden="true"></div>
+<div id="sheet" role="dialog" aria-modal="true" tabindex="-1"></div>
+<div id="veil2" onclick="closeSheet2()" aria-hidden="true"></div>
+<div id="sheet2" role="dialog" aria-modal="true" tabindex="-1"></div>
 <div id="undobar"></div>
 <div id="updbar" role="status" aria-live="polite"></div>
 <div id="toast" role="status" aria-live="polite"></div>
@@ -858,7 +863,7 @@ var PORNIT = false, ULTIMA_EROARE = null;
 })();
 
 /* ================= STOCARE ================= */
-const APP_VER='v1.94';
+const APP_VER='v1.95';
 /* Android citește manifestul — numele, iconița, scurtăturile — o singură dată, la
    instalare, și îl păstrează așa până la reinstalare. Codul se actualizează singur,
    configurarea nu. De aceea ținem minte când s-a schimbat ultima dată configurarea:
@@ -1423,7 +1428,11 @@ function go(v){
   document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));
   $('v-'+v).classList.add('on');
   const taburi=[...document.querySelectorAll('#tabs button')];
-  taburi.forEach(b=>b.classList.toggle('on', b.dataset.v===v));
+  /* .on marchează tabul curent vizual; aria-current îl marchează și pentru un cititor
+     de ecran, care altfel ar citi cele cinci taburi la fel și n-ar spune pe care ești. */
+  taburi.forEach(b=>{ const e=(b.dataset.v===v);
+    b.classList.toggle('on', e);
+    if(e) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
   /* Indicatorul alunecă de la tabul vechi la cel nou, deci se vede ÎNCOTRO te-ai dus,
      nu doar unde ai ajuns. Poziția e un simplu număr de ordine pus pe bară; lățimea
      lui e o fracțiune din bară, deci merge oricâte taburi ar fi. */
@@ -1492,10 +1501,92 @@ function closeSheet2UI(){ $('sheet2').classList.remove('on'); $('veil2').classLi
    exact de acolo: conținutul e nou, dar poziția rămăsese a celei vechi. De aceea
    „Întrebări frecvente" sau „Ghid rapid" păreau că încep de la mijloc. Readucem
    derularea la început de fiecare dată, și încă o dată după ce conținutul s-a așezat. */
-function openSheet(html){ $('sheet').innerHTML=html; $('sheet').scrollTop=0; $('veil').classList.add('on'); syncLock(); syncHist(); requestAnimationFrame(()=>{ $('sheet').classList.add('on'); $('sheet').scrollTop=0; }); }
-function closeSheet(){ closeSheetUI(); syncHist(); }
-function openSheet2(html){ $('sheet2').innerHTML=html; $('sheet2').scrollTop=0; $('veil2').classList.add('on'); syncLock(); syncHist(); requestAnimationFrame(()=>{ $('sheet2').classList.add('on'); $('sheet2').scrollTop=0; }); }
-function closeSheet2(){ closeSheet2UI(); syncHist(); }
+function openSheet(html){ $('sheet').innerHTML=html; $('sheet').scrollTop=0; $('veil').classList.add('on'); syncLock(); syncHist(); legaEtichete($('sheet')); preiaFocus($('sheet')); requestAnimationFrame(()=>{ $('sheet').classList.add('on'); $('sheet').scrollTop=0; }); }
+function closeSheet(){ closeSheetUI(); syncHist(); redaFocus($('sheet')); }
+function openSheet2(html){ $('sheet2').innerHTML=html; $('sheet2').scrollTop=0; $('veil2').classList.add('on'); syncLock(); syncHist(); legaEtichete($('sheet2')); preiaFocus($('sheet2')); requestAnimationFrame(()=>{ $('sheet2').classList.add('on'); $('sheet2').scrollTop=0; }); }
+function closeSheet2(){ closeSheet2UI(); syncHist(); redaFocus($('sheet2')); }
+
+/* ── Accesibilitate ───────────────────────────────────────────────────────────
+   Etichetele sunt scrise ca <label>Valoare</label> lângă câmp: se văd corect, dar
+   nimic nu-i spune browserului că aparțin acelui câmp, așa că un cititor de ecran
+   anunță „câmp de editare", nu „Valoare, câmp de editare". Legăturile s-ar putea
+   pune de mână în toate cele ~20 de locuri, dar atunci fiecare fereastră nouă
+   adăugată mai târziu le-ar putea uita în liniște. Le punem o singură dată,
+   programatic, imediat după ce conținutul ferestrei a fost scris: funcția ia
+   fiecare .frow, îi găsește eticheta și o leagă de câmpul din acel rând.
+   Pentru grupurile de butoane-chip (Insulină, Scop, Tip) nu există un câmp de
+   legat, așa că grupul primește un nume prin aria-labelledby. */
+let ARIA_N=0;
+function legaEtichete(root){
+  root=root||document;
+  root.querySelectorAll('.frow').forEach(rand=>{
+    const lab=rand.querySelector('label'); if(!lab) return;
+    const camp=rand.querySelector('input[id], textarea[id], select[id]');
+    if(camp){ if(!lab.getAttribute('for')) lab.setAttribute('for', camp.id); return; }
+    const chips=rand.querySelector('.chips');
+    // chips===lab e cazul „★ Favorit": eticheta ESTE grupul, iar un element nu se
+    // poate numi pe sine prin aria-labelledby — acolo numele vine din textul butonului.
+    if(chips && chips!==lab){
+      if(!lab.id) lab.id='et'+(++ARIA_N);
+      chips.setAttribute('role','group');
+      chips.setAttribute('aria-labelledby', lab.id);
+    }
+  });
+  sincronizeazaChips(root);
+}
+/* Un chip ales se deosebește doar prin clasa .on — vizual e clar, dar nu se aude.
+   Punem aria-pressed ca să se și audă, însă numai în grupurile unde există într-adevăr
+   o alegere: „Rapide" e o listă de scurtături, nu o selecție, iar acolo aria-pressed
+   ar anunța „neapăsat" pe fiecare aliment, ceea ce ar fi o minciună. Criteriul e că
+   grupul are deja un chip pe .on. */
+function sincronizeazaChips(root){
+  (root||document).querySelectorAll('.chips').forEach(gr=>{
+    const chips=[...gr.querySelectorAll('button.chip')];
+    if(!chips.some(c=>c.classList.contains('on'))) return;
+    chips.forEach(c=>c.setAttribute('aria-pressed', c.classList.contains('on')?'true':'false'));
+  });
+}
+/* Focusul: la deschidere îl mutăm pe foaia însăși, nu pe primul câmp. Două motive —
+   cititorul de ecran anunță fereastra înainte de conținutul ei, și nu ne batem cu
+   ferestrele care își pun singure focusul pe un câmp anume (glicemie, unități) după
+   250 ms. La închidere îl dăm înapoi de unde a plecat, altfel ar cădea la începutul
+   paginii și omul ar trebui să tabuleze din nou până unde era. */
+const FOCUS_INAINTE={};
+function preiaFocus(foaie){
+  const a=document.activeElement;
+  FOCUS_INAINTE[foaie.id]=(a && a!==document.body && document.contains(a)) ? a : null;
+  foaie.focus({preventScroll:true});
+}
+function redaFocus(foaie){
+  const el=FOCUS_INAINTE[foaie.id]; FOCUS_INAINTE[foaie.id]=null;
+  if(el && document.contains(el)) try{ el.focus({preventScroll:true}); }catch(e){}
+}
+function foaiaDeDeasupra(){
+  if($('veil2').classList.contains('on')) return $('sheet2');
+  if($('veil').classList.contains('on')) return $('sheet');
+  return null;
+}
+function focalizabile(f){
+  return [...f.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])')]
+    .filter(el=>el.offsetWidth>0 || el.offsetHeight>0 || el===document.activeElement);
+}
+/* Escape închide foaia de deasupra, iar Tab rămâne în ea. Fără capcana de focus,
+   Tab-ul pleacă în pagina de dedesubt — care e acoperită de voal, deci ai tabula
+   orbește prin butoane pe care nu le vezi și le-ai putea apăsa din greșeală. */
+document.addEventListener('keydown', e=>{
+  const f=foaiaDeDeasupra(); if(!f) return;
+  if(e.key==='Escape'){
+    e.preventDefault();
+    if(f.id==='sheet2') closeSheet2(); else closeSheet();
+    return;
+  }
+  if(e.key!=='Tab') return;
+  const el=focalizabile(f); if(!el.length){ e.preventDefault(); f.focus({preventScroll:true}); return; }
+  const prim=el[0], ultim=el[el.length-1], acum=document.activeElement;
+  const inauntru=f.contains(acum) && acum!==f;
+  if(e.shiftKey && (acum===prim || !inauntru)){ e.preventDefault(); ultim.focus(); }
+  else if(!e.shiftKey && (acum===ultim || !inauntru)){ e.preventDefault(); prim.focus(); }
+});
 let CONFIRM_CB=null;
 function shConfirm(msg, cb, opts){
   opts=opts||{};
@@ -1628,7 +1719,7 @@ function shMeal(ev){
   M._ts = ev?ev.ts:Date.now();
   openSheet(`<h3>${ev?'Modifică masa':'Masă'}</h3>
     <div class="frow"><label>Adaugă aliment</label>
-      <div class="fsearch"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.4" cy="10.4" r="6.6" stroke="currentColor" stroke-width="2.4"/><path d="M15.4 15.4l4.6 4.6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg><input class="inp" id="msrch" placeholder="Scrie 2-3 litere… (ex: pâine)" oninput="mealHits()"></div>
+      <div class="fsearch"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.4" cy="10.4" r="6.6" stroke="currentColor" stroke-width="2.4"/><path d="M15.4 15.4l4.6 4.6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg><input class="inp" id="msrch" aria-label="Caută un aliment" placeholder="Scrie 2-3 litere… (ex: pâine)" oninput="mealHits()"></div>
       <div id="mhits"></div></div>
     <div class="frow"><label>Rapide</label><div class="chips" id="mfav"></div></div>
     <div id="mitems"></div>
@@ -1666,7 +1757,7 @@ function pickFood(fid){
 function askGrams(f){
   openSheet2(`<h3>Câte grame?</h3>
     <p class="muted" style="margin:-4px 0 12px">${esc(f.name)} · ${fmtHC(f.val)} HC / 100 g</p>
-    <div class="bigwrap"><input class="inp bignum num" id="gramin" type="text" inputmode="decimal" autocomplete="off" style="text-align:center; font-size:calc(26px*var(--fs)); font-weight:800"><span class="unit" aria-hidden="true">g</span></div>
+    <div class="bigwrap"><input class="inp bignum num" id="gramin" type="text" inputmode="decimal" autocomplete="off" aria-label="Cantitate în grame" style="text-align:center; font-size:calc(26px*var(--fs)); font-weight:800"><span class="unit" aria-hidden="true">g</span></div>
     <div class="hcprev" id="grampv" style="text-align:center; font-size:calc(14px*var(--fs)); color:var(--hc-ink); font-weight:700; min-height:20px; margin-top:10px"></div>
     <button class="btn btn-p" style="margin-top:14px" onclick="okGrams('${f.id}')">Adaugă la masă</button>
     <button class="btn btn-g" onclick="closeSheet2()">Anulează</button>`);
@@ -2264,7 +2355,7 @@ function shFood(f, presetName, fromMeal){
       <button class="chip ${f&&f.mode==='portie'?'on':''}" data-v="portie">HC pe porție</button>
     </div></div>
     <div class="frow"><label>Carbohidrați (HC)</label><div class="bigwrap"><input class="inp bignum num" id="fval" type="text" inputmode="decimal" autocomplete="off" value="${f?f.val:''}"><span class="unit" aria-hidden="true">HC</span></div></div>
-    <div class="frow"><label class="chips"><button class="chip ${f&&f.fav?'on':''}" id="ffav" onclick="this.classList.toggle('on')">★ Favorit (apare la Rapide)</button></label></div>
+    <div class="frow"><label class="chips"><button class="chip ${f&&f.fav?'on':''}" id="ffav" aria-pressed="${f&&f.fav?'true':'false'}" onclick="this.classList.toggle('on'); this.setAttribute('aria-pressed', this.classList.contains('on')?'true':'false')">★ Favorit (apare la Rapide)</button></label></div>
     <button class="btn btn-p" onclick="okFood('${f?f.id:''}', ${fromMeal?'true':'false'})">Salvează alimentul</button>
     ${f?'<button class="btn btn-d" onclick="delFood(\''+f.id+'\')">Șterge din bibliotecă</button>':''}`);
   chipify('fmode');
@@ -2448,7 +2539,7 @@ function urmarestePerioada(){
 function renderStats(){
   urmarestePerioada();
   $('periodChips').innerHTML=[7,30,90].map(p=>
-    `<button class="chip ${PERIOD===p?'on':''}" onclick="PERIOD=${p};renderStats()">${p} zile</button>`).join('');
+    `<button class="chip ${PERIOD===p?'on':''}" aria-pressed="${PERIOD===p?'true':'false'}" onclick="PERIOD=${p};renderStats()">${p} zile</button>`).join('');
   const d0=new Date(); d0.setHours(0,0,0,0);
   const from=d0.getTime()-(PERIOD-1)*MS_D;
   const evs=S.events.filter(e=>e.ts>=from);
@@ -4202,7 +4293,7 @@ async function copyDiag(){
   }catch(e){
     // fără acces la clipboard: îl arătăm ca text, de unde poate fi selectat manual
     openSheet2(`<h3>Raport diagnostic</h3>
-      <textarea class="inp" rows="12" readonly style="font-size:calc(12px*var(--fs)); font-family:monospace">${esc(t)}</textarea>
+      <textarea class="inp" rows="12" readonly aria-label="Conținutul fișierului" style="font-size:calc(12px*var(--fs)); font-family:monospace">${esc(t)}</textarea>
       <button class="btn btn-p" style="margin-top:10px" onclick="closeSheet2()">Închide</button>`);
   }
 }
@@ -4678,6 +4769,12 @@ function applyUpdate(){
    cu care omul a folosit ultima dată aplicația. La prima instalare nu se arată
    nimic: cine tocmai a intrat n-are ce compara. */
 const NOUTATI=[
+  {v:'v1.95', ce:[
+    'Etichetele câmpurilor sunt acum legate de câmpuri: un cititor de ecran spune „Valoare, câmp de editare", nu doar „câmp de editare". Se aplică la toate cele 18 câmpuri și la cele 15 grupuri de butoane.',
+    'Escape închide fereastra deschisă, iar Tab rămâne în ea. Înainte, Tab pleca în pagina de dedesubt, acoperită de voal: apăsai pe butoane pe care nu le vedeai.',
+    'La închiderea unei ferestre, focusul se întoarce de unde a plecat, în loc să cadă la începutul paginii.',
+    'Tabul pe care ești se anunță acum ca atare, nu se deosebește doar prin culoare.'
+  ]},
   {v:'v1.94', ce:[
     'Scos: pagina nu mai coboară singură la intrarea tocmai notată. Butoanele de adăugare stau deasupra cronologiei, iar derularea automată te obliga să urci înapoi după fiecare salvare, tocmai când voiai să notezi și insulina, și masa.',
     'Lumina de pe intrarea nouă rămâne. Confirmarea era oricum sus, în cadran, acolo unde stau ochii și degetul.'
