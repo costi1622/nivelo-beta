@@ -123,6 +123,8 @@ main{max-width:560px; margin:0 auto; padding:14px 14px calc(96px + env(safe-area
 /* Ecranele goale urcă ușor: sunt singurul lucru de pe ecran, deci apariția bruscă a
    unui bloc de text pe un ecran altfel gol se citește ca o eroare. */
 @keyframes urcaUsor{ from{opacity:0; transform:translateY(9px)} to{opacity:1; transform:none} }
+@keyframes randIntra{ from{opacity:0; transform:translateY(-7px)} to{opacity:1; transform:none} }
+.frow.intra{ animation:randIntra .17s ease-out both }
 @keyframes evPleaca{ from{opacity:1; transform:none} to{opacity:0; transform:translateX(-28px)} }
 .ev.pleaca{ animation:evPleaca .2s ease-in both; pointer-events:none }
 @keyframes miNou{ from{opacity:0; transform:translateY(-8px)} to{opacity:1; transform:none} }
@@ -630,7 +632,7 @@ html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28;
   #sheet{transition:none} #toast{transition:opacity .1s}
   .view.on, #veil.on, #veil2.on, .ev.evnou, #undobar.on, .fstar.puls,
   .tirbar, .sparkline, .sparkdot, .empty, #updbar.on, #undobar.pleaca,
-  .ev.pleaca, .mi.nou, .reinnoit,
+  .ev.pleaca, .mi.nou, .reinnoit, .frow.intra,
   #savefail[style*="block"], #quotawarn[style*="block"], #banner[style*="block"]{animation:none}
   #tabmark, #banner, #dial .arc, .tirbar > div, .bars .b i, html.gata body, html.gata .card,
   html.gata #tabs, html.gata #topbar, html.gata .ev, html.gata .chip{transition:none}
@@ -766,8 +768,8 @@ html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28;
       <button class="mrow" onclick="shUpdate()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M7.4 9.4A5.2 5.2 0 0 1 17 8.6h1.6a4 4 0 0 1 .6 8" fill="#5B8FBF" opacity="0"/> <path d="M6.8 18.4a4.4 4.4 0 0 1 .6-8.8 5.6 5.6 0 0 1 10.8 1 3.9 3.9 0 0 1-.6 7.8z" fill="#5B8FBF"/> <path d="M12 10.6v6.6" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/> <path d="M9.2 14.6l2.8 2.8 2.8-2.8" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Adu versiunea nouă<small>Dacă tocmai a apărut o actualizare și încă nu a ajuns la tine</small></span></button>
       <button class="mrow" onclick="shDiag()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M19.4 4.6a5.2 5.2 0 0 1-6.8 6.8L6.2 17.8a2 2 0 1 1-2.8-2.8l6.4-6.4a5.2 5.2 0 0 1 6.8-6.8l-3 3 .6 3.4 3.4.6z" fill="#5C7480"/></svg></span><span>Diagnostic tehnic<small>Starea instalării, util dacă ceva nu merge</small></span></button>
     </div>
-    <p class="muted" style="padding:0 6px">Nivelo v1.92 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
-      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v1.92%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
+    <p class="muted" style="padding:0 6px">Nivelo v1.93 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
+      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v1.93%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
   </section>
 </main>
 
@@ -856,7 +858,7 @@ var PORNIT = false, ULTIMA_EROARE = null;
 })();
 
 /* ================= STOCARE ================= */
-const APP_VER='v1.92';
+const APP_VER='v1.93';
 /* Android citește manifestul — numele, iconița, scurtăturile — o singură dată, la
    instalare, și îl păstrează așa până la reinstalare. Codul se actualizează singur,
    configurarea nu. De aceea ținem minte când s-a schimbat ultima dată configurarea:
@@ -1743,9 +1745,26 @@ function shNote(ev){
   chipify('ncic');
   $('ntype').querySelectorAll('.chip').forEach(c=>{ const old=c.onclick; c.onclick=()=>{ old();
     const v=c.dataset.v, kg=v==='kg', cic=v==='ciclu';
-    $('ntextrow').style.display=(kg||cic)?'none':'block';
-    $('nkgrow').style.display=kg?'block':'none';
-    $('ncicrow').style.display=cic?'block':'none'; }; });
+    aratăRând('ntextrow', !(kg||cic));
+    aratăRând('nkgrow', kg);
+    aratăRând('ncicrow', cic); }; });
+}
+/* Comutarea tipului în fereastra „Altele" schimba câmpul de dedesubt instantaneu:
+   dispărea caseta de text, apărea cea de greutate, fără nicio legătură între ele.
+   Rândul care intră coboară scurt la locul lui; cel care pleacă se stinge direct,
+   fiindcă oricum e înlocuit în aceeași clipă de altul.
+
+   Animăm doar la SCHIMBARE, nu și când rândul era deja afișat: apăsarea pe tipul
+   curent selectat n-ar trebui să clipească. */
+function aratăRând(id, on){
+  const e=$(id); if(!e) return;
+  const eraVizibil = e.style.display!=='none';
+  if(!on){ e.classList.remove('intra'); e.style.display='none'; return; }
+  e.style.display='block';
+  if(eraVizibil) return;
+  e.classList.remove('intra');
+  void e.offsetWidth;          // repornește animația dacă rândul a mai intrat o dată
+  e.classList.add('intra');
 }
 function okNote(id){
   const ts=readTime('n'); if(!ts){ toast('Verifică data și ora'); return; }
@@ -4663,6 +4682,9 @@ function applyUpdate(){
    cu care omul a folosit ultima dată aplicația. La prima instalare nu se arată
    nimic: cine tocmai a intrat n-are ce compara. */
 const NOUTATI=[
+  {v:'v1.93', ce:[
+    'În fereastra „Altele", schimbarea tipului (Notă, Activitate, Greutate, Ciclu) aduce câmpul nou cu o coborâre scurtă, în loc să-l înlocuiască instantaneu. Cu asta, mișcarea din aplicație e completă.'
+  ]},
   {v:'v1.92', ce:[
     'În Statistici, la schimbarea perioadei barele și benzile se mută de la valorile vechi la cele noi, în loc să se golească și să se redeseneze. Se vede ce s-a schimbat între 7, 30 și 90 de zile, nu doar unde s-a ajuns.',
     'Culorile barelor trec dintr-una în alta când se schimbă încadrarea.'
