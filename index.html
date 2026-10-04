@@ -773,8 +773,8 @@ html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28;
       <button class="mrow" onclick="shUpdate()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M7.4 9.4A5.2 5.2 0 0 1 17 8.6h1.6a4 4 0 0 1 .6 8" fill="#5B8FBF" opacity="0"/> <path d="M6.8 18.4a4.4 4.4 0 0 1 .6-8.8 5.6 5.6 0 0 1 10.8 1 3.9 3.9 0 0 1-.6 7.8z" fill="#5B8FBF"/> <path d="M12 10.6v6.6" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/> <path d="M9.2 14.6l2.8 2.8 2.8-2.8" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Adu versiunea nouă<small>Dacă tocmai a apărut o actualizare și încă nu a ajuns la tine</small></span></button>
       <button class="mrow" onclick="shDiag()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M19.4 4.6a5.2 5.2 0 0 1-6.8 6.8L6.2 17.8a2 2 0 1 1-2.8-2.8l6.4-6.4a5.2 5.2 0 0 1 6.8-6.8l-3 3 .6 3.4 3.4.6z" fill="#5C7480"/></svg></span><span>Diagnostic tehnic<small>Starea instalării, util dacă ceva nu merge</small></span></button>
     </div>
-    <p class="muted" style="padding:0 6px">Nivelo v1.96 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
-      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v1.96%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
+    <p class="muted" style="padding:0 6px">Nivelo v1.97 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
+      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v1.97%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
   </section>
 </main>
 
@@ -863,7 +863,7 @@ var PORNIT = false, ULTIMA_EROARE = null;
 })();
 
 /* ================= STOCARE ================= */
-const APP_VER='v1.96';
+const APP_VER='v1.97';
 /* Android citește manifestul — numele, iconița, scurtăturile — o singură dată, la
    instalare, și îl păstrează așa până la reinstalare. Codul se actualizează singur,
    configurarea nu. De aceea ținem minte când s-a schimbat ultima dată configurarea:
@@ -2312,10 +2312,17 @@ function renderHist(){
   if(!allDays.length){ $('histbody').innerHTML=emptyState({ic:'📜', t:'Istoricul se scrie singur',
     d:'Pe măsură ce notezi, zilele se adună aici, fiecare grupată pe momente. Vei putea căuta orice ai mâncat vreodată și vedea ce glicemii și ce insulină ai avut în jurul mesei.',
     btn:{t:'Începe cu ziua de azi', go:"go('today')"}}); return; }
-  const days=allDays.slice(0, HIST_SHOWN);
-  let html=hChips()+hJumpRow();
+  HIST_ZILE=allDays;                                  // păstrate pentru adăugarea tranșei următoare
+  $('histbody').innerHTML=hChips()+hJumpRow()
+    +'<div id="histzile">'+zileHtml(allDays.slice(0, HIST_SHOWN))+'</div>'
+    +'<div id="histmai">'+maiMultHtml(allDays)+'</div>';
+}
+/* Un bloc de zile, folosit și la prima afișare, și la fiecare „arată mai multe". */
+function zileHtml(days){
+  let html='';
   days.forEach(k=>{
     const de=evOfDay(k).filter(hKeep).slice().sort((a,b)=>a.ts-b.ts);
+    if(!de.length) return;
     const dg=de.filter(x=>x.type==='gluc').map(x=>x.gluc.v);
     const avg=dg.length?Math.round(dg.reduce((a,b)=>a+b,0)/dg.length):null;
     const hc=de.filter(x=>x.type==='meal').reduce((a,x)=>a+(x.meal.hc||0),0);
@@ -2323,16 +2330,32 @@ function renderHist(){
     html+=`<div class="dayhead"><span>${dNice(de[0].ts)}</span><span class="muted num">${meta}</span></div>`;
     html+=dayGroupedHtml(de);
   });
+  return html;
+}
+function maiMultHtml(allDays){
   if(allDays.length>HIST_SHOWN){
     const rest=allDays.length-HIST_SHOWN;
-    const next=Math.min(HIST_PAS, rest);
-    html+=`<button class="btn-more" onclick="histMore()">Arată încă ${nUnit(next,'zile','o zi')} <small>· ${nUnit(rest,'rămase','rămasă')}</small><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>`;
-  } else if(allDays.length>60){
-    html+=`<p class="muted" style="text-align:center; margin:14px 0 4px">Ai ajuns la începutul jurnalului. ${nUnit(allDays.length,'zile','o zi')} cu date, prima pe ${dNice(S.events[0].ts)}.</p>`;
+    const next=Math.min(HIST_PAS_URM, rest);
+    return `<button class="btn-more" onclick="histMore()">Arată încă ${nUnit(next,'zile','o zi')} <small>· ${nUnit(rest,'rămase','rămasă')}</small><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>`;
   }
-  $('histbody').innerHTML=html;
+  if(allDays.length>60){
+    return `<p class="muted" style="text-align:center; margin:14px 0 4px">Ai ajuns la începutul jurnalului. ${nUnit(allDays.length,'zile','o zi')} cu date, prima pe ${dNice(S.events[0].ts)}.</p>`;
+  }
+  return '';
 }
-function histMore(){ HIST_SHOWN+=HIST_PAS; renderHist(); }
+/* „Arată mai multe" ADAUGĂ tranșa nouă, în loc să redeseneze tot ce era deja pe ecran.
+   Înainte, fiecare apăsare reconstruia și zilele afișate până atunci, deci costul creștea
+   cu fiecare apăsare: măsurat pe jurnalul real, cu procesorul încetinit ×6, prima apăsare
+   285 ms și a șasea 979 ms. Pasul a rămas 30 de zile fiindcă e măsurat ca fiind cel bun —
+   la 45 a șasea apăsare ajungea la 2,1 s și la 60 la 3,4 s, adică pare blocat. */
+function histMore(){
+  const zone=$('histzile'), mai=$('histmai');
+  if(!zone || !mai || !HIST_ZILE){ HIST_SHOWN+=HIST_PAS_URM; renderHist(); return; }
+  const de_la=HIST_SHOWN;
+  HIST_SHOWN+=HIST_PAS_URM;
+  zone.insertAdjacentHTML('beforeend', zileHtml(HIST_ZILE.slice(de_la, HIST_SHOWN)));
+  mai.innerHTML=maiMultHtml(HIST_ZILE);
+}
 
 function searchMore(){ SEARCH_SHOWN+=SEARCH_PAGE; renderHist(); }
 function ctx(id){
@@ -2512,6 +2535,15 @@ let PERIOD=30;
    câteva zile odată, iar pentru salturi mari există mersul la dată. */
 const HIST_PAS=30;
 let HIST_SHOWN=HIST_PAS;   // câte zile de istoric sunt afișate acum; crește cu „Arată mai multe"
+let HIST_ZILE=null;        // lista completă de zile a ultimei randări, ca tranșa următoare să nu o recalculeze
+/* Prima tranșă și cele următoare NU au același cost, deci n-au același pas.
+   Deschiderea Istoricului se întâmplă de fiecare dată când intri pe tab; „arată mai multe"
+   e o apăsare rară și deliberată. Măsurat pe jurnalul real (843 de zile), cu procesorul
+   încetinit ×6: deschiderea costă 226 ms la 30 de zile și 462 ms la 60, iar o tranșă
+   adăugată costă 150 ms la 30 și 350 ms la 60. Deci prima rămâne mică, ca intrarea să fie
+   rapidă, iar următoarele sunt duble, ca să nu apeși de 29 de ori până la începutul
+   jurnalului — ajung 15. Amândouă sub pragul la care o apăsare pare blocată. */
+const HIST_PAS_URM=60;
 /* Căutarea are propria tranșă. Fără ea, un aliment mâncat des (pâine, cartofi) dădea
    mai multe potriviri decât limita, iar cele mai vechi rămâneau inaccesibile: exact
    invers de ce vrei la o căutare istorică. LAST_Q ține minte căutarea, ca tranșa să
@@ -2583,8 +2615,19 @@ function renderStats(){
   const nvl = splitHipo ? vals.filter(v=>v<HIPO2).length : 0;
   const nl1 = nl-nvl;
   const nPeste=vals.length-nvl-nl1-ni;
-  const [pvl,pl1,pi,ph]=bandPct([nvl,nl1,ni,nPeste]);
+  /* Simetric, în partea de sus: 250 e la fel de fix ca 54 și la fel de clinic — consensul
+     cere sub 25% peste ținta de sus, DAR și sub 5% peste 250. Până acum bara punea totul
+     ce e peste 180 într-o singură bandă, deci un 190 și un 320 arătau la fel; cifra
+     exista doar în tabelul lunar al raportului. Pragul era deja în aplicație: culorile de
+     pe ecran se schimbă la 250 din v1.51.4 (`rangeColor`). Dacă cineva își pune ținta de
+     sus peste 250, banda nu se mai împarte — n-ar mai avea sens. */
+  const HIPER2=250;
+  const splitHiper = s.high<HIPER2;
+  const nvh = splitHiper ? vals.filter(v=>v>HIPER2).length : 0;
+  const nh1 = nPeste-nvh;
+  const [pvl,pl1,pi,ph1,pvh]=bandPct([nvl,nl1,ni,nh1,nvh]);
   const pl=pvl+pl1;
+  const ph=ph1+pvh;
   /* Episoade, nu măsurători: dacă îți verifici glicemia de trei ori în 40 de minute
      cât dureaza o hipoglicemie, e un singur episod, nu trei. Măsurătorile sub prag
      aflate la mai puțin de o oră una de alta se socotesc împreună. */
@@ -2611,7 +2654,7 @@ function renderStats(){
     return {p, avg: pv.length?Math.round(pv.reduce((a,b)=>a+b,0)/pv.length):0, n:pv.length}; });
   const maxAvg=Math.max(...byPart.map(b=>b.avg),1);
   const mx0=Math.max(maxAvg, s.high*1.25), pc0=v=>Math.round(v/mx0*100);
-  const acum={ benzi:[nvl?flexOf(pvl):0, nl1?flexOf(pl1):0, ni?flexOf(pi):0, nPeste?flexOf(ph):0],
+  const acum={ benzi:[nvl?flexOf(pvl):0, nl1?flexOf(pl1):0, ni?flexOf(pi):0, nh1?flexOf(ph1):0, nvh?flexOf(pvh):0],
                momente:byPart.map(b=>b.avg?Math.max(pc0(b.avg),9):0) };
   /* Se mută doar dacă ERA deja ceva pe ecran. Prima afișare rămâne construirea de la
      zero, ca până acum. Starea veche se ține separat ÎNAINTE de a o suprascrie: altfel
@@ -2691,9 +2734,9 @@ function renderStats(){
     </div>
     <div class="card"><h2>Timp în țintă (${s.low}–${s.high})</h2>
       <div class="tirbar${tranzitie?' muta':''}">
-        ${[[nvl,pvl,'var(--vlow)'],[nl1,pl1,'var(--low-ink)'],[ni,pi,'var(--ok-ink)'],[nh,ph,'var(--high-ink)']]
+        ${[[nvl,pvl,'var(--vlow)'],[nl1,pl1,'var(--low-ink)'],[ni,pi,'var(--ok-ink)'],[nh1,ph1,'var(--high-ink)'],[nvh,pvh,'var(--vhigh-ink)']]
           .map(([cnt,p,cul],i)=>
-            /* Toate cele patru benzi există mereu, chiar și goale: altfel, la trecerea
+            /* Toate cele cinci benzi există mereu, chiar și goale: altfel, la trecerea
                de la o perioadă în care o bandă lipsește la una în care apare, numărul
                de elemente s-ar schimba și tranziția n-ar avea pereche de la ce să
                plece. Banda goală are lățime zero și dispare din ochi, nu din pagină. */
@@ -2705,7 +2748,9 @@ function renderStats(){
         <div><i style="background:var(--low-ink)"></i>${HIPO2}–${s.low-1} <b>${pctTxt(nl1,pl1)}</b></div>`
         :`<div><i style="background:var(--low-ink)"></i>sub țintă <b>${pctTxt(nl,pl)}</b></div>`}
         <div><i style="background:var(--ok-ink)"></i>în țintă <b>${pctTxt(ni,pi)}</b></div>
-        <div><i style="background:var(--high-ink)"></i>peste <b>${pctTxt(nh,ph)}</b></div>
+        ${splitHiper?`<div><i style="background:var(--high-ink)"></i>${s.high+1}–${HIPER2} <b>${pctTxt(nh1,ph1)}</b></div>
+        <div><i style="background:var(--vhigh-ink)"></i>peste ${HIPER2} <b>${pctTxt(nvh,pvh)}</b></div>`
+        :`<div><i style="background:var(--high-ink)"></i>peste țintă <b>${pctTxt(nh,ph)}</b></div>`}
       </div>
     </div>
     <div class="card"><h2>Hipoglicemii</h2>
@@ -3468,14 +3513,21 @@ function doReport(days, detailed){
   /* Aceleași benzi ca în Statistici, calculate o singură dată și folosite și în
      imaginea de ansamblu, și în tabelul de variabilitate, ca să nu poată apărea două
      procente diferite pentru același lucru pe aceeași pagină. */
-  const [bVL,bL1,bI,bH]=bandPct([nvl,nl1,ni,vals.length-nvl-nl1-ni]);
-  /* Pentru tabelul cu ținte de referință: banda peste 250 se numără separat, fiindcă
-     e cea pe care consensul o tratează distinct. Pragul de 250 exista deja în aplicație
-     (îl folosesc culorile de pe ecran), dar nu ajungea niciodată în raport. */
   const nFoarteSus=vals.filter(v=>v>250).length;
   const nSus=vals.length-nvl-nl1-ni;            // tot ce e peste ținta de sus
-  const pcB=(n,p)=> (p===0&&n>0)?'&lt;1%':p+'%';
-  const pcR=(n)=>{ const p=Math.round(n/vals.length*100); return (p===0&&n>0)?'&lt;1%':p+'%'; };
+  /* Procentele din raport, cu o zecimală. Bara din Statistici împarte un întreg, deci
+     rotunjește prin metoda restului cel mai mare ca să dea exact 100 — iar asta poate
+     scrie 7% acolo unde valoarea adevărată e 7,5%. Raportul se citește altfel: fiecare
+     rând se compară pe cont propriu cu o valoare de referință („sub 4%"), rândurile se
+     suprapun (Sub 70 îl include pe Sub 54) și nu au de ce să dea 100. Deci aici fiecare
+     cifră e rotunjirea exactă a ei înseși, cu o zecimală — ca 42,9% față de 43% pe ecran
+     să se citească drept aceeași cifră la altă precizie, nu drept două cifre diferite. */
+  const pc1=(n)=>{ if(!vals.length) return '0%';
+    const p=n/vals.length*100;
+    if(n>0 && p<0.05) return '&lt;0,1%';
+    return fmtN(Math.round(p*10)/10)+'%'; };
+  const pcB=(n,p)=>pc1(n);
+  const pcR=(n)=>pc1(n);
   /* Cât de solide sunt cifrele. Un procent calculat din 12 măsurători arată pe hârtie
      exact ca unul din 500, deși nu se citește la fel. Cine primește raportul trebuie să
      știe pe ce se sprijină cifrele: în câte zile din perioadă există măsurători și cât
@@ -3646,6 +3698,7 @@ function doReport(days, detailed){
       <div><b>Extreme</b> = cea mai mică și cea mai mare valoare; pot proveni dintr-o singură zi neobișnuită.</div>
       <div><b>Nr. observații (n)</b> = pe câte zile, respectiv mese, se sprijină cifra.</div>
       <div><b>În țintă</b> = procentul măsurătorilor între ${s.low} și ${s.high} mg/dl.</div>
+      <div><b>Procentele</b> sunt date cu o zecimală, fiecare rotunjită pe cont propriu. Pe ecranul Statistici aceleași procente apar rotunjite la număr întreg și ajustate să dea exact 100, fiindcă acolo sunt o împărțire a întregului; de aici pot ieși diferențe de cel mult o zecime de procent între cele două locuri.</div>
       <div><b>HbA1c estimat</b> = aproximare din media glicemiilor capilare; orientativă, nu analiză de laborator.</div>
       <div><b>Variabilitate (CV)</b> = cât de mult oscilează glicemia în jurul mediei, în procente; în practică, sub 36% se consideră stabil.</div>
       <div><b>Episod de hipoglicemie</b> = una sau mai multe măsurători sub ${s.low}, aflate la mai puțin de o oră una de alta.</div>
@@ -3653,8 +3706,8 @@ function doReport(days, detailed){
     <h2>Imagine de ansamblu</h2>
     <table>
       <tr><th>Medie glicemică</th><th>HbA1c estimat*</th><th>În țintă</th><th>Sub țintă (hipo)</th><th>Peste țintă</th><th>Măsurători</th><th>Măsurători / zi cu date</th></tr>
-      <tr><td><b>${Math.round(avg)} mg/dl</b></td><td><b>${fmtN(a1c)}%</b></td><td>${bI}%</td>
-          <td>${bVL+bL1}% (${nl})</td><td>${bH}%</td><td>${vals.length}</td><td>${fmtN(vals.length/nd)}</td></tr>
+      <tr><td><b>${Math.round(avg)} mg/dl</b></td><td><b>${fmtN(a1c)}%</b></td><td>${pc1(ni)}</td>
+          <td>${pc1(nl)} (${nl})</td><td>${pc1(nSus)}</td><td>${vals.length}</td><td>${fmtN(vals.length/nd)}</td></tr>
     </table>
     <div style="border:1px solid #ccc; border-radius:8px; padding:10px 13px; margin:12px 0; font-size:calc(12px*var(--fs)); color:#333; line-height:1.55">
       <b style="display:block; margin-bottom:4px">Cât de solide sunt cifrele</b>
@@ -3671,7 +3724,7 @@ function doReport(days, detailed){
     <table>
       <tr><th>Deviație standard</th><th>Variabilitate (CV)</th>${splitHipo?`<th>Sub ${HIPO2}</th><th>${HIPO2}–${s.low-1}</th>`:`<th>Sub țintă</th>`}</tr>
       <tr><td>${sdOk?Math.round(sd)+' mg/dl':'—'}</td><td><b>${sdOk?fmtN(cv)+'%':'—'}</b></td>
-          ${splitHipo?`<td><b>${pcB(nvl,bVL)}</b> (${nvl})</td><td>${pcB(nl1,bL1)} (${nl1})</td>`:`<td>${pcB(nl,bVL+bL1)} (${nl})</td>`}</tr>
+          ${splitHipo?`<td><b>${pc1(nvl)}</b> (${nvl})</td><td>${pc1(nl1)} (${nl1})</td>`:`<td>${pc1(nl)} (${nl})</td>`}</tr>
     </table>
     <table>
       <tr><th>Episoade sub ${s.low}</th>${splitHipo?`<th>din care sub ${HIPO2}</th>`:''}<th>Noaptea (00–06)</th><th>Cea mai mică valoare</th></tr>
@@ -3688,13 +3741,14 @@ function doReport(days, detailed){
            recomandări: ele se citesc împreună cu avertismentul de dedesubt. */
         const r=(et,ref,val,ok)=>`<tr><td>${et}</td><td>${ref}</td><td><b>${val}</b>${ok===null?'':` ${ok?'✓':'✗'}`}</td></tr>`;
         const p=n=>n/vals.length*100;
-        const f=n=>pcR(n);
+        /* Bifa se pune pe valoarea exactă, nu pe cea afișată: un 4,04% rotunjit la 4,0 ar
+           trece altfel ca „sub 4%". */
         return [
-          r('Timp în țintă ('+s.low+'–'+s.high+')', 'peste 70%', f(ni), p(ni)>70),
-          r('Sub '+s.low, 'sub 4%', f(nvl+nl1), p(nvl+nl1)<4),
-          splitHipo? r('Sub '+HIPO2, 'sub 1%', f(nvl), p(nvl)<1) : '',
-          r('Peste '+s.high, 'sub 25%', f(nSus), p(nSus)<25),
-          r('Peste 250', 'sub 5%', f(nFoarteSus), p(nFoarteSus)<5),
+          r('Timp în țintă ('+s.low+'–'+s.high+')', 'peste 70%', pc1(ni), p(ni)>70),
+          r('Sub '+s.low, 'sub 4%', pc1(nl), p(nl)<4),
+          splitHipo? r('Sub '+HIPO2, 'sub 1%', pc1(nvl), p(nvl)<1) : '',
+          r('Peste '+s.high, 'sub 25%', pc1(nSus), p(nSus)<25),
+          r('Peste 250', 'sub 5%', pc1(nFoarteSus), p(nFoarteSus)<5),
           sdOk? r('Variabilitate (CV)', 'sub 36%', fmtN(cv)+'%', cv<36) : ''
         ].join('');
       })()}
@@ -3866,6 +3920,10 @@ function shSettings(first){
       <div class="frow"><label>Țintă jos</label><input class="inp num" id="slow" type="number" value="${s.low}"></div>
       <div class="frow"><label>Țintă sus</label><input class="inp num" id="shigh" type="number" value="${s.high}"></div>
     </div>
+    <p class="muted" style="margin:-7px 0 13px">Ținta se aplică și înapoi: Statisticile și raportul recalculează tot
+      jurnalul cu pragurile de aici, nu cu cele pe care le aveai atunci. Dacă le schimbi, procentele din lunile
+      trecute nu vor mai semăna cu ce ai văzut pe vremea aceea — jurnalul în sine nu se atinge, doar felul în care
+      e socotit. Pragul de 54 nu se mută: e un reper din practica medicală, nu o preferință.</p>
     <div class="rowflex">
       <div class="frow"><label>Insulină rapidă</label><input class="inp" id="sins0" value="${esc(s.insulins[0])}"></div>
       <div class="frow"><label>Insulină bazală</label><input class="inp" id="sins1" value="${esc(s.insulins[1])}"></div>
@@ -4641,6 +4699,9 @@ function bkText(){
 function renderBkLine(){
   const el=$('bkline'); if(!el) return;
   if(S.events.length<=3){ el.innerHTML=''; return; }   // jurnal aproape gol: nu deranjăm
+  /* Bannerul de sus spune deja același lucru, mai apăsat și cu buton. Linia de jos rămâne
+     pentru starea liniștită — „ești la zi" — care altfel n-ar fi scrisă nicăieri. */
+  if(banerBackup()){ el.innerHTML=''; return; }
   const a=bkAge();
   const cls = a.never||a.d>=14 ? 'bad' : a.d>=7 ? 'warn' : '';
   const sub = a.never ? 'Datele stau doar pe telefonul tău.'
@@ -4676,12 +4737,20 @@ function ascundeBanner(b){
   clearTimeout(b._pliere);
   b._pliere=setTimeout(()=>{ b.style.display='none'; b.style.height=''; b.classList.remove('pliaza'); }, 270);
 }
+/* Îndemnul de sus (#banner) apare de la 7 zile în sus. Linia de jos de pe Azi (#bkline)
+   arăta ACELAȘI lucru, cu încă un buton „Fă backup": pe un ecran erau două îndemnuri la
+   backup în același timp, cu aceeași cifră, la câțiva centimetri unul de altul. Criteriul
+   stă acum într-un singur loc, iar linia de jos tace cât timp vorbește bannerul. */
+function banerBackup(){
+  if(S.events.length<=3) return false;
+  const never=!S.settings.lastBackup;
+  return never || zileCalendar(S.settings.lastBackup, Date.now())>=7;
+}
 function bannerCheck(){
   const b=$('banner');
-  if(S.events.length<=3){ ascundeBanner(b); return; }
+  if(!banerBackup()){ ascundeBanner(b); return; }
   const dd=S.settings.lastBackup ? zileCalendar(S.settings.lastBackup, Date.now()) : 9999;
   const never=!S.settings.lastBackup;
-  if(!never && dd<7){ ascundeBanner(b); return; }
   clearTimeout(b._pliere); b.classList.remove('pliaza'); b.style.height='';
   b.style.display='block';
   b.classList.remove('urgent');
@@ -4784,6 +4853,13 @@ function applyUpdate(){
    cu care omul a folosit ultima dată aplicația. La prima instalare nu se arată
    nimic: cine tocmai a intrat n-are ce compara. */
 const NOUTATI=[
+  {v:'v1.97', ce:[
+    'În Statistici, bara timpului în țintă are acum bandă separată pentru valorile peste 250. Un 190 și un 320 nu mai arată la fel — consensul cere sub 25% peste ținta de sus, dar și sub 5% peste 250, iar până acum cifra exista doar în tabelul lunar al raportului.',
+    'Setările spun acum, lângă câmpurile de țintă, că ținta se aplică și înapoi: Statisticile și raportul recalculează tot jurnalul cu pragurile actuale.',
+    'Pe ecranul Azi nu mai apar două îndemnuri la backup în același timp. Linia de jos tace cât timp vorbește bannerul de sus.',
+    'În Istoric, „arată mai multe" adaugă zilele noi în loc să redeseneze tot. Apăsarea costă acum la fel de puțin a zecea oară ca prima, iar tranșa e de 60 de zile, deci ajungi la începutul jurnalului în 14 apăsări, nu în 29.',
+    'În raport, toate procentele au o zecimală și fiecare e rotunjită pe cont propriu. Înainte, „peste ținta de sus" putea apărea ca 49% în raport și 50% în Statistici — aceeași cifră, două valori.'
+  ]},
   {v:'v1.96', ce:[
     'Reparat: un dus-întors prin CSV ștergea în liniște toate intrările de ciclu menstrual. Exportul le scria, importul nu le recunoștea și le sărea fără niciun mesaj.',
     'Reparat: la import, insulina și glicemia nu acceptau virgula zecimală — „6,5" se citea ca 6 unități. Un CSV deschis în Excel și salvat înapoi scrie virgulă. Acum toate coloanele numerice se citesc la fel.'
