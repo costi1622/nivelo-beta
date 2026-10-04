@@ -773,8 +773,8 @@ html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28;
       <button class="mrow" onclick="shUpdate()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M7.4 9.4A5.2 5.2 0 0 1 17 8.6h1.6a4 4 0 0 1 .6 8" fill="#5B8FBF" opacity="0"/> <path d="M6.8 18.4a4.4 4.4 0 0 1 .6-8.8 5.6 5.6 0 0 1 10.8 1 3.9 3.9 0 0 1-.6 7.8z" fill="#5B8FBF"/> <path d="M12 10.6v6.6" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/> <path d="M9.2 14.6l2.8 2.8 2.8-2.8" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Adu versiunea nouă<small>Dacă tocmai a apărut o actualizare și încă nu a ajuns la tine</small></span></button>
       <button class="mrow" onclick="shDiag()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M19.4 4.6a5.2 5.2 0 0 1-6.8 6.8L6.2 17.8a2 2 0 1 1-2.8-2.8l6.4-6.4a5.2 5.2 0 0 1 6.8-6.8l-3 3 .6 3.4 3.4.6z" fill="#5C7480"/></svg></span><span>Diagnostic tehnic<small>Starea instalării, util dacă ceva nu merge</small></span></button>
     </div>
-    <p class="muted" style="padding:0 6px">Nivelo v1.99 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
-      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v1.99%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
+    <p class="muted" style="padding:0 6px">Nivelo v2.0 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
+      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v2.0%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
   </section>
 </main>
 
@@ -863,7 +863,7 @@ var PORNIT = false, ULTIMA_EROARE = null;
 })();
 
 /* ================= STOCARE ================= */
-const APP_VER='v1.99';
+const APP_VER='v2.0';
 /* Android citește manifestul — numele, iconița, scurtăturile — o singură dată, la
    instalare, și îl păstrează așa până la reinstalare. Codul se actualizează singur,
    configurarea nu. De aceea ținem minte când s-a schimbat ultima dată configurarea:
@@ -1369,6 +1369,25 @@ function fold(s){
     .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 }
 const MS_D=86400000;
+/* Miezul nopții de acum N zile calendaristice.
+
+   AICI A FOST UN BUG, reparat în v2.0. Marginea ferestrelor (7/30/90/180 de zile) se
+   calcula ca „miezul nopții de azi minus N×24h". Dar o zi calendaristică nu are mereu
+   24 de ore: la trecerea la ora de iarnă are 25, la cea de vară are 23. Măsurat în fusul
+   României: pentru o fereastră de 90 de zile privită pe 1 mai, marginea cădea la ora
+   23:00 a zilei DINAINTE — adică statisticile chiar luau în calcul date mai vechi decât
+   perioada aleasă. Privită pe 1 noiembrie, cădea la 01:00, deci lipsea prima oră a celei
+   mai vechi zile. Un decalaj mic, dar într-un loc unde cifra se arată medicului.
+
+   Soluția e să numărăm ZILE, nu milisecunde, și să lăsăm browserul să se ocupe de
+   schimbarea orei — `setDate` o face corect. */
+function cuZileInUrma(n, dela){
+  const d = dela ? new Date(dela) : new Date();
+  d.setHours(0,0,0,0);
+  d.setDate(d.getDate()-n);
+  d.setHours(0,0,0,0);     // din nou: ziua-țintă poate avea alt decalaj de fus
+  return d.getTime();
+}
 function dKey(ts){ const d=new Date(ts); return d.getFullYear()+'-'+two(d.getMonth()+1)+'-'+two(d.getDate()); }
 function tHM(ts){ const d=new Date(ts); return two(d.getHours())+':'+two(d.getMinutes()); }
 const LUNI=['ian','feb','mar','apr','mai','iun','iul','aug','sep','oct','nov','dec'];
@@ -2737,7 +2756,7 @@ function renderStats(){
   $('periodChips').innerHTML=[7,30,90].map(p=>
     `<button class="chip ${PERIOD===p?'on':''}" aria-pressed="${PERIOD===p?'true':'false'}" onclick="PERIOD=${p};renderStats()">${p} zile</button>`).join('');
   const d0=new Date(); d0.setHours(0,0,0,0);
-  const from=d0.getTime()-(PERIOD-1)*MS_D;
+  const from=cuZileInUrma(PERIOD-1, d0);
   const evs=S.events.filter(e=>e.ts>=from);
   const g=evs.filter(e=>e.type==='gluc').map(e=>({v:e.gluc.v, ts:e.ts}));
   if(!g.length){ $('statsbody').innerHTML = S.events.some(e=>e.type==='gluc')
@@ -2829,7 +2848,7 @@ function renderStats(){
   const days=new Set(evs.map(e=>dKey(e.ts))).size||1;
   // insulina & mesele se calculează DOAR pe zile complete (azi, fiind în curs, ar strica mediile)
   const todayStart=d0.getTime();
-  const cEvs=S.events.filter(e=>e.ts>=todayStart-PERIOD*MS_D && e.ts<todayStart);
+  const cEvs=S.events.filter(e=>e.ts>=cuZileInUrma(PERIOD, todayStart) && e.ts<todayStart);
   const cDays=new Set(cEvs.map(e=>dKey(e.ts))).size||1;
   const cIns=cEvs.filter(e=>e.type==='ins');
   // agregăm PE ZI, apoi arătăm intervalul (min–max, tipic mediană); evită falsa precizie a mediilor
@@ -3355,7 +3374,15 @@ function exportXLSX(){
 }
 function importFile(inp){
   const f=inp.files[0]; if(!f) return; inp.value='';
-  if(f.size>15*1024*1024){ shAlert('Verifică dacă e într-adevăr un backup Nivelo.', {ic:'📦', title:'Fișierul e prea mare', ok:'Am înțeles'}); return; }
+  /* Limita e o plasă împotriva alegerii din greșeală a unui fișier uriaș (un film, o
+     arhivă), nu un plafon pentru backupurile proprii. Era 15 MB — și AICI A FOST UN BUG:
+     măsurat pe un jurnal de 20 de ani la ritmul autorului (131.400 de intrări), backupul
+     iese de ~20 MB, deci aplicația ar fi refuzat să citească propriul ei backup. Adică
+     exact atunci când ai cea mai mare nevoie de el: după ce ai schimbat telefonul.
+     Un backup pe care nu-l poți pune la loc e mai rău decât niciunul.
+     200 MB acoperă peste o sută de ani de notat zilnic și rămâne departe de orice ar
+     putea umple memoria telefonului la citire. */
+  if(f.size>200*1024*1024){ shAlert('Nivelo nu produce backupuri atât de mari. Verifică dacă e într-adevăr un backup Nivelo.', {ic:'📦', title:'Fișierul e prea mare', ok:'Am înțeles'}); return; }
   const rd=new FileReader();
   rd.onerror=()=>shAlert('Încearcă din nou sau alege alt fișier.', {ic:'⚠️', title:'Fișierul nu a putut fi citit'});
   rd.onload=()=>{
@@ -3676,7 +3703,7 @@ function agpSvg(g, s){
 }
 function doReport(days, detailed){
   const d0=new Date(); d0.setHours(0,0,0,0);
-  const from=d0.getTime()-(days-1)*MS_D;
+  const from=cuZileInUrma(days-1, d0);
   const evs=S.events.filter(e=>e.ts>=from);
   const g=evs.filter(e=>e.type==='gluc').map(e=>({v:e.gluc.v,ts:e.ts}));
   if(!g.length){ toast('Nu există date în această perioadă'); return; }
@@ -3757,7 +3784,7 @@ function doReport(days, detailed){
   const nd=Math.max(daysSet.length,1);
   const ins=evs.filter(e=>e.type==='ins');
   const todayStart=d0.getTime();
-  const cEvs=S.events.filter(e=>e.ts>=todayStart-days*MS_D && e.ts<todayStart);
+  const cEvs=S.events.filter(e=>e.ts>=cuZileInUrma(days, todayStart) && e.ts<todayStart);
   const cDays=new Set(cEvs.map(e=>dKey(e.ts))).size||1;
   const cIns=cEvs.filter(e=>e.type==='ins');
   const rapidByDay={}, bazByDay={}, corrByDay={}, hcByDay={};
@@ -5025,6 +5052,11 @@ function applyUpdate(){
    cu care omul a folosit ultima dată aplicația. La prima instalare nu se arată
    nimic: cine tocmai a intrat n-are ce compara. */
 const NOUTATI=[
+  {v:'v2.0', ce:[
+    'Reparat: ferestrele de 7, 30 și 90 de zile se calculau ca „azi minus N×24 de ore". O zi calendaristică nu are însă mereu 24 de ore — la schimbarea orei are 23 sau 25. Efectul: o fereastră de 90 de zile putea începe la ora 23:00 a zilei dinainte, deci chiar lua în calcul date mai vechi decât perioada. Acum se numără zile, nu ore.',
+    'Reparat: aplicația refuza fișierele de import peste 15 MB — adică, la un jurnal de peste cincisprezece ani, își refuza propriul backup. Limita e acum 200 MB.',
+    'Verificat pe un jurnal de 20 de ani (131.400 de intrări): pornire, salvare, statistici, raport, backup, import și export, toate fără pierderi.'
+  ]},
   {v:'v1.99', ce:[
     'Jurnalul se scrie acum într-un format compact: ocupă de 2,4 ori mai puțin, iar fiecare salvare e cu 42% mai rapidă. Nimic nu se pierde — aceleași date, scrise mai strâns.',
     'Dacă vreodată jurnalul depășește ce poate ține browserul, se mută singur într-un spațiu de 2.000 de ori mai mare, fără să trebuiască să faci ceva.',
