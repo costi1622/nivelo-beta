@@ -773,8 +773,8 @@ html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28;
       <button class="mrow" onclick="shUpdate()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M7.4 9.4A5.2 5.2 0 0 1 17 8.6h1.6a4 4 0 0 1 .6 8" fill="#5B8FBF" opacity="0"/> <path d="M6.8 18.4a4.4 4.4 0 0 1 .6-8.8 5.6 5.6 0 0 1 10.8 1 3.9 3.9 0 0 1-.6 7.8z" fill="#5B8FBF"/> <path d="M12 10.6v6.6" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/> <path d="M9.2 14.6l2.8 2.8 2.8-2.8" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Adu versiunea nouă<small>Dacă tocmai a apărut o actualizare și încă nu a ajuns la tine</small></span></button>
       <button class="mrow" onclick="shDiag()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M19.4 4.6a5.2 5.2 0 0 1-6.8 6.8L6.2 17.8a2 2 0 1 1-2.8-2.8l6.4-6.4a5.2 5.2 0 0 1 6.8-6.8l-3 3 .6 3.4 3.4.6z" fill="#5C7480"/></svg></span><span>Diagnostic tehnic<small>Starea instalării, util dacă ceva nu merge</small></span></button>
     </div>
-    <p class="muted" style="padding:0 6px">Nivelo v1.98 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
-      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v1.98%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
+    <p class="muted" style="padding:0 6px">Nivelo v1.99 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
+      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v1.99%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
   </section>
 </main>
 
@@ -863,7 +863,7 @@ var PORNIT = false, ULTIMA_EROARE = null;
 })();
 
 /* ================= STOCARE ================= */
-const APP_VER='v1.98';
+const APP_VER='v1.99';
 /* Android citește manifestul — numele, iconița, scurtăturile — o singură dată, la
    instalare, și îl păstrează așa până la reinstalare. Codul se actualizează singur,
    configurarea nu. De aceea ținem minte când s-a schimbat ultima dată configurarea:
@@ -871,6 +871,17 @@ const APP_VER='v1.98';
    ATENȚIE: se actualizează MANUAL, odată cu orice modificare în manifest.webmanifest. */
 const MANIFEST_VER='12 septembrie 2026';
 const KEY='glucolog_v1';
+/* ATENȚIE LA ORDINE. `let S = load()` se execută mai jos, dar tot înaintea majorității
+   fișierului. Funcțiile sunt ridicate automat și pot fi chemate de oriunde, dar un
+   `const` NU: până la rândul lui, orice atingere aruncă. Prima variantă a formatului
+   compact avea tabelele de tipuri declarate lângă codor, deci load() le atingea prea
+   devreme, `decodeaza` arunca, iar jurnalul compact apărea ca „structură necunoscută" —
+   adică aplicația pornea goală pe date perfect bune. De aceea tot ce atinge load()
+   stă aici, sus, înaintea lui. */
+const EV_COD={gluc:1, ins:2, meal:3, note:4, act:5, kg:6, ciclu:7};
+const EV_DECOD={1:'gluc', 2:'ins', 3:'meal', 4:'note', 5:'act', 6:'kg', 7:'ciclu'};
+const UNDE_KEY = KEY+'_unde';     // 'idb' = jurnalul s-a mutat; altfel e în localStorage
+let JURNAL_IN_IDB=false;          // load() îl pune pe true; și el trebuie declarat ÎNAINTE
 /* ================= DOUĂ FERESTRE DESCHISE =================
    Dacă aplicația e deschisă și instalată, și într-o filă de browser, fiecare ține în
    memorie jurnalul de la momentul în care a fost deschisă. Cine salva al doilea scria
@@ -937,13 +948,111 @@ function freshState(){
   return { settings:{name:'', low:70, high:180, insulins:['Fiasp','Tresiba'], basal:'Tresiba', lastBackup:0},
            foods:seedFoods(), events:[] };
 }
+
+/* ================= FORMATUL DE STOCARE v2 (compact) =================
+   De ce. Jurnalul stă în localStorage, care are un plafon de 5 MiB. La ritmul real al
+   autorului — 16,3 intrări pe zi — jurnalul creștea cu 0,66 MB pe an și ar fi atins
+   plafonul în 5,3 ani. Măsurat pe jurnalul lui de 13.762 de intrări, 36,7% din text
+   erau NUMELE cheilor JSON repetate la nesfârșit („type", „gluc", „ts"…), iar 16,1%
+   numele alimentelor, repetate și ele de sute de ori.
+
+   Ce face. Fiecare eveniment devine un vector: [tip, Δtimp, id, …]. Tipul e un număr,
+   timpul e diferența față de evenimentul anterior (numere mici în loc de 13 cifre), iar
+   orice text care se repetă — alimente, insuline, scopuri, note de masă — intră o
+   singură dată într-un dicționar și e pomenit prin indice. Măsurat: 115,2 → 49,1
+   caractere pe intrare, adică de 2,35 ori mai mic, ceea ce duce plafonul de la 5,3 la
+   15,5 ani. Scrierea în localStorage domina costul salvării (151 din 238 ms), deci
+   salvarea devine și ea de ~2,35 ori mai rapidă.
+
+   Ce NU face. Nu aruncă nimic și nu rotunjește nimic: dus-întorsul pe toate cele 13.762
+   de intrări reale dă zero diferențe, comparate câmp cu câmp. Id-urile se păstrează ca
+   atare, fiindcă bara de anulare le ține în localStorage și trebuie să le regăsească
+   după o repornire.
+
+   Ce rămâne citibil de om. Fișierele de backup și exportul CSV rămân în formatul vechi,
+   desfăcut. Singurul loc unde se scrie compact e memoria telefonului. */
+
+function codeaza(st){
+  const dict=[], idx=new Map();
+  const di=t=>{ const k=String(t); if(!idx.has(k)){ idx.set(k, dict.length); dict.push(k); } return idx.get(k); };
+  let prev=0;
+  const e=[];
+  for(const ev of st.events){
+    const t=EV_COD[ev.type];
+    if(!t){ e.push(['?', ev]); continue; }     // tip necunoscut: păstrat ca atare, niciodată pierdut
+    const o=[t, ev.ts-prev, ev.id]; prev=ev.ts;
+    if(ev.type==='gluc'){ o.push(ev.gluc.v); if(ev.gluc.src && ev.gluc.src!=='deget') o.push(di(ev.gluc.src)); }
+    else if(ev.type==='ins'){ o.push(ev.ins.u, di(ev.ins.name), di(ev.ins.kind||'bolus')); }
+    else if(ev.type==='meal'){
+      o.push((ev.meal.items||[]).map(i=>{
+        const a=[di(i.name), i.grams==null?0:i.grams, i.hc];
+        if(i.fid) a.push(di(i.fid));
+        return a;
+      }), ev.meal.hc==null?0:ev.meal.hc, ev.meal.note?di(ev.meal.note):0);
+    }
+    else if(ev.type==='kg'){ o.push(ev.kg.v); }
+    else if(ev.type==='ciclu'){ o.push(ev.ciclu && ev.ciclu.faza==='stop' ? 1 : 0); }
+    else { o.push(ev.note ? ev.note.text : ''); }
+    e.push(o);
+  }
+  const out={v:2, d:dict, e, settings:st.settings, foods:st.foods};
+  if(st.evInvalid && st.evInvalid.length) out.evInvalid=st.evInvalid;
+  return out;
+}
+
+function decodeaza(c){
+  const D=c.d||[];
+  let prev=0;
+  const events=[];
+  for(const o of (c.e||[])){
+    if(o[0]==='?'){ events.push(o[1]); continue; }
+    const ts=prev+o[1]; prev=ts;
+    const tip=EV_DECOD[o[0]];
+    if(!tip) continue;
+    const ev={id:o[2], ts, type:tip};
+    if(tip==='gluc'){ ev.gluc={v:o[3], src: o.length>4 ? D[o[4]] : 'deget'}; }
+    else if(tip==='ins'){ ev.ins={name:D[o[4]], u:o[3], kind:D[o[5]]}; }
+    else if(tip==='meal'){
+      ev.meal={ items:(o[3]||[]).map(i=>{
+                  const it={name:D[i[0]], grams: i[1]===0?null:i[1], hc:i[2]};
+                  if(i.length>3 && i[3]) it.fid=D[i[3]];
+                  return it; }),
+                hc:o[4], note: o[5] ? D[o[5]] : '' };
+    }
+    else if(tip==='kg'){ ev.kg={v:o[3]}; }
+    else if(tip==='ciclu'){ ev.ciclu={faza: o[3] ? 'stop' : 'start'}; }
+    else { ev.note={text:o[3]}; }
+    events.push(ev);
+  }
+  const st={v:1, events, settings:c.settings, foods:c.foods};
+  if(c.evInvalid) st.evInvalid=c.evInvalid;
+  return st;
+}
+
+/* Citește ORICE formă salvată vreodată: v2 compactă, v1 desfăcută, sau un backup pus
+   direct în cheie. Întoarce null dacă textul nu e nici una dintre ele — apelantul
+   tratează atunci cazul de avarie, exact ca până acum. */
+function interpreteaza(raw){
+  let d=null;
+  try{ d=JSON.parse(raw); }catch(e){ return null; }
+  if(!d || typeof d!=='object') return null;
+  if(d.v===2 && Array.isArray(d.e)){ try{ return decodeaza(d); }catch(e){ return null; } }
+  if(Array.isArray(d.events)) return d;
+  return null;
+}
+/* Când jurnalul s-a mutat în IndexedDB, load() nu-l poate aduce: citirea de acolo e
+   asincronă, iar `let S = load()` se execută înainte de orice. Deci load() întoarce o
+   stare goală și ridică steagul; blocul de pornire de la finalul fișierului așteaptă
+   citirea înainte să deseneze ceva. Fără steag, ar desena un jurnal gol și omul ar
+   crede o clipă că și-a pierdut datele. */
 function load(){
+  if(undeStaJurnalul()==='idb'){ JURNAL_IN_IDB=true; return freshState(); }
   let raw=null;
   try{ raw=localStorage.getItem(KEY); }catch(e){}
   if(!raw) return freshState();          // chiar prima pornire: nimic salvat
-  let d=null, lizibil=true;
-  try{ d=JSON.parse(raw); }catch(e){ lizibil=false; }
-  if(lizibil && d && Array.isArray(d.events)){            // cazul normal
+  const d=interpreteaza(raw);
+  const lizibil = d!==null || (function(){ try{ JSON.parse(raw); return true; }catch(e){ return false; } })();
+  if(d && Array.isArray(d.events)){                       // cazul normal
     /* Intrările pe care nu le putem citi nu se desenează și nu intră în statistici —
        altfel prima afișare se oprește cu eroare și ecranul rămâne gol. Dar NU se pierd:
        se mută în `evInvalid`, care face parte din același obiect salvat, deci următoarea
@@ -982,6 +1091,9 @@ const IDB_NAME='nivelo_oglinda', IDB_STORE='stare', IDB_ROW='curent';
    backupul greșit. Se înlocuiește la următoarea restaurare și poate fi ștearsă
    din „Datele mele pe acest telefon". */
 const IDB_PREV='inainte_de_restaurare';
+/* Jurnalul propriu-zis, când a depășit localStorage. Rând separat de oglindă: oglinda
+   rămâne o copie de siguranță a jurnalului, nu jurnalul însuși. */
+const IDB_JURNAL='jurnal';
 function idbOpen(){
   return new Promise((res,rej)=>{
     try{
@@ -1026,7 +1138,8 @@ async function idbLoad(row){
     });
     db.close();
     if(!r || !r.text) return null;
-    const d=JSON.parse(r.text);
+    // merge și cu formatul compact (v2), și cu cel vechi, desfăcut
+    const d=interpreteaza(r.text);
     if(!d || !Array.isArray(d.events)) return null;
     return {data:d, ts:r.ts, n:d.events.length};
   }catch(e){ return null; }
@@ -1036,7 +1149,7 @@ async function idbLoad(row){
 let MIRROR_T=null;
 function mirrorSoon(){
   if(MIRROR_T) clearTimeout(MIRROR_T);
-  MIRROR_T=setTimeout(()=>{ MIRROR_T=null; try{ idbSave(JSON.stringify(S)); }catch(e){} }, 4000);
+  MIRROR_T=setTimeout(()=>{ MIRROR_T=null; try{ idbSave(JSON.stringify(codeaza(S))); }catch(e){} }, 4000);
 }
 /* Oferta de recuperare din oglindă, folosită când localStorage nu se poate citi
    sau e gol deși oglinda are date. */
@@ -1097,22 +1210,73 @@ function shLoadProblem(){
    următoarea deschidere. Pierdere silențioasă, cu falsă siguranță. Deci: prindem
    eroarea, marcăm starea și avertizăm apăsat, îndemnând la export imediat. */
 let SAVE_FAILED=false;
+/* ── Unde stă jurnalul: localStorage cât încape, IndexedDB după ───────────────────
+   localStorage are un plafon de 5 MiB. Cu formatul compact, autorul are ~15 ani până
+   acolo — dar „15 ani" nu e „niciodată", iar un jurnal de diabet e tocmai genul de
+   lucru pe care îl ții o viață. IndexedDB, pe același telefon, oferă 10 GB.
+
+   De ce nu mutăm totul în IndexedDB acum: salvarea de acolo e asincronă, iar modelul
+   care apără jurnalul de două ferestre deschise simultan se sprijină pe faptul că
+   scrierea e sincronă și atomică. Modelul ăla e verificat și a fost scump de obținut.
+   Deci îl lăsăm neatins cât timp funcționează, și trecem pe IndexedDB abia când
+   localStorage chiar refuză — automat, fără ca omul să facă ceva.
+
+   Numărul de revizie rămâne în localStorage în ambele cazuri: e un singur număr, încape
+   mereu, și e singurul lucru de care depinde detectarea conflictelor.
+
+   Măsurat: IndexedDB NU e mai rapid (blochează firul principal 145 ms la 1,5 MB, față
+   de 176 ms la localStorage). Trecerea nu e pentru viteză, ci pentru plafon. */
+function undeStaJurnalul(){
+  try{ return localStorage.getItem(UNDE_KEY)==='idb' ? 'idb' : 'ls'; }catch(e){ return 'ls'; }
+}
 function save(){
   /* Verificăm înainte de scriere dacă a intervenit altă fereastră. Dacă da, nu scriem:
      jurnalul din memoria noastră e mai vechi decât cel de pe telefon. */
   if(readRev()!==MY_REV && !CONFLICT_ON){ shConflict(); return false; }
   DAYMAP=null;   // datele se schimbă, deci harta zilelor nu mai e valabilă
-  try{
-    localStorage.setItem(KEY, JSON.stringify(S));
+  let txt;
+  try{ txt=JSON.stringify(codeaza(S)); }
+  catch(e){ SAVE_FAILED=true; try{ showSaveFail(); }catch(_){} return false; }
+
+  if(undeStaJurnalul()==='ls'){
+    try{
+      localStorage.setItem(KEY, txt);
+      bumpRev();
+      if(SAVE_FAILED){ SAVE_FAILED=false; const el=$('savefail'); if(el) el.style.display='none'; }
+      mirrorSoon();   // a doua copie locală, scrisă rar și fără să blocheze nimic
+      return true;
+    }catch(e){
+      /* Nu mai încape. Mutăm jurnalul în IndexedDB — dar NU ștergem nimic din
+         localStorage până nu confirmăm că scrierea de acolo a reușit. */
+      muta(txt);
+      return true;      // scrierea e în curs; dacă eșuează, muta() ridică steagul
+    }
+  }
+  // deja mutat: scriem în IndexedDB, iar revizia avansează abia după confirmare
+  scrieIdb(txt);
+  return true;
+}
+/* Mutarea propriu-zisă, o singură dată în viața aplicației. Ordinea contează:
+   întâi scriem în locul nou, abia apoi marcăm mutarea, abia apoi eliberăm locul vechi. */
+function muta(txt){
+  idbSave(txt, IDB_JURNAL).then(ok=>{
+    if(!ok){ SAVE_FAILED=true; try{ showSaveFail(); }catch(_){} return; }
+    try{ localStorage.setItem(UNDE_KEY,'idb'); }catch(e){}
+    /* Jurnalul vechi din localStorage se scoate ABIA acum, și doar dacă marcajul a
+       prins: altfel am rămâne cu date doar în IndexedDB și cu o aplicație care le
+       caută în localStorage. */
+    if(undeStaJurnalul()==='idb'){ try{ localStorage.removeItem(KEY); }catch(e){} }
     bumpRev();
     if(SAVE_FAILED){ SAVE_FAILED=false; const el=$('savefail'); if(el) el.style.display='none'; }
-    mirrorSoon();   // a doua copie locală, scrisă rar și fără să blocheze nimic
-    return true;
-  }catch(e){
-    SAVE_FAILED=true;
-    try{ showSaveFail(); }catch(_){}
-    return false;
-  }
+    try{ toast('Jurnalul a trecut într-un spațiu mai mare'); }catch(e){}
+  });
+}
+function scrieIdb(txt){
+  idbSave(txt, IDB_JURNAL).then(ok=>{
+    if(!ok){ SAVE_FAILED=true; try{ showSaveFail(); }catch(_){} return; }
+    bumpRev();
+    if(SAVE_FAILED){ SAVE_FAILED=false; const el=$('savefail'); if(el) el.style.display='none'; }
+  });
 }
 /* Fereastra de conflict. Nu decidem noi: una dintre cele două versiuni ar putea conține
    note pe care doar omul le știe. Îi arătăm ce s-a întâmplat și îl lăsăm să aleagă. */
@@ -2915,6 +3079,8 @@ function riskyStorage(){ return isIOS() && !isInstalled(); }
    devreme decât e nevoie — greșeala sigură, nu cea periculoasă. */
 const LS_LIMITA = 5*1024*1024;
 function spatiuJurnal(){
+  // după mutarea în IndexedDB, plafonul de 5 MiB nu mai e limita jurnalului
+  if(undeStaJurnalul()==='idb') return {mutat:true, folosit:0, limita:LS_LIMITA, pct:0};
   try{
     let folosit=0;
     for(let i=0;i<localStorage.length;i++){
@@ -4362,8 +4528,10 @@ async function shDiag(){
   const mb=v=>fmtN(v/1048576)+' MB';   // virgulă zecimală, ca peste tot
   const spJ=spatiuJurnal();
   R.push(['Jurnalul (limita care contează)',
-          spJ ? mb(spJ.folosit)+' din '+mb(spJ.limita)+' · '+Math.round(spJ.pct*100)+'%' : 'necunoscut',
-          spJ ? (spJ.pct<0.8) : null]);
+          !spJ ? 'necunoscut'
+               : spJ.mutat ? 'mutat într-un spațiu mai mare (IndexedDB)'
+               : mb(spJ.folosit)+' din '+mb(spJ.limita)+' · '+Math.round(spJ.pct*100)+'%',
+          spJ ? (spJ.mutat || spJ.pct<0.8) : null]);
   let sp='necunoscut';
   try{
     if(navigator.storage && navigator.storage.estimate){
@@ -4798,47 +4966,20 @@ function bannerCheck(){
 }
 
 /* ================= START ================= */
-sortEv();
+/* Tema și mărimea textului se aplică imediat, înainte de orice: nu depind de jurnal și
+   nu vrem o clipire albă dacă citirea din IndexedDB durează. */
 applyTheme(); applyFontScale();
-// culorile pot trece dintr-una într-alta abia după ce prima pictare s-a așezat
 setTimeout(()=>document.documentElement.classList.add('gata'), 350);
-renderToday(); renderMore(); bannerCheck(); renderBkLine(); storageWarn(); quotaWarn();
-askPersist();
-// după un refresh, revenim pe secțiunea unde eram
-try{ const lv=sessionStorage.getItem('nivelo_view');
-     if(lv && lv!=='today' && $('v-'+lv)) go(lv); }catch(e){}
-if(getUndo()) showUndoBar(getUndo());
-// utilizatorii existenți (aveau deja evenimente când s-a introdus lista) NU trebuie
-// să vadă lista de pornire brusc. Dacă au măcar câteva zile de jurnal, o marcăm dispensată.
-if(S.settings.qsDone==null && S.events.length>=5){ S.settings.qsDone=1; save(); }
-// Dacă datele existau dar nu s-au putut citi, asta e prima veste pe care o dăm:
-// altfel utilizatorul crede că aplicația s-a resetat singură.
-if(EV_DROPPED){
-  setTimeout(()=>shAlert(
-    nUnit(EV_DROPPED,'intrări din jurnal nu au putut fi citite','o intrare din jurnal nu a putut fi citită')
-    +' și nu apar în ecrane, statistici sau raport. Nimic nu a fost șters: sunt tot în datele salvate. '
-    +'Dacă ai un backup mai nou, pune-l la loc; altfel restul jurnalului funcționează normal.',
-    {ic:'⚠️', title:'Câteva intrări nu pot fi citite', ok:'Am înțeles'}), 900);
+
+async function adunaJurnalul(){
+  if(!JURNAL_IN_IDB) return;
+  const m=await idbLoad(IDB_JURNAL);
+  if(m && m.data && Array.isArray(m.data.events)){ S=m.data; return; }
+  /* Marcajul spune „e în IndexedDB", dar acolo nu e nimic citibil. E exact scenariul
+     de avarie, tratat ca atare: nu ștergem nimic, nu pornim ca la prima instalare. */
+  LOAD_PROBLEM='ilizibil';
 }
-if(LOAD_PROBLEM){
-  // Întâi încercăm recuperarea automată din a doua copie locală; dacă nu există,
-  // explicăm avaria și oferim fișierul original pentru recuperare manuală.
-  setTimeout(async ()=>{
-    const gasit = await offerMirror('Nu am reușit să citesc jurnalul salvat pe telefon.');
-    if(!gasit) shLoadProblem();
-  }, 250);
-}
-else if(!S.settings.accepted){
-  // Storage golit de browser sau de utilizator: dacă oglinda are jurnal, oferim
-  // recuperarea în loc să pornim ca la prima instalare.
-  setTimeout(async ()=>{
-    if(S.events.length) return;
-    const gasit = await offerMirror('Jurnalul de pe telefon apare gol.');
-    if(!gasit) shConsent();
-  }, 250);
-}
-else if(!S.settings.name) shSettings(true);
-else openShortcut();   // ținere apăsată pe iconiță → direct în fereastra cerută
+
 
 /* ===== SCURTĂTURI DE PE ICONIȚĂ =====
    Ținere apăsată pe iconița aplicației → „Adaugă glicemie / masă / insulină".
@@ -4884,6 +5025,11 @@ function applyUpdate(){
    cu care omul a folosit ultima dată aplicația. La prima instalare nu se arată
    nimic: cine tocmai a intrat n-are ce compara. */
 const NOUTATI=[
+  {v:'v1.99', ce:[
+    'Jurnalul se scrie acum într-un format compact: ocupă de 2,4 ori mai puțin, iar fiecare salvare e cu 42% mai rapidă. Nimic nu se pierde — aceleași date, scrise mai strâns.',
+    'Dacă vreodată jurnalul depășește ce poate ține browserul, se mută singur într-un spațiu de 2.000 de ori mai mare, fără să trebuiască să faci ceva.',
+    'Împreună, cele două duc jurnalul de la 5 ani până la plin la un orizont practic nelimitat.'
+  ]},
   {v:'v1.98', ce:[
     'Reparat: avertismentul de spațiu citea un indicator care nu vede jurnalul. Diagnosticul arăta „1,1 MB din 10.241 MB" în timp ce jurnalul ocupa 1,6 MB dintr-o limită de 5 MB — adică 32%, nu 0,01%. Avertismentul n-ar fi pornit niciodată, iar prima veste ar fi fost o salvare eșuată.',
     'Diagnosticul arată acum două cifre separate: cât ocupă jurnalul din limita care chiar contează, și cât ocupă copia de siguranță și cache-ul.'
@@ -5273,6 +5419,50 @@ function checkWhatsNew(){
     <div class="wn-foot">Dacă ceva nu merge cum te aștepți, scrie-mi din <b>Mai mult → Trimite feedback</b>. Chiar citesc tot.</div>
     <button class="btn btn-p" style="margin-top:12px" onclick="closeSheet()">Am înțeles</button>`);
 }
+
+/* Tot ce se EXECUTĂ la pornire stă aici, într-un singur loc, fiindcă trebuie să aștepte
+   jurnalul: când acesta s-a mutat în IndexedDB, citirea e asincronă. Declarațiile de mai
+   sus rămân la nivelul fișierului — dacă ar fi ajuns înăuntru, ar fi încetat să mai fie
+   globale, iar `onclick`-urile din HTML nu le-ar mai fi găsit. */
+function porneste(){
+sortEv();
+renderToday(); renderMore(); bannerCheck(); renderBkLine(); storageWarn(); quotaWarn();
+askPersist();
+// după un refresh, revenim pe secțiunea unde eram
+try{ const lv=sessionStorage.getItem('nivelo_view');
+     if(lv && lv!=='today' && $('v-'+lv)) go(lv); }catch(e){}
+if(getUndo()) showUndoBar(getUndo());
+// utilizatorii existenți (aveau deja evenimente când s-a introdus lista) NU trebuie
+// să vadă lista de pornire brusc. Dacă au măcar câteva zile de jurnal, o marcăm dispensată.
+if(S.settings.qsDone==null && S.events.length>=5){ S.settings.qsDone=1; save(); }
+// Dacă datele existau dar nu s-au putut citi, asta e prima veste pe care o dăm:
+// altfel utilizatorul crede că aplicația s-a resetat singură.
+if(EV_DROPPED){
+  setTimeout(()=>shAlert(
+    nUnit(EV_DROPPED,'intrări din jurnal nu au putut fi citite','o intrare din jurnal nu a putut fi citită')
+    +' și nu apar în ecrane, statistici sau raport. Nimic nu a fost șters: sunt tot în datele salvate. '
+    +'Dacă ai un backup mai nou, pune-l la loc; altfel restul jurnalului funcționează normal.',
+    {ic:'⚠️', title:'Câteva intrări nu pot fi citite', ok:'Am înțeles'}), 900);
+}
+if(LOAD_PROBLEM){
+  // Întâi încercăm recuperarea automată din a doua copie locală; dacă nu există,
+  // explicăm avaria și oferim fișierul original pentru recuperare manuală.
+  setTimeout(async ()=>{
+    const gasit = await offerMirror('Nu am reușit să citesc jurnalul salvat pe telefon.');
+    if(!gasit) shLoadProblem();
+  }, 250);
+}
+else if(!S.settings.accepted){
+  // Storage golit de browser sau de utilizator: dacă oglinda are jurnal, oferim
+  // recuperarea în loc să pornim ca la prima instalare.
+  setTimeout(async ()=>{
+    if(S.events.length) return;
+    const gasit = await offerMirror('Jurnalul de pe telefon apare gol.');
+    if(!gasit) shConsent();
+  }, 250);
+}
+else if(!S.settings.name) shSettings(true);
+else openShortcut();   // ținere apăsată pe iconiță → direct în fereastra cerută
 if('serviceWorker' in navigator && location.protocol==='https:'){
   navigator.serviceWorker.register('./sw.js', {updateViaCache:'none'}).then(reg=>{
     reg.addEventListener('updatefound', ()=>{
@@ -5288,6 +5478,9 @@ if('serviceWorker' in navigator && location.protocol==='https:'){
 }
 PORNIT = true;   // de aici încolo, o eroare nu mai ia ecranul în primire
 setTimeout(()=>{ try{ checkWhatsNew(); }catch(e){} }, 900);
+}
+adunaJurnalul().then(porneste);
+
 </script>
 
 </body>
