@@ -768,8 +768,8 @@ html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28;
       <button class="mrow" onclick="shUpdate()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M7.4 9.4A5.2 5.2 0 0 1 17 8.6h1.6a4 4 0 0 1 .6 8" fill="#5B8FBF" opacity="0"/> <path d="M6.8 18.4a4.4 4.4 0 0 1 .6-8.8 5.6 5.6 0 0 1 10.8 1 3.9 3.9 0 0 1-.6 7.8z" fill="#5B8FBF"/> <path d="M12 10.6v6.6" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/> <path d="M9.2 14.6l2.8 2.8 2.8-2.8" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Adu versiunea nouă<small>Dacă tocmai a apărut o actualizare și încă nu a ajuns la tine</small></span></button>
       <button class="mrow" onclick="shDiag()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M19.4 4.6a5.2 5.2 0 0 1-6.8 6.8L6.2 17.8a2 2 0 1 1-2.8-2.8l6.4-6.4a5.2 5.2 0 0 1 6.8-6.8l-3 3 .6 3.4 3.4.6z" fill="#5C7480"/></svg></span><span>Diagnostic tehnic<small>Starea instalării, util dacă ceva nu merge</small></span></button>
     </div>
-    <p class="muted" style="padding:0 6px">Nivelo v1.93 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
-      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v1.93%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
+    <p class="muted" style="padding:0 6px">Nivelo v1.94 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
+      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v1.94%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
   </section>
 </main>
 
@@ -858,7 +858,7 @@ var PORNIT = false, ULTIMA_EROARE = null;
 })();
 
 /* ================= STOCARE ================= */
-const APP_VER='v1.93';
+const APP_VER='v1.94';
 /* Android citește manifestul — numele, iconița, scurtăturile — o singură dată, la
    instalare, și îl păstrează așa până la reinstalare. Codul se actualizează singur,
    configurarea nu. De aceea ținem minte când s-a schimbat ultima dată configurarea:
@@ -1264,25 +1264,21 @@ function marcheazaNou(id){
   clearTimeout(EV_NOU_T);
   EV_NOU_T=setTimeout(()=>{ EV_NOU=null; }, 1800);
 }
-/* Lumina de pe intrarea nouă nu ajută dacă intrarea a căzut sub marginea ecranului —
-   iar la cineva care notează de câteva ori pe zi, exact acolo ajunge. După randare o
-   aducem în câmpul vizual, dar NUMAI dacă e în afara lui: altfel pagina ar sări sub
-   degete la fiecare salvare, deși nu era nimic de arătat.
+/* AICI A FOST O GREȘEALĂ DE PROIECTARE, scoasă în v1.94.
 
-   Se face cu întârziere, nu imediat: închiderea ferestrei readuce derularea la poziția
-   de dinainte (deblocarea paginii face asta, și o face și butonul „înapoi" al
-   telefonului, prin istoricul navigării). O derulare pornită mai devreme era pur și
-   simplu anulată de restaurarea aceea. */
-function aratăIntrareaNouă(){
-  if(!EV_NOU) return;
-  const el=document.querySelector('.ev.evnou');
-  if(!el || !el.getBoundingClientRect) return;
-  const r=el.getBoundingClientRect();
-  const jos=(window.innerHeight||760)-76;        // bara de jos acoperă ultimii pixeli
-  if(r.top>=56 && r.bottom<=jos) return;         // deja se vede: nu mișcăm nimic
-  try{ el.scrollIntoView({block:'center', behavior:'smooth'}); }
-  catch(e){ try{ el.scrollIntoView(); }catch(_){} }
-}
+   Intrarea nou notată se luminează în cronologie. Fiindcă la cineva care notează des
+   ea cade sub marginea ecranului, am adăugat o derulare automată până la ea — ca să se
+   vadă lumina. Pe hârtie suna bine; în folosire reală a ieșit prost: butoanele de
+   adăugare rapidă stau DEASUPRA cronologiei, iar fluxul obișnuit nu e „notez o
+   glicemie și mă uit la ea", ci „notez glicemia, apoi insulina, apoi masa". După
+   fiecare salvare omul era trimis în jos și trebuia să urce înapoi ca să apese
+   următorul buton. Am optimizat o curiozitate de o dată și am taxat acțiunea făcută
+   de zeci de ori pe zi.
+
+   Confirmarea există oricum, exact unde stau ochii și degetul: cadranul de sus arată
+   imediat valoarea nouă, cifrele de sub el se actualizează, iar mesajul scurt confirmă
+   salvarea. Lumina rămâne, pentru cazurile în care intrarea chiar e pe ecran — de
+   exemplu când modifici ceva ce vezi. Când nu e, nu costă nimic că n-o vezi. */
 /* Harta zi -> evenimente. `evOfDay` parcurgea tot jurnalul la fiecare apel, iar
    Istoricul o cheamă pentru fiecare din cele șaizeci de zile afiășate: la un jurnal de
    treisprezece mii de evenimente înseamnă aproape opt sute de mii de treceri la fiecare
@@ -1576,7 +1572,7 @@ function okGluc(id){
   if(id){ const e=S.events.find(x=>x.id===id); e.ts=ts; e.gluc={v,src:chipVal('gsrc')}; }
   else { nid=uid(); S.events.push({id:nid, ts, type:'gluc', gluc:{v, src:chipVal('gsrc')}}); }
   marcheazaNou(nid);
-  sortEv(); save(); closeSheet(); renderToday(); setTimeout(aratăIntrareaNouă,280); toast('Glicemie salvată');
+  sortEv(); save(); closeSheet(); renderToday(); toast('Glicemie salvată');
 }
 
 /* ================= INSULINĂ ================= */
@@ -1621,7 +1617,7 @@ function okIns(id){
   if(id){ const e=S.events.find(x=>x.id===id); e.ts=ts; e.ins=rec; }
   else { nid=uid(); S.events.push({id:nid, ts, type:'ins', ins:rec}); }
   marcheazaNou(nid);
-  sortEv(); save(); closeSheet(); renderToday(); setTimeout(aratăIntrareaNouă,280); toast('Insulină salvată');
+  sortEv(); save(); closeSheet(); renderToday(); toast('Insulină salvată');
 }
 
 /* ================= MASĂ ================= */
@@ -1714,7 +1710,7 @@ function okMeal(){
   if(M._edit){ const e=S.events.find(x=>x.id===M._edit); e.ts=ts; e.meal=rec; }
   else { nid=uid(); S.events.push({id:nid, ts, type:'meal', meal:rec}); }
   marcheazaNou(nid);
-  sortEv(); save(); closeSheet(); renderToday(); setTimeout(aratăIntrareaNouă,280); toast('Masă salvată');
+  sortEv(); save(); closeSheet(); renderToday(); toast('Masă salvată');
 }
 
 /* ================= NOTE / ACTIVITATE / GREUTATE ================= */
@@ -1782,7 +1778,7 @@ function okNote(id){
     else e.note=rec.note; }
   else { nid=uid(); S.events.push({id:nid, ts, ...rec}); }
   marcheazaNou(nid);
-  sortEv(); save(); closeSheet(); renderToday(); setTimeout(aratăIntrareaNouă,280); toast('Salvat');
+  sortEv(); save(); closeSheet(); renderToday(); toast('Salvat');
 }
 
 /* ================= ȘTERGERE / EDITARE ================= */
@@ -4682,6 +4678,10 @@ function applyUpdate(){
    cu care omul a folosit ultima dată aplicația. La prima instalare nu se arată
    nimic: cine tocmai a intrat n-are ce compara. */
 const NOUTATI=[
+  {v:'v1.94', ce:[
+    'Scos: pagina nu mai coboară singură la intrarea tocmai notată. Butoanele de adăugare stau deasupra cronologiei, iar derularea automată te obliga să urci înapoi după fiecare salvare, tocmai când voiai să notezi și insulina, și masa.',
+    'Lumina de pe intrarea nouă rămâne. Confirmarea era oricum sus, în cadran, acolo unde stau ochii și degetul.'
+  ]},
   {v:'v1.93', ce:[
     'În fereastra „Altele", schimbarea tipului (Notă, Activitate, Greutate, Ciclu) aduce câmpul nou cu o coborâre scurtă, în loc să-l înlocuiască instantaneu. Cu asta, mișcarea din aplicație e completă.'
   ]},
