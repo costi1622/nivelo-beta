@@ -435,11 +435,29 @@ html[data-theme="dark"] #periodChips.lipit{ box-shadow:0 6px 14px rgba(0,0,0,.35
 .btn[disabled]{opacity:.45}
 
 /* compunere masă */
-#mitems .mi{display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px dashed var(--line)}
-#mitems .mi b{flex:1; font-size:calc(14.5px*var(--fs)); font-weight:600}
-#mitems .mi .hc{font-weight:800; color:var(--hc-ink)}
-#mitems .mi button{color:var(--low); font-size:calc(17px*var(--fs)); padding:2px 6px}
-#mtotal{text-align:right; font-size:calc(17px*var(--fs)); font-weight:800; margin:8px 0 4px; color:var(--hc-ink)}
+#mitems .mi, #ritems .mi{display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px dashed var(--line)}
+#mitems .mi b, #ritems .mi b{flex:1; font-size:calc(14.5px*var(--fs)); font-weight:600}
+#mitems .mi .hc, #ritems .mi .hc{font-weight:800; color:var(--hc-ink)}
+#mitems .mi button, #ritems .mi button{color:var(--low); font-size:calc(17px*var(--fs)); padding:2px 6px; min-width:36px; min-height:36px}
+#mtotal, #rtotal{text-align:right; font-size:calc(17px*var(--fs)); font-weight:800; margin:8px 0 4px; color:var(--hc-ink)}
+#rtotal.zero{color:var(--ink-soft); font-weight:700; opacity:.7}
+/* rezultatul rețetei: cifra care intră în bibliotecă, scoasă în evidență */
+#rrez{margin:12px 0 4px; padding:10px 12px; border-radius:12px; background:var(--paper); text-align:center; font-weight:700; color:var(--ink-soft); font-size:calc(14px*var(--fs))}
+#rrez b{display:block; font-size:calc(22px*var(--fs)); color:var(--hc-ink); font-weight:800}
+.labrows{margin-top:4px}
+.labrow{padding:9px 0; border-top:1px solid var(--line)}
+.labrow:first-child{border-top:0}
+.labsus{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:baseline; gap:2px 10px}
+.labd{color:var(--ink-soft); font-size:calc(13.5px*var(--fs))}
+.labv{font-size:calc(13.5px*var(--fs)); color:var(--ink-soft)}
+.labv b{font-size:calc(19px*var(--fs)); color:var(--ink); font-weight:800}
+.labe{margin-top:2px; font-size:calc(13px*var(--fs)); color:var(--ink-soft)}
+.labe b{color:var(--ink); font-weight:700}
+.foodbtns{display:grid; grid-template-columns:repeat(auto-fit,minmax(calc(150px*var(--fs)),1fr)); gap:8px}
+/* la textul mărit, două butoane alăturate își rupeau eticheta pe două rânduri; acum
+   trec unul sub altul când nu mai încap */
+.foodbtns .btn{margin:0; padding-left:8px; padding-right:8px}
+.ftag{display:inline-block; margin-right:6px; padding:1px 7px; border-radius:8px; background:var(--paper); color:var(--ink-soft); font-size:calc(11px*var(--fs)); font-weight:700}
 /* Cât masa e goală, totalul de 0 HC nu are de ce să fie scris în culoarea accentului:
    nu e o valoare, e absența ei. */
 #mtotal.zero{color:var(--ink-soft); font-weight:700; opacity:.7}
@@ -721,11 +739,16 @@ html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28;
 
   <!-- ALIMENTE -->
   <section class="view" id="v-foods">
-    <button class="btn btn-p" onclick="shFood()">+ Aliment nou</button>
+    <div class="foodbtns">
+      <button class="btn btn-p" onclick="shFood()">+ Aliment nou</button>
+      <button class="btn btn-p" onclick="shReteta()">+ Mâncare gătită</button>
+    </div>
     <div class="card" style="margin-top:12px">
       <div class="fsearch"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.4" cy="10.4" r="6.6" stroke="currentColor" stroke-width="2.4"/><path d="M15.4 15.4l4.6 4.6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg><input class="inp" id="fq" aria-label="Caută în biblioteca de alimente" placeholder="Caută în biblioteca ta…" oninput="renderFoods()"></div>
       <div id="foodlist"></div>
     </div>
+    <button class="btn btn-g" style="margin-top:12px; background:var(--card); border:1px solid var(--line)" onclick="$('retfile').click()">Primește o rețetă trimisă de pe alt telefon</button>
+    <input type="file" id="retfile" aria-label="Alege fișierul rețetei" accept=".json,application/json" style="display:none" onchange="primesteRetetaFisier(this)">
   </section>
 
   <!-- STATISTICI -->
@@ -773,8 +796,8 @@ html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28;
       <button class="mrow" onclick="shUpdate()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M7.4 9.4A5.2 5.2 0 0 1 17 8.6h1.6a4 4 0 0 1 .6 8" fill="#5B8FBF" opacity="0"/> <path d="M6.8 18.4a4.4 4.4 0 0 1 .6-8.8 5.6 5.6 0 0 1 10.8 1 3.9 3.9 0 0 1-.6 7.8z" fill="#5B8FBF"/> <path d="M12 10.6v6.6" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/> <path d="M9.2 14.6l2.8 2.8 2.8-2.8" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Adu versiunea nouă<small>Dacă tocmai a apărut o actualizare și încă nu a ajuns la tine</small></span></button>
       <button class="mrow" onclick="shDiag()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M19.4 4.6a5.2 5.2 0 0 1-6.8 6.8L6.2 17.8a2 2 0 1 1-2.8-2.8l6.4-6.4a5.2 5.2 0 0 1 6.8-6.8l-3 3 .6 3.4 3.4.6z" fill="#5C7480"/></svg></span><span>Diagnostic tehnic<small>Starea instalării, util dacă ceva nu merge</small></span></button>
     </div>
-    <p class="muted" style="padding:0 6px">Nivelo v2.0 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
-      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v2.0%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
+    <p class="muted" style="padding:0 6px">Nivelo v2.1 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
+      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v2.1%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
   </section>
 </main>
 
@@ -863,7 +886,7 @@ var PORNIT = false, ULTIMA_EROARE = null;
 })();
 
 /* ================= STOCARE ================= */
-const APP_VER='v2.0';
+const APP_VER='v2.1';
 /* Android citește manifestul — numele, iconița, scurtăturile — o singură dată, la
    instalare, și îl păstrează așa până la reinstalare. Codul se actualizează singur,
    configurarea nu. De aceea ținem minte când s-a schimbat ultima dată configurarea:
@@ -880,6 +903,15 @@ const KEY='glucolog_v1';
    stă aici, sus, înaintea lui. */
 const EV_COD={gluc:1, ins:2, meal:3, note:4, act:5, kg:6, ciclu:7};
 const EV_DECOD={1:'gluc', 2:'ins', 3:'meal', 4:'note', 5:'act', 6:'kg', 7:'ciclu'};
+/* Tipuri păstrate INTENȚIONAT în forma lor întreagă în formatul compact, pe drumul
+   „['?', intrare]", fără cod numeric. Motivul e compatibilitatea înapoi: dacă un
+   telefon ar rula vreodată o versiune mai veche decât cea care a scris datele (un
+   cache rămas în urmă, o filă veche deschisă), versiunea veche nu știe ce înseamnă un
+   cod nou și ar ARUNCA intrarea la citire, iar prima ei salvare ar șterge-o definitiv.
+   Forma întreagă, în schimb, e citită de orice versiune ≥ v1.99 și, chiar dacă nu o
+   înțelege, o mută în `evInvalid`, de unde se scrie la loc la fiecare salvare. Costul e
+   neglijabil: analizele de laborator sunt câteva pe an. */
+const EV_BRUT={lab:1};
 const UNDE_KEY = KEY+'_unde';     // 'idb' = jurnalul s-a mutat; altfel e în localStorage
 let JURNAL_IN_IDB=false;          // load() îl pune pe true; și el trebuie declarat ÎNAINTE
 /* ================= DOUĂ FERESTRE DESCHISE =================
@@ -923,7 +955,8 @@ const EV_SCHEMA={
   kg:   e=>e.kg   && typeof e.kg.v==='number',
   note: e=>e.note && typeof e.note.text==='string',
   act:  e=>!!e.note,
-  ciclu:e=>!!e.ciclu
+  ciclu:e=>!!e.ciclu,
+  lab:  e=>e.lab  && typeof e.lab.v==='number'
 };
 function evValid(e){
   return !!e && typeof e==='object' && typeof e.ts==='number' && !!e.type
@@ -1059,19 +1092,30 @@ function load(){
        salvare le scrie la loc. Prima versiune a acestei reparații le scotea pur și
        simplu din listă, iar prima salvare de după le ștergea definitiv de pe telefon —
        adică o pagubă mai mare decât bugul pe care îl repara. */
-    if(!Array.isArray(d.evInvalid)) d.evInvalid=[];
-    const bune=d.events.filter(evValid);
-    if(bune.length!==d.events.length){
-      d.evInvalid=d.evInvalid.concat(d.events.filter(e=>!evValid(e)));
-      d.events=bune;
-    }
-    EV_DROPPED = d.evInvalid.length;
+    separaInvalide(d);
     return d;
   }
   LOAD_PROBLEM = lizibil ? 'structura' : 'ilizibil';
   // Prima copie de salvare câștigă: e cea mai apropiată de datele reale.
   try{ if(!localStorage.getItem(RESCUE_KEY)) localStorage.setItem(RESCUE_KEY, raw); }catch(e){}
   return freshState();
+}
+/* Intrările pe care versiunea asta nu le poate desena merg în `evInvalid` (păstrate,
+   nu pierdute). Și invers: o intrare ajunsă acolo pe vremea unei versiuni care nu-i
+   cunoștea tipul — de exemplu o analiză HbA1c citită o dată de o versiune mai veche —
+   se întoarce în jurnal acum, când tipul e cunoscut. Fără drumul de întoarcere, ar fi
+   rămas ascunsă pentru totdeauna, deși datele sunt întregi. Folosită și la citirea din
+   IndexedDB, ca cele două drumuri de pornire să aplice aceeași regulă. */
+function separaInvalide(d){
+  if(!Array.isArray(d.evInvalid)) d.evInvalid=[];
+  const bune=d.events.filter(evValid);
+  const rele=d.events.filter(e=>!evValid(e));
+  const revin=d.evInvalid.filter(evValid);
+  if(rele.length || revin.length){
+    d.evInvalid=d.evInvalid.filter(e=>!evValid(e)).concat(rele);
+    d.events=bune.concat(revin).sort((a,b)=>a.ts-b.ts);
+  }
+  EV_DROPPED = d.evInvalid.length;
 }
 function rescueSize(){
   try{ return (localStorage.getItem(RESCUE_KEY)||'').length; }catch(e){ return 0; }
@@ -1387,6 +1431,13 @@ function cuZileInUrma(n, dela){
   d.setDate(d.getDate()-n);
   d.setHours(0,0,0,0);     // din nou: ziua-țintă poate avea alt decalaj de fus
   return d.getTime();
+}
+/* Câte zile din fereastră se socotesc la „cât de solide sunt cifrele". Fereastra de N
+   zile include ziua de azi, care e în curs: dacă n-are încă nicio glicemie, nu e o zi
+   ratată, e o zi neîncepută. `g` sunt glicemiile din fereastră, `aziStart` miezul
+   nopții de azi. */
+function zileDeSocotit(g, n, aziStart){
+  return g.some(x=>x.ts>=aziStart) ? n : n-1;
 }
 function dKey(ts){ const d=new Date(ts); return d.getFullYear()+'-'+two(d.getMonth()+1)+'-'+two(d.getDate()); }
 function tHM(ts){ const d=new Date(ts); return two(d.getHours())+':'+two(d.getMinutes()); }
@@ -1940,6 +1991,7 @@ function pickFood(fid){
 function askGrams(f){
   openSheet2(`<h3>Câte grame?</h3>
     <p class="muted" style="margin:-4px 0 12px">${esc(f.name)} · ${fmtHC(f.val)} HC / 100 g</p>
+    ${f.reteta && f.reteta.ts?`<p class="muted" style="margin:-6px 0 12px">Mâncare gătită, cântărită pe ${dNice(f.reteta.ts).replace(/^\S+, /,'')}. Dacă mănânci din altă oală, cântăreș-o întâi în Alimente: fiecare gătit iese altfel.</p>`:''}
     <div class="bigwrap"><input class="inp bignum num" id="gramin" type="text" inputmode="decimal" autocomplete="off" aria-label="Cantitate în grame" style="text-align:center; font-size:calc(26px*var(--fs)); font-weight:800"><span class="unit" aria-hidden="true">g</span></div>
     <div class="hcprev" id="grampv" style="text-align:center; font-size:calc(14px*var(--fs)); color:var(--hc-ink); font-weight:700; min-height:20px; margin-top:10px"></div>
     <button class="btn btn-p" style="margin-top:14px" onclick="okGrams('${f.id}')">Adaugă la masă</button>
@@ -1992,17 +2044,22 @@ function shNote(ev){
   const e=ev||{type:'note', note:{text:''}};
   const isKg=e.type==='kg';
   const isCiclu=e.type==='ciclu';
+  const isLab=e.type==='lab';
   openSheet(`<h3>${ev?'Modifică':'Adaugă'}</h3>
     <div class="frow"><label>Tip</label><div class="chips" id="ntype">
       <button class="chip ${e.type==='note'?'on':''}" data-v="note">Notă</button>
       <button class="chip ${e.type==='act'?'on':''}" data-v="act">Activitate</button>
       <button class="chip ${isKg?'on':''}" data-v="kg">Greutate</button>
       ${cicluPornit()||isCiclu?`<button class="chip ${isCiclu?'on':''}" data-v="ciclu">Ciclu</button>`:''}
+      <button class="chip ${isLab?'on':''}" data-v="lab">HbA1c</button>
     </div></div>
-    <div class="frow" id="ntextrow" style="display:${isKg||isCiclu?'none':'block'}"><label>Text</label>
+    <div class="frow" id="ntextrow" style="display:${isKg||isCiclu||isLab?'none':'block'}"><label>Text</label>
       <textarea class="inp" id="ntext" rows="3" placeholder="ex: plimbare 1h / condus / răcit">${esc(e.note?e.note.text:'')}</textarea></div>
     <div class="frow" id="nkgrow" style="display:${isKg?'block':'none'}"><label>Kg</label>
       <input class="inp bignum num" id="nkg" type="text" inputmode="decimal" autocomplete="off" value="${isKg?e.kg.v:''}"></div>
+    <div class="frow" id="nlabrow" style="display:${isLab?'block':'none'}"><label>HbA1c de laborator</label>
+      <div class="bigwrap"><input class="inp bignum num" id="nlab" type="text" inputmode="decimal" autocomplete="off" value="${isLab?fmtN(e.lab.v):''}"><span class="unit" aria-hidden="true">%</span></div>
+      <p class="muted" style="margin-top:6px">Valoarea din buletinul de analize, în procente. Pune mai jos data recoltării, nu data la care o notezi: Statisticile o compară cu glicemiile din cele 90 de zile dinaintea ei.</p></div>
     <div class="frow" id="ncicrow" style="display:${isCiclu?'block':'none'}"><label>Ce notezi</label>
       <div class="chips" id="ncic">
         <button class="chip ${!isCiclu||(e.ciclu&&e.ciclu.faza)!=='stop'?'on':''}" data-v="start">A început</button>
@@ -2014,9 +2071,10 @@ function shNote(ev){
   chipify('ntype');
   chipify('ncic');
   $('ntype').querySelectorAll('.chip').forEach(c=>{ const old=c.onclick; c.onclick=()=>{ old();
-    const v=c.dataset.v, kg=v==='kg', cic=v==='ciclu';
-    aratăRând('ntextrow', !(kg||cic));
+    const v=c.dataset.v, kg=v==='kg', cic=v==='ciclu', lab=v==='lab';
+    aratăRând('ntextrow', !(kg||cic||lab));
     aratăRând('nkgrow', kg);
+    aratăRând('nlabrow', lab);
     aratăRând('ncicrow', cic); }; });
 }
 /* Comutarea tipului în fereastra „Altele" schimba câmpul de dedesubt instantaneu:
@@ -2044,11 +2102,18 @@ function okNote(id){
     if(v===null||v<20||v>400){ toast('Introdu greutatea în kg (între 20 și 400)'); return; }
     rec={type:'kg', kg:{v}}; }
   else if(tp==='ciclu'){ rec={type:'ciclu', ciclu:{faza:chipVal('ncic')||'start'}}; }
+  /* HbA1c: între 3 și 20%. Sub 4 sau peste 15 practic nu se întâlnește, dar limita e
+     doar o plasă pentru tastări greșite (71 în loc de 7,1), nu o judecată clinică.
+     O zecimală, cât are buletinul. */
+  else if(tp==='lab'){ const v=readNum('nlab');
+    if(v===null||v<3||v>20){ toast('Introdu HbA1c în procente (de exemplu 7,1)'); return; }
+    rec={type:'lab', lab:{v:Math.round(v*10)/10}}; }
   else{ const tx=$('ntext').value.trim(); if(!tx){ toast('Scrie ceva mai întâi'); return; } rec={type:tp, note:{text:tx}}; }
   if(id){ const e=S.events.find(x=>x.id===id); e.ts=ts; e.type=rec.type;
-    delete e.note; delete e.kg; delete e.ciclu;
+    delete e.note; delete e.kg; delete e.ciclu; delete e.lab;
     if(rec.type==='kg') e.kg=rec.kg;
     else if(rec.type==='ciclu') e.ciclu=rec.ciclu;
+    else if(rec.type==='lab') e.lab=rec.lab;
     else e.note=rec.note; }
   else { nid=uid(); S.events.push({id:nid, ts, ...rec}); }
   marcheazaNou(nid);
@@ -2097,6 +2162,8 @@ function eventCard(e){
           <div class="sub">${items}${e.meal.note?(items?' · ':'')+esc(e.meal.note):''}</div>`;
   }else if(e.type==='kg'){
     body=`<div class="hl num"><svg class="evi" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6.4h14a1.6 1.6 0 0 1 1.6 1.8l-1.3 10a1.6 1.6 0 0 1-1.6 1.4H6.3a1.6 1.6 0 0 1-1.6-1.4l-1.3-10A1.6 1.6 0 0 1 5 6.4z" fill="#7C8C97"/> <circle cx="12" cy="12.4" r="4.2" fill="#E8EEF2"/><path d="M12 12.4l2.4-2.6" stroke="#5C7480" stroke-width="1.5" stroke-linecap="round"/> <path d="M9.2 6.4c.4-1.7 1.4-2.6 2.8-2.6s2.4.9 2.8 2.6z" fill="#5C7480"/></svg> ${fmtN(e.kg.v)} kg</div>`;
+  }else if(e.type==='lab'){
+    body=`<div class="hl num"><svg class="evi" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 2.8h6v1.9h-.9v11.9a2.1 2.1 0 0 1-4.2 0V4.7H9z" fill="#C9D6DE"/> <path d="M9.9 11.2h4.2v5.4a2.1 2.1 0 0 1-4.2 0z" fill="#C2414B"/> <path d="M17.2 9.6h3.4M17.2 13h3.4M17.2 16.4h3.4" stroke="#7C8C97" stroke-width="1.5" stroke-linecap="round"/></svg> HbA1c ${fmtN(e.lab.v)}%</div><div class="sub">analiză de laborator</div>`;
   }else if(e.type==='ciclu'){
     const st=e.ciclu && e.ciclu.faza==='stop';
     body=`<div class="hl"><svg class="evi" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.6a8.4 8.4 0 1 1-9.6-11 6.9 6.9 0 0 0 9.6 11z" fill="#B4699B"/> <circle cx="16.4" cy="5.6" r="1.5" fill="#D9A6C8"/><circle cx="19.6" cy="9" r="1" fill="#D9A6C8"/></svg> Ciclu menstrual</div><div class="sub">${st?'s-a terminat':'a început'}</div>`;
@@ -2391,6 +2458,7 @@ function evText(e){
   if(e.type==='ins') return e.ins.u+'U '+fmtN(e.ins.u)+' U '+e.ins.name+' '+e.ins.kind;   // ambele scrieri, ca să găsească și „5,5" și „5.5"
   if(e.type==='meal') return e.meal.items.map(i=>i.name).join(' ')+' '+(e.meal.note||'');
   if(e.type==='kg') return e.kg.v+' kg greutate';
+  if(e.type==='lab') return 'hba1c laborator analiza '+e.lab.v+' '+fmtN(e.lab.v)+'%';
   if(e.type==='ciclu') return 'ciclu menstrual '+(e.ciclu && e.ciclu.faza==='stop'?'s-a terminat':'a început');
   return e.note ? e.note.text : '';   // orice tip viitor fără note nu mai rupe căutarea
 }
@@ -2605,6 +2673,289 @@ function favToggle(id){
   const b=$('st_'+id); if(b) b.classList.add('puls');
   toast(f.fav?('„'+f.name+'" e acum favorit'):('„'+f.name+'" nu mai e favorit'));
 }
+/* ================= MÂNCARE GĂTITĂ (REȚETE) =================
+   Cea mai grea estimare de carbohidrați din viața de zi cu zi nu e pâinea de pe
+   etichetă, e oala de ciorbă, sarmalele sau tocănița. Rețeta rezolvă asta cu aritmetică
+   simplă: aduni carbohidrații ingredientelor crude, cântărești mâncarea gătită, și împarți.
+   Rezultatul e un aliment obișnuit din bibliotecă („HC la 100 g" sau „HC pe porție"),
+   deci la masă se alege și se cântărește exact ca oricare altul. Nimic din calea mesei,
+   a statisticilor sau a raportului nu trebuie să știe că e rețetă.
+
+   Ce se salvează. Alimentul primește un câmp `reteta` cu ingredientele și cântăririle,
+   iar `mode`/`val` sunt calculate din ele la fiecare salvare. Fiecare ingredient își
+   ține propria valoare de HC la 100 g, copiată în momentul adăugării: dacă mai târziu
+   modifici alimentul din bibliotecă, rețeta nu se schimbă pe ascuns.
+
+   Ce NU se schimbă. Mesele deja notate își păstrează carbohidrații calculați atunci.
+   Când găteşti din nou și cântărești altă oală, se schimbă doar mesele de acum încolo.
+
+   Unde merge. Alimentele stau neatinse în formatul compact (`foods` e scris ca atare),
+   deci rețeta intră în backup și în oglinda din IndexedDB fără nicio schimbare. Exportul
+   CSV/Excel duce rețeta ca aliment simplu, cu valoarea ei, fără lista de ingrediente. */
+let R=null;   // rețeta aflată în lucru în fereastră
+const RETETA_LIM={g:20000, hc100:100, buc:100, hcp:500, brut:50000, port:200};
+function retetaTotalHC(r){
+  return (r.ing||[]).reduce((a,i)=>a+(i.buc!=null ? i.buc*i.hcp : i.g*i.hc100/100), 0);
+}
+/* Valoarea care intră în bibliotecă, sau null + motivul pentru care nu se poate calcula. */
+function retetaCalc(r){
+  const tot=retetaTotalHC(r);
+  if(!(tot>0)) return {err:'Adaugă măcar un ingredient cu carbohidrați.'};
+  if(r.mod==='portii'){
+    if(!(r.port>=1 && r.port<=RETETA_LIM.port)) return {err:'Scrie în câte porții ai împărțit mâncarea.'};
+    return {mode:'portie', val:Math.round(tot/r.port*100)/100, tot};
+  }
+  if(!(r.brut>0)) return {err:'Scrie cât arată cântarul la mâncarea gătită.'};
+  const net=r.brut-(r.tara||0);
+  if(!(net>0)) return {err:'Oala goală nu poate cântări cât oala plină. Verifică cele două greutăți.'};
+  const val=tot/net*100;
+  /* Peste 100 g de carbohidrați la 100 g de mâncare e fizic imposibil: aproape sigur o
+     greutate tastată greșit (180 în loc de 1800) sau oala cântărită și ea. */
+  if(val>100) return {err:'Ar ieși mai mult de 100 g de carbohidrați la 100 g de mâncare, deci una dintre greutăți e greșită. Verifică mâncarea gătită și oala.'};
+  return {mode:'per100', val:Math.round(val*100)/100, tot, net};
+}
+function shReteta(f){
+  const r=f && f.reteta ? JSON.parse(JSON.stringify(f.reteta)) : {ing:[], mod:'oala', brut:null, tara:null, port:null};
+  R={...r, _id:f?f.id:''};
+  const cand = f && f.reteta && f.reteta.ts ? dNice(f.reteta.ts) : '';
+  openSheet(`<h3>${f?'Mâncare gătită':'Mâncare gătită nouă'}</h3>
+    ${f?`<p class="muted" style="margin:-4px 0 10px">Ai gătit din nou? Schimbă cantitățile dacă e cazul, cântărește iar și salvează. Mesele deja notate rămân cum erau.${cand?' Ultima cântărire: '+cand+'.':''}</p>`
+       :`<p class="muted" style="margin:-4px 0 10px">Aduni carbohidrații din ingredientele crude, cântărești mâncarea gătită, iar aplicația calculează câți carbohidrați are la 100 g. Apoi o alegi la masă ca pe orice aliment.</p>`}
+    <div class="frow"><label>Nume</label><input class="inp" id="rname" value="${esc(f?f.name:'')}" placeholder="ex: Ciorbă de perișoare"></div>
+    <div class="frow"><label>Ingrediente cu carbohidrați</label>
+      <div class="fsearch"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.4" cy="10.4" r="6.6" stroke="currentColor" stroke-width="2.4"/><path d="M15.4 15.4l4.6 4.6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg><input class="inp" id="rsrch" aria-label="Caută un ingredient în bibliotecă" placeholder="Caută în bibliotecă… (ex: orez)" oninput="retetaHits()"></div>
+      <div id="rhits"></div>
+      <p class="muted" style="margin-top:6px">Pune doar ce are carbohidrați: făină, orez, cartofi, paste, legume, smântână. Carnea, uleiul și apa nu trebuie trecute, intră oricum în greutatea de la final.</p></div>
+    <div id="ritems"></div>
+    <div id="rtotal"></div>
+    <div class="frow"><label>Cum o împarți</label><div class="chips" id="rmod">
+      <button class="chip ${R.mod!=='portii'?'on':''}" data-v="oala">Cântăresc mâncarea</button>
+      <button class="chip ${R.mod==='portii'?'on':''}" data-v="portii">În porții egale</button>
+    </div></div>
+    <div id="roala" style="display:${R.mod!=='portii'?'block':'none'}">
+      <div class="frow"><label>Pe cântar, cu tot cu oală</label><div class="bigwrap"><input class="inp bignum num" id="rbrut" type="text" inputmode="decimal" autocomplete="off" value="${R.brut!=null?fmtN(R.brut):''}" oninput="retetaRez()"><span class="unit" aria-hidden="true">g</span></div></div>
+      <div class="frow"><label>Oala goală</label><div class="bigwrap"><input class="inp bignum num" id="rtara" type="text" inputmode="decimal" autocomplete="off" value="${R.tara?fmtN(R.tara):''}" oninput="retetaRez()"><span class="unit" aria-hidden="true">g</span></div>
+        <p class="muted" style="margin-top:6px">Rămâne ținută minte pentru data viitoare. Dacă ai cântărit mâncarea fără oală, las-o goală.</p></div>
+    </div>
+    <div id="rport" style="display:${R.mod==='portii'?'block':'none'}">
+      <div class="frow"><label>Număr de porții</label><input class="inp bignum num" id="rnport" type="text" inputmode="numeric" autocomplete="off" value="${R.port||''}" oninput="retetaRez()">
+        <p class="muted" style="margin-top:6px">Pentru ce se taie în bucăți egale: o tavă de prăjitură, un cozonac, o pizza făcută acasă.</p></div>
+    </div>
+    <div id="rrez" role="status"></div>
+    <div class="frow"><label class="chips"><button class="chip ${f&&f.fav?'on':''}" id="rfav" aria-pressed="${f&&f.fav?'true':'false'}" onclick="this.classList.toggle('on'); this.setAttribute('aria-pressed', this.classList.contains('on')?'true':'false')">★ Favorit (apare la Rapide)</button></label></div>
+    <button class="btn btn-p" onclick="okReteta()">Salvează rețeta</button>
+    ${f?`<button class="btn btn-g" onclick="trimiteReteta('${f.id}')">Trimite rețeta pe alt telefon</button>
+         <button class="btn btn-d" onclick="delFood('${f.id}')">Șterge din bibliotecă</button>`:''}`);
+  chipify('rmod');
+  $('rmod').querySelectorAll('.chip').forEach(c=>{ const old=c.onclick; c.onclick=()=>{ old();
+    const p=c.dataset.v==='portii';
+    aratăRând('roala', !p); aratăRând('rport', p); retetaRez(); }; });
+  drawRetetaItems();
+}
+/* Citește în R ce e scris acum în câmpuri. Câmpurile rămân sursa: R ține doar
+   ingredientele, care nu au câmpuri proprii. */
+function retetaCitesteCampuri(){
+  R.mod = chipVal('rmod')==='portii' ? 'portii' : 'oala';
+  R.brut = readNum('rbrut'); R.tara = readNum('rtara'); R.port = readNum('rnport');
+}
+function retetaRez(){
+  if(!R || !$('rrez')) return;
+  retetaCitesteCampuri();
+  const c=retetaCalc(R);
+  const el=$('rrez');
+  /* Cât lipsește ceva, nu arătăm o eroare: omul abia completează. Arătăm doar ce
+     urmează de făcut, în gri. Eroarea propriu-zisă apare la salvare. */
+  el.innerHTML = c.err ? c.err
+    : c.mode==='per100' ? `<b>${fmtHC(c.val)} HC</b>la 100 g de mâncare gătită · ${fmtN(c.net)} g în total`
+    : `<b>${fmtHC(c.val)} HC</b>pe porție · ${nUnit(R.port,'porții','o porție')}`;
+}
+function retetaHits(){
+  const raw=$('rsrch').value.trim(), q=fold(raw);
+  if(q.length<2){ $('rhits').innerHTML=''; return; }
+  /* Aceeași căutare ca la masă (fără diacritice), aceeași ordine. Rețetele
+     nu apar ca ingrediente: o rețetă în rețetă ar copia o valoare care se schimbă la
+     fiecare gătit, iar greșeala n-ar mai putea fi urmărită. */
+  const hits=S.foods.filter(f=>!f.reteta && fold(f.name).includes(q))
+    .sort((a,b)=>(b.fav?1:0)-(a.fav?1:0) || (b.uses||0)-(a.uses||0) || a.name.localeCompare(b.name,'ro'))
+    .slice(0,6);
+  $('rhits').innerHTML = hits.map(f=>`<button class="foodhit" onclick="retetaAlege('${f.id}')"><span>${esc(f.name)}</span><small>${foodLabel(f)}</small></button>`).join('')
+    + `<button class="foodhit" onclick="retetaManual()"><span>➕ „${esc(raw)}" nu e în bibliotecă: îl scriu de mână</span></button>`;
+}
+function retetaAlege(fid){
+  const f=S.foods.find(x=>x.id===fid); if(!f) return;
+  const porti=f.mode==='portie';
+  openSheet2(`<h3>${porti?'Câte porții?':'Câte grame?'}</h3>
+    <p class="muted" style="margin:-4px 0 12px">${esc(f.name)} · ${foodLabel(f)}${porti?'':'. Cântărit crud, cum intră în oală.'}</p>
+    <div class="bigwrap"><input class="inp bignum num" id="ramt" type="text" inputmode="decimal" autocomplete="off" aria-label="${porti?'Număr de porții':'Cantitate în grame'}" value="${porti?'1':''}" style="text-align:center; font-size:calc(26px*var(--fs)); font-weight:800"><span class="unit" aria-hidden="true">${porti?'porții':'g'}</span></div>
+    <div id="rampv" style="text-align:center; font-size:calc(14px*var(--fs)); color:var(--hc-ink); font-weight:700; min-height:20px; margin-top:10px"></div>
+    <button class="btn btn-p" style="margin-top:14px" onclick="retetaOkAlege('${f.id}')">Adaugă în rețetă</button>
+    <button class="btn btn-g" onclick="closeSheet2()">Anulează</button>`);
+  const inp=$('ramt');
+  const pv=()=>{ const a=readNum('ramt'); $('rampv').textContent = a>0 ? '= '+fmtHC(porti ? a*f.val : a*f.val/100)+' HC' : ''; };
+  inp.oninput=pv; pv();
+  inp.onkeydown=(e)=>{ if(e.key==='Enter') retetaOkAlege(f.id); };
+  setTimeout(()=>inp.focus(),250);
+}
+function retetaOkAlege(fid){
+  const f=S.foods.find(x=>x.id===fid); if(!f) return;
+  const a=readNum('ramt');
+  if(f.mode==='portie'){
+    if(!(a>0 && a<=RETETA_LIM.buc)){ toast('Scrie numărul de porții'); return; }
+    R.ing.push({name:f.name, buc:a, hcp:f.val, fid:f.id});
+  }else{
+    if(!(a>0 && a<=RETETA_LIM.g)){ toast('Scrie cantitatea în grame'); return; }
+    R.ing.push({name:f.name, g:a, hc100:f.val, fid:f.id});
+  }
+  R._nou=R.ing.length-1;
+  closeSheet2();
+  if($('rsrch')){ $('rsrch').value=''; $('rhits').innerHTML=''; }
+  drawRetetaItems();
+}
+function retetaManual(){
+  const nume=($('rsrch')||{}).value ? $('rsrch').value.trim() : '';
+  openSheet2(`<h3>Ingredient scris de mână</h3>
+    <p class="muted" style="margin:-4px 0 12px">Rămâne doar în rețeta asta, nu intră în bibliotecă.</p>
+    <div class="frow"><label>Nume</label><input class="inp" id="rmn" value="${esc(nume)}" placeholder="ex: Făină albă"></div>
+    <div class="frow"><label>Cantitate, crud</label><div class="bigwrap"><input class="inp bignum num" id="rmg" type="text" inputmode="decimal" autocomplete="off"><span class="unit" aria-hidden="true">g</span></div></div>
+    <div class="frow"><label>Carbohidrați la 100 g</label><div class="bigwrap"><input class="inp bignum num" id="rmh" type="text" inputmode="decimal" autocomplete="off"><span class="unit" aria-hidden="true">HC</span></div>
+      <p class="muted" style="margin-top:6px">De pe etichetă, rândul „Glucide" sau „Carbohidrați".</p></div>
+    <button class="btn btn-p" onclick="retetaOkManual()">Adaugă în rețetă</button>
+    <button class="btn btn-g" onclick="closeSheet2()">Anulează</button>`);
+}
+function retetaOkManual(){
+  const n=$('rmn').value.trim(), g=readNum('rmg'), h=readNum('rmh');
+  if(!n){ toast('Scrie numele ingredientului'); return; }
+  if(!(g>0 && g<=RETETA_LIM.g)){ toast('Scrie cantitatea în grame'); return; }
+  if(h===null || h<0 || h>RETETA_LIM.hc100){ toast('Carbohidrații la 100 g sunt între 0 și 100'); return; }
+  R.ing.push({name:n, g, hc100:h});
+  R._nou=R.ing.length-1;
+  closeSheet2();
+  if($('rsrch')){ $('rsrch').value=''; $('rhits').innerHTML=''; }
+  drawRetetaItems();
+}
+function drawRetetaItems(){
+  const tot=retetaTotalHC(R);
+  $('ritems').innerHTML=R.ing.map((i,ix)=>{
+    const hc=i.buc!=null ? i.buc*i.hcp : i.g*i.hc100/100;
+    const cant=i.buc!=null ? nUnit(i.buc,'porții','o porție') : fmtN(i.g)+' g';
+    return `<div class="mi${ix===R._nou?' nou':''}"><b>${esc(i.name)} · ${cant}</b><span class="hc num">${fmtHC(hc)} HC</span><button aria-label="Scoate ${esc(i.name)} din rețetă" onclick="R.ing.splice(${ix},1);drawRetetaItems()">✕</button></div>`;
+  }).join('') || '<div class="muted" style="padding:6px 0">Niciun ingredient încă. Caută-l mai sus în bibliotecă sau scrie-l de mână.</div>';
+  $('rtotal').textContent='În toată oala: '+fmtHC(tot)+' HC';
+  $('rtotal').classList.toggle('zero', !(tot>0));
+  R._nou=null;
+  retetaRez();
+}
+function okReteta(){
+  const name=$('rname').value.trim();
+  if(!name){ toast('Dă-i un nume rețetei'); return; }
+  retetaCitesteCampuri();
+  if(R.mod==='oala' && R.tara!=null && R.tara<0){ toast('Oala goală nu poate avea greutate negativă'); return; }
+  if(R.mod==='oala' && R.brut!=null && R.brut>RETETA_LIM.brut){ toast('Greutatea pare prea mare; verifică cântarul'); return; }
+  if(R.mod==='portii' && R.port!=null && R.port!==Math.round(R.port)){ toast('Numărul de porții e un număr întreg'); return; }
+  const c=retetaCalc(R);
+  if(c.err){ shAlert(c.err, {ic:'⚖️', title:'Rețeta nu se poate calcula încă', ok:'Am înțeles'}); return; }
+  const reteta={ing:R.ing.map(i=>i.buc!=null ? {name:i.name, buc:i.buc, hcp:i.hcp, ...(i.fid?{fid:i.fid}:{})}
+                                              : {name:i.name, g:i.g, hc100:i.hc100, ...(i.fid?{fid:i.fid}:{})}),
+                mod:R.mod, ts:Date.now()};
+  if(R.mod==='portii') reteta.port=R.port;
+  else { reteta.brut=R.brut; if(R.tara) reteta.tara=R.tara; }
+  const rec={name, mode:c.mode, val:c.val, fav:$('rfav').classList.contains('on'), reteta};
+  let f;
+  if(R._id){ f=S.foods.find(x=>x.id===R._id); }
+  if(f){ Object.assign(f, rec); }
+  else { f={id:uid(), uses:0, ...rec}; S.foods.push(f); }
+  if(save()===false) return;   // salvarea eșuată își arată singură avertismentul
+  R=null;
+  closeSheet(); renderFoods();
+  toast('Rețetă salvată: '+fmtHC(c.val)+' HC '+(c.mode==='per100'?'la 100 g':'pe porție'));
+}
+
+/* ── Trimiterea unei rețete pe telefonul celuilalt ──────────────────────────────
+   Doi oameni care mănâncă din aceeași oală nu trebuie să scrie rețeta de două ori.
+   Rețeta pleacă într-un fișier mic, prin foaia de partajare (WhatsApp, e-mail…), la fel
+   ca backupul — niciun server, nimic nu iese din telefoane altfel decât prin mâna ta.
+
+   Fișierul are propria marcă (`nivelo:'reteta'`) și NU are `events`, deci nu poate fi
+   confundat cu un backup: dacă e ales din greșeală la „Import", calea de restaurare nu-l
+   recunoaște ca backup și nu înlocuiește nimic. La primire se citesc doar câmpurile
+   cunoscute, se verifică fiecare număr și valoarea se recalculează din ingrediente,
+   nu se crede pe cuvânt. */
+function trimiteReteta(fid){
+  const f=S.foods.find(x=>x.id===fid); if(!f || !f.reteta) return;
+  const data={nivelo:'reteta', v:1, trimis:Date.now(),
+              aliment:{name:f.name, mode:f.mode, val:f.val, reteta:f.reteta}};
+  const slug=fold(f.name).replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,40)||'reteta';
+  downloadOrShare('Nivelo_reteta_'+slug+'.json', 'application/json', JSON.stringify(data, null, 1))
+    .then(r=>{ if(r===true) toast('Rețeta e pregătită de trimis'); else if(r==='unknown') toast('Fișierul rețetei a fost descărcat'); });
+}
+/* Verifică și reconstruiește rețeta primită. Întoarce {aliment} sau {err}. */
+function citesteRetetaPrimita(d){
+  if(!d || typeof d!=='object' || d.nivelo!=='reteta' || !d.aliment) return {err:'Fișierul nu e o rețetă trimisă din Nivelo.'};
+  const a=d.aliment, r=a.reteta;
+  const nr=(x,max,min)=>typeof x==='number' && isFinite(x) && x>=(min==null?0:min) && x<=max;
+  const name=typeof a.name==='string' ? a.name.trim().slice(0,120) : '';
+  if(!name || !r || !Array.isArray(r.ing) || !r.ing.length || r.ing.length>100) return {err:'Rețeta din fișier e incompletă.'};
+  const ing=[];
+  for(const i of r.ing){
+    if(!i || typeof i.name!=='string' || !i.name.trim()) return {err:'Rețeta din fișier are un ingredient fără nume.'};
+    const n=i.name.trim().slice(0,120);
+    if(i.buc!=null){
+      if(!nr(i.buc,RETETA_LIM.buc) || !(i.buc>0) || !nr(i.hcp,RETETA_LIM.hcp)) return {err:'Rețeta din fișier are o cantitate imposibilă la „'+n+'".'};
+      ing.push({name:n, buc:i.buc, hcp:i.hcp});
+    }else{
+      if(!nr(i.g,RETETA_LIM.g) || !(i.g>0) || !nr(i.hc100,RETETA_LIM.hc100)) return {err:'Rețeta din fișier are o cantitate imposibilă la „'+n+'".'};
+      ing.push({name:n, g:i.g, hc100:i.hc100});
+    }
+  }
+  const rr={ing, mod:r.mod==='portii'?'portii':'oala', ts:nr(r.ts,8.64e15)?r.ts:Date.now()};
+  if(rr.mod==='portii'){ if(!nr(r.port,RETETA_LIM.port,1)) return {err:'Rețeta din fișier nu are numărul de porții.'}; rr.port=r.port; }
+  else { if(!nr(r.brut,RETETA_LIM.brut)) return {err:'Rețeta din fișier nu are greutatea mâncării gătite.'};
+         rr.brut=r.brut; if(nr(r.tara,RETETA_LIM.brut) && r.tara>0) rr.tara=r.tara; }
+  const c=retetaCalc(rr);
+  if(c.err) return {err:'Rețeta din fișier nu se poate calcula: '+c.err};
+  return {aliment:{name, mode:c.mode, val:c.val, reteta:rr}, tot:c.tot};
+}
+let RETETA_PRIMITA=null;
+function primesteRetetaFisier(inp){
+  const f=inp.files[0]; if(!f) return; inp.value='';
+  if(f.size>2*1024*1024){ shAlert('O rețetă are câțiva kilobaiți. Fișierul ales e mult mai mare, deci nu e o rețetă.', {ic:'📄', title:'Nu pare o rețetă'}); return; }
+  const rd=new FileReader();
+  rd.onerror=()=>shAlert('Încearcă din nou sau alege alt fișier.', {ic:'⚠️', title:'Fișierul nu a putut fi citit'});
+  rd.onload=()=>{
+    let d=null; try{ d=JSON.parse(String(rd.result||'')); }catch(e){}
+    if(d && Array.isArray(d.events)){
+      shAlert('Acesta e un backup al jurnalului, nu o rețetă. Aici nu se pune la loc nimic. Un backup se restaurează din Mai mult, Import.', {ic:'📦', title:'E un backup, nu o rețetă'});
+      return;
+    }
+    arataRetetaPrimita(d);
+  };
+  rd.readAsText(f,'utf-8');
+}
+function arataRetetaPrimita(d){
+  const r=citesteRetetaPrimita(d);
+  if(r.err){ shAlert(r.err+' Biblioteca ta nu a fost modificată.', {ic:'📄', title:'Rețeta nu poate fi adăugată'}); return; }
+  RETETA_PRIMITA=r.aliment;
+  const a=r.aliment;
+  const exista=S.foods.find(f=>fold(f.name)===fold(a.name));
+  const val=fmtHC(a.val)+' HC '+(a.mode==='per100'?'la 100 g':'pe porție');
+  const ingr=a.reteta.ing.map(i=>esc(i.name)).join(', ');
+  const msg=`<b>${esc(a.name)}</b>: ${val}, din ${nUnit(a.reteta.ing.length,'ingrediente','un ingredient')} (${ingr}).`
+    + (exista ? `<br><br>Ai deja în bibliotecă „${esc(exista.name)}". ${exista.reteta?'Rețeta ta':'Alimentul tău'} ia valorile celei primite; ${exista.uses?'cele '+nUnit(exista.uses,'mese','o masă')+' deja notate cu el rămân neschimbate':'mesele deja notate rămân neschimbate'}.`
+              : '<br><br>Intră în bibliotecă și o poți alege imediat la masă.');
+  openSheet2(`<h3>${exista?'Actualizezi rețeta?':'Adaugi rețeta primită?'}</h3>
+    <p style="margin-bottom:18px">${msg}</p>
+    <button class="btn btn-p" onclick="closeSheet2();adaugaRetetaPrimita()">${exista?'Actualizează':'Adaugă în bibliotecă'}</button>
+    <button class="btn btn-g" onclick="RETETA_PRIMITA=null;closeSheet2()">Anulează</button>`);
+}
+function adaugaRetetaPrimita(){
+  const a=RETETA_PRIMITA; RETETA_PRIMITA=null; if(!a) return;
+  const exista=S.foods.find(f=>fold(f.name)===fold(a.name));
+  if(exista){ exista.mode=a.mode; exista.val=a.val; exista.reteta=a.reteta; }
+  else S.foods.push({id:uid(), name:a.name, mode:a.mode, val:a.val, fav:false, uses:0, reteta:a.reteta});
+  if(save()===false) return;
+  go('foods'); renderFoods();
+  toast('„'+a.name+'" e în bibliotecă');
+}
 let FQ_GOL=true;   // eram sau nu în căutare la randarea anterioară
 function renderFoods(){
   const q=fold(($('fq').value||'').trim());
@@ -2628,10 +2979,10 @@ function renderFoods(){
       <button class="fstar" id="st_${f.id}" aria-pressed="${f.fav?'true':'false'}"
         aria-label="${f.fav?'Scoate din favorite':'Pune la favorite'}: ${esc(f.name)}"
         onclick='favToggle("${f.id}")'>${f.fav?'★':'☆'}</button>
-      <button class="fmain" onclick='shFood(S.foods.find(x=>x.id==="${f.id}"))'>
+      <button class="fmain" onclick='${f.reteta?'shReteta':'shFood'}(S.foods.find(x=>x.id==="${f.id}"))'>
         <span class="txt">
           <span class="n">${esc(f.name)}</span>
-          ${f.uses?`<span class="d">folosit de ${f.uses} ori</span>`:''}
+          ${f.reteta||f.uses?`<span class="d">${f.reteta?'<span class="ftag">rețetă</span>':''}${f.uses?`folosit de ${f.uses} ori`:''}</span>`:''}
         </span>
         <span class="hcb"><b>${fmtHC(f.val)} HC</b><small>${f.mode==='per100'?'/ 100g':'/ porție'}</small></span>
       </button>
@@ -2751,6 +3102,73 @@ function urmarestePerioada(){
     {threshold:[0], rootMargin:`-${h+2}px 0px 0px 0px`});
   PER_OBS.observe(s);
 }
+/* ================= HbA1c DE LABORATOR LÂNGĂ CEL ESTIMAT =================
+   Estimarea din Statistici vine din media glicemiilor notate. Analiza de laborator
+   măsoară altceva: cât zahăr s-a legat de hemoglobină în ultimele ~3 luni. Cele două
+   diferă la aproape oricine, din două motive: din deget prinzi câteva momente pe zi,
+   nu toată ziua și noaptea, iar legătura glicemie–hemoglobină diferă de la om la om.
+   Ce e util: dacă diferența rămâne aproximativ aceeași de la o analiză la alta, omul
+   știe cum să-și citească estimarea. Strict descriptiv — nu „corectăm" estimarea cu
+   diferența și nu tragem nicio concluzie medicală.
+
+   Fereastra: cele 90 de zile calendaristice care se încheie în ziua recoltării,
+   inclusiv ea — aceeași regulă ca „ultimele 90 de zile" din Statistici. Estimarea se
+   arată doar dacă cel puțin jumătate din zile au o glicemie (LAB_MIN_ZILE): sub prag,
+   cifra ar spune mai mult despre când ai măsurat decât despre glicemia ta. */
+const LAB_MIN_ZILE=45;
+function labComparatii(){
+  const lab=S.events.filter(e=>e.type==='lab' && e.lab).sort((a,b)=>b.ts-a.ts);
+  return lab.map(e=>{
+    const zi=new Date(e.ts); zi.setHours(0,0,0,0);
+    const from=cuZileInUrma(89, zi.getTime());
+    const to=cuZileInUrma(-1, zi.getTime());        // miezul nopții de după ziua recoltării
+    const g=S.events.filter(x=>x.type==='gluc' && x.ts>=from && x.ts<to);
+    const zile=new Set(g.map(x=>dKey(x.ts))).size;
+    let est=null;
+    if(zile>=LAB_MIN_ZILE){
+      const avg=g.reduce((a,x)=>a+x.gluc.v,0)/g.length;
+      est=Math.round((avg+46.7)/28.7*10)/10;
+    }
+    return {id:e.id, ts:e.ts, lab:e.lab.v, est, zile, n:g.length,
+            dif: est==null ? null : Math.round((e.lab.v-est)*10)/10};
+  });
+}
+// diferență cu semn, în puncte procentuale: „+0,3", „−0,2", „0"
+function semnN(d){ return d>0 ? '+'+fmtN(d) : d<0 ? '−'+fmtN(-d) : '0'; }
+function labRezumat(rows){
+  const cu=rows.filter(r=>r.dif!=null);
+  if(!cu.length) return '';
+  if(cu.length===1){
+    const d=cu[0].dif;
+    return Math.abs(d)<0.15
+      ? 'La singura analiză pe care o pot compara, laboratorul și estimarea au ieșit aproape la fel. O singură comparație nu arată încă un tipar.'
+      : 'La singura analiză pe care o pot compara, laboratorul a ieșit cu '+fmtN(Math.abs(d))+' '+(Math.abs(d)===1?'punct':'puncte')+(d>0?' peste':' sub')+' estimare. O singură comparație nu arată încă un tipar.';
+  }
+  const ds=cu.map(r=>r.dif), m=Math.round(median(ds)*10)/10;
+  const mn=Math.min(...ds), mx=Math.max(...ds);
+  const interval=' La fiecare analiză în parte, diferența a fost între '+semnN(mn)+' și '+semnN(mx)+'.';
+  return (Math.abs(m)<0.15
+    ? 'La cele '+cu.length+' analize pe care le pot compara, laboratorul și estimarea au ieșit de obicei aproape la fel.'
+    : 'La cele '+cu.length+' analize pe care le pot compara, laboratorul a ieșit de obicei cu '+fmtN(Math.abs(m))+' '+(Math.abs(m)===1?'punct':'puncte')+(m>0?' peste':' sub')+' estimare.')
+    + (mn!==mx ? interval : '');
+}
+function labCardHtml(){
+  const rows=labComparatii();
+  if(!rows.length) return '';
+  /* Rânduri, nu tabel: cu patru coloane, la textul mărit ×1,45 capetele de tabel se
+     lipeau între ele și ieșeau din card. Rândul se împarte singur pe două linii. */
+  const linii=rows.map(r=>`<div class="labrow">
+      <div class="labsus"><span class="labd">${dNice(r.ts).replace(/^\S+, /,'')}</span><span class="labv"><b class="num">${fmtN(r.lab)}%</b> laborator</span></div>
+      <div class="labe">${r.est!=null?`estimat din jurnal <b class="num">${fmtN(r.est)}%</b> · diferență <b class="num">${semnN(r.dif)}</b>`:'fără estimare: prea puține glicemii în cele 90 de zile dinainte'}</div>
+    </div>`).join('');
+  const prea=rows.filter(r=>r.est==null);
+  return `<div class="card"><h2>HbA1c: laborator și estimare</h2>
+      <div class="labrows">${linii}</div>
+      ${labRezumat(rows)?`<p style="margin:10px 0 0">${labRezumat(rows)}</p>`:''}
+      ${prea.length?`<p class="muted" style="margin:7px 0 0">Estimarea apare doar dacă în cele 90 de zile dinaintea recoltării ai glicemii notate în cel puțin ${LAB_MIN_ZILE} de zile. Sub atât, cifra ar spune mai mult despre când ai măsurat decât despre glicemia ta.</p>`:''}
+      <p class="muted" style="margin:7px 0 0">Estimatul e calculat din glicemiile tale din cele 90 de zile care se încheie în ziua recoltării. Cele două diferă la aproape oricine: din deget prinzi câteva momente pe zi, nu toată ziua și noaptea, iar legătura dintre glicemie și HbA1c e puțin diferită de la om la om. Diferența nu e o greșeală a aplicației sau a laboratorului. Dacă rămâne cam aceeași de la o analiză la alta, știi cum să-ți citești estimarea.</p>
+    </div>`;
+}
 function renderStats(){
   urmarestePerioada();
   $('periodChips').innerHTML=[7,30,90].map(p=>
@@ -2773,8 +3191,15 @@ function renderStats(){
      ca unul din 500, deși nu se citește la fel, iar aici e locul unde te uiți zilnic.
      Descriptiv, fără reproș: e o precizare despre date, nu despre om. */
   const zileCuGl=new Set(g.map(x=>dKey(x.ts))).size;
-  const acoperire=Math.round(zileCuGl/PERIOD*100);
-  const glPeZi=vals.length/PERIOD;
+  /* Ziua de azi e în fereastră, dar e în curs. Dimineața, înainte de prima glicemie,
+     o număram ca zi „fără nicio glicemie notată", deci la 06:30 apărea „29 din 30" la
+     un om care n-a ratat nicio zi. Azi intră la socoteală doar dacă are deja o
+     măsurătoare; altfel perioada se socotește pe zilele încheiate. Aceeași regulă în
+     raport (`zileDeSocotit`). */
+  const zilePer=zileDeSocotit(g, PERIOD, d0.getTime());
+  const aziGol=zilePer<PERIOD;
+  const acoperire=Math.round(zileCuGl/zilePer*100);
+  const glPeZi=vals.length/zilePer;
   const soliditate = (glPeZi>=3 && acoperire>=80) ? 'dese'
                    : (glPeZi>=1.5 && acoperire>=50) ? 'medii' : 'rare';
   /* Variabilitatea: două persoane cu aceeași medie pot avea zile complet diferite,
@@ -2898,23 +3323,24 @@ function renderStats(){
         <div class="stat"><b class="num">${Math.round(avg)}<small class="u">mg/dl</small></b><span>medie</span></div>
         <div class="stat"><b class="num">${fmtN(a1c)}<small class="u">%</small></b><span>HbA1c estimat</span></div>
         <div class="stat"><b class="num">${vals.length}</b><span>măsurători</span></div>
-        <div class="stat"><b class="num">${fmtN(vals.length/days)}</b><span>măsurători pe zi</span></div>
+        <div class="stat"><b class="num">${fmtN(vals.length/days)}</b><span>pe zi cu date</span></div>
         <div class="stat"><b class="num">${cvOk?fmtN(cv):'—'}${cvOk?'<small class="u">%</small>':''}</b><span>variabilitate (CV)</span></div>
         <div class="stat"><b class="num">${cvOk?Math.round(sd):'—'}${cvOk?'<small class="u">mg/dl</small>':''}</b><span>deviație standard</span></div>
       </div>
-      <p class="muted" style="margin:10px 0 0">HbA1c estimat din media glicemiilor tale (formula ADA eAG). E o tendință orientativă, nu înlocuiește analiza de laborator, mai ales la măsurători punctuale din deget.</p>
+      <p class="muted" style="margin:10px 0 0">HbA1c estimat din media glicemiilor tale (formula ADA eAG). E o tendință orientativă, nu înlocuiește analiza de laborator, mai ales la măsurători punctuale din deget.${S.events.some(e=>e.type==='lab')?'':' Când îți faci analiza, o poți nota la <b>Altele</b>, <b>HbA1c</b>, și apare aici alături de estimare.'}</p>
       <p class="muted" style="margin:7px 0 0"><b>Variabilitatea</b> arată cât de mult oscilează glicemia în jurul mediei: media singură nu deosebește o zi liniștită de una cu urcușuri mari. Deviația standard o dă în mg/dl, CV-ul în procente, ca să poți compara perioade cu medii diferite. În practica medicală, un CV sub <b>36%</b> e considerat stabil.${cvOk?'':` Cifrele apar de la 10 măsurători; deocamdată ai ${vals.length}.`}</p>
     </div>
     <div class="card dens ${soliditate}">
       <b>Cât de solide sunt cifrele</b>
-      <div>Măsurători în <b>${nUnit(zileCuGl,'zile','o zi')}</b> din ${nUnit(PERIOD,'zile','o zi')} (${acoperire}%)${zileCuGl<PERIOD?`, deci ${nUnit(PERIOD-zileCuGl,'zile','o zi')} fără nicio glicemie notată`:''}.</div>
-      <div><b>${fmtN(glPeZi)}</b> măsurători pe zi, în medie.</div>
+      <div>Măsurători în <b>${nUnit(zileCuGl,'zile','o zi')}</b> din ${aziGol?'cele '+nUnit(zilePer,'zile','o zi')+' încheiate':nUnit(PERIOD,'zile','o zi')} (${acoperire}%)${zileCuGl<zilePer?`, deci ${nUnit(zilePer-zileCuGl,'zile','o zi')} fără nicio glicemie notată`:''}.${aziGol?' Azi nu ai notat încă nicio glicemie, așa că ziua de azi nu intră la socoteală.':''}</div>
+      <div><b>${fmtN(glPeZi)}</b> măsurători pe zi, raportat la toată perioada${fmtN(glPeZi)!==fmtN(vals.length/days)?`; în zilele cu date, <b>${fmtN(vals.length/days)}</b>`:''}.</div>
       <p class="muted" style="margin:6px 0 0">${
         soliditate==='dese' ? 'Datele sunt dese și acoperă aproape toată perioada, deci cifrele de mai jos sunt bine sprijinite.'
         : soliditate==='medii' ? 'Datele acoperă o bună parte din perioadă, dar nu tot. Procentele descriu fidel momentele în care ai măsurat, care pot să nu fie repartizate uniform în zi.'
         : 'Datele sunt rare sau acoperă o parte mică din perioadă. Cifrele rămân corecte pentru ce ai notat, dar pot fi influențate mult de câteva zile.'
       }</p>
     </div>
+    ${labCardHtml()}
     <div class="card"><h2>Timp în țintă (${s.low}–${s.high})</h2>
       <div class="tirbar${tranzitie?' muta':''}">
         ${[[nvl,pvl,'var(--vlow)'],[nl1,pl1,'var(--low-ink)'],[ni,pi,'var(--ok-ink)'],[nh1,ph1,'var(--high-ink)'],[nvh,pvh,'var(--vhigh-ink)']]
@@ -3245,7 +3671,7 @@ function backupNotFound(){
   shAlert('Am marcat backupul ca nefăcut, ca să nu te bazezi pe un fișier care nu există.\nCaută-l în Descărcări sau în aplicația Fișiere. Dacă tot nu apare, mai încearcă o dată.',
     {ic:'🔎', title:'Bine că mi-ai spus', ok:'Am înțeles'});
 }
-const TYPE_RO={gluc:'Glicemie', meal:'Masă', ins:'Insulină', kg:'Greutate', note:'Notă', act:'Activitate', ciclu:'Ciclu'};
+const TYPE_RO={gluc:'Glicemie', meal:'Masă', ins:'Insulină', kg:'Greutate', note:'Notă', act:'Activitate', ciclu:'Ciclu', lab:'HbA1c'};
 function exportCSV(){
   const {H, rows}=evRows();
   const foodRows=S.foods.map(f=>({Data:'',Ora:'',Tip:'Aliment',Glicemie:'',Sursa:f.fav?'favorit':'',Insulina:'',Unitati:'',
@@ -3354,6 +3780,8 @@ function evRows(){
     if(e.type==='note'||e.type==='act'){ r.Nota=e.note?e.note.text:''; }
     // faza ciclului merge în coloana Nota, ca să nu schimbăm formatul CSV
     if(e.type==='ciclu'){ r.Nota=(e.ciclu && e.ciclu.faza==='stop')?'s-a terminat':'a început'; }
+    // la fel și HbA1c: valoarea în coloana Nota, ca formatul CSV să rămână același
+    if(e.type==='lab'){ r.Nota=fmtN(e.lab.v)+'%'; }
     return r;
   });
   return {H, rows};
@@ -3401,6 +3829,10 @@ function importJSON(txt){
   let d;
   try{ d=JSON.parse(txt); }
   catch(e){ shAlert('Datele tale actuale NU au fost modificate. Încearcă alt backup.', {ic:'⚠️', title:'Fișierul .json pare deteriorat'}); return; }
+  /* O rețetă trimisă de pe alt telefon, aleasă aici în loc de Alimente. Nu e backup și
+     nu are cum să înlocuiască jurnalul: o ducem pe drumul ei, care doar adaugă un
+     aliment, după confirmare. */
+  if(d && typeof d==='object' && d.nivelo==='reteta' && !Array.isArray(d.events)){ arataRetetaPrimita(d); return; }
   // validare structură
   if(typeof d!=='object' || !d || !Array.isArray(d.events) || typeof d.settings!=='object' || !d.settings){
     shAlert('Datele tale actuale NU au fost modificate.', {ic:'📄', title:'Nu are structura unui backup Nivelo'}); return;
@@ -3497,7 +3929,7 @@ function importCSV(txt){
      „Ciclu" lipsea: exportul îl scria, importul îl sărea la `if(!tp) return`, deci un
      dus-întors prin CSV ștergea toate intrările de ciclu fără niciun mesaj. Formele cu
      și fără diacritice stau amândouă, pentru fișierele trecute prin Excel. */
-  const K2T={'Glicemie':'gluc','Masă':'meal','Masa':'meal','Insulină':'ins','Insulina':'ins','Greutate':'kg','Notă':'note','Nota':'note','Activitate':'act','Ciclu':'ciclu'};
+  const K2T={'Glicemie':'gluc','Masă':'meal','Masa':'meal','Insulină':'ins','Insulina':'ins','Greutate':'kg','Notă':'note','Nota':'note','Activitate':'act','Ciclu':'ciclu','HbA1c':'lab'};
   // STAGING: construim în copii separate; comitem în S doar la final, dacă totul e ok
   const newEvents=[], newFoods=[]; const skipped=new Set();
   lines.forEach(c=>{
@@ -3532,6 +3964,7 @@ function importCSV(txt){
     if(tp==='kg'){ const v=zec(c[ix('Greutate')]); if(!v||v<20||v>400) return; e.kg={v}; }
     if(tp==='note'||tp==='act'){ const t=(c[ix('Nota')]||'').trim(); if(!t) return; e.note={text:t}; }
     if(tp==='ciclu'){ const t=(c[ix('Nota')]||'').toLowerCase(); e.ciclu={faza: t.indexOf('termin')>=0?'stop':'start'}; }
+    if(tp==='lab'){ const v=zec(String(c[ix('Nota')]||'').replace('%','')); if(!v||v<3||v>20) return; e.lab={v:Math.round(v*10)/10}; }
     newEvents.push(e);
   });
   // COMIT: abia acum atingem datele reale
@@ -3752,7 +4185,10 @@ function doReport(days, detailed){
      știe pe ce se sprijină cifrele: în câte zile din perioadă există măsurători și cât
      de dese sunt. Descriptiv, fără reproș: e o precizare despre date, nu despre om. */
   const zileCuGl=new Set(g.map(x=>dKey(x.ts))).size;
-  const acoperire=Math.round(zileCuGl/days*100);
+  // azi, dacă n-are încă nicio glicemie, nu e o zi ratată (aceeași regulă ca în Statistici)
+  const zilePer=zileDeSocotit(g, days, d0.getTime());
+  const aziGol=zilePer<days;
+  const acoperire=Math.round(zileCuGl/zilePer*100);
   /* Zile lucrătoare față de weekend. Glicemia se poartă adesea altfel sâmbăta și
      duminica: alt program, alte mese, altă mișcare. Tot restul raportului adună toate
      zilele la un loc, deci tiparul ăsta nu se vede nicăieri. Se arată doar când ambele
@@ -3777,7 +4213,7 @@ function doReport(days, detailed){
   const wLu=wkSplit(ts=>!isWk(ts)), wWe=wkSplit(isWk);
   const wkOk = wLu && wWe && wLu.n>=15 && wWe.n>=10 && wLu.zile>=5 && wWe.zile>=3;
 
-  const glPeZi=vals.length/days;
+  const glPeZi=vals.length/zilePer;
   const soliditate = (glPeZi>=3 && acoperire>=80) ? 'dese'
                    : (glPeZi>=1.5 && acoperire>=50) ? 'medii' : 'rare';
   const daysSet=[...new Set(evs.map(e=>dKey(e.ts)))].sort();
@@ -3874,6 +4310,7 @@ function doReport(days, detailed){
           if(e.type==='ins') return tHM(e.ts)+': '+fmtN(e.ins.u)+' U '+e.ins.name+(e.ins.kind==='corectie'?' (corecție)':(e.ins.kind==='bazala'?' (bazală)':''));
           if(e.type==='meal') return tHM(e.ts)+': masă '+(e.meal.hc?fmtN(e.meal.hc)+' HC: ':'')+e.meal.items.map(i=>i.name).join(', ').slice(0,180)+(e.meal.note?' · '+esc(e.meal.note):'');
           if(e.type==='kg') return tHM(e.ts)+': greutate '+fmtN(e.kg.v)+' kg';
+          if(e.type==='lab') return tHM(e.ts)+': HbA1c de laborator '+fmtN(e.lab.v)+'%';
           if(e.type==='ciclu') return tHM(e.ts)+': ciclu menstrual, '+(e.ciclu && e.ciclu.faza==='stop'?'s-a terminat':'a început');
           return tHM(e.ts)+': '+esc(e.note?e.note.text:'').slice(0,180);
         };
@@ -3930,7 +4367,7 @@ function doReport(days, detailed){
     </table>
     <div style="border:1px solid #ccc; border-radius:8px; padding:10px 13px; margin:12px 0; font-size:calc(12px*var(--fs)); color:#333; line-height:1.55">
       <b style="display:block; margin-bottom:4px">Cât de solide sunt cifrele</b>
-      <div>Perioada acoperită: măsurători în <b>${nUnit(zileCuGl,'zile','o zi')}</b> din ${nUnit(days,'zile','o zi')} (${acoperire}%)${zileCuGl<days?`, deci ${nUnit(days-zileCuGl,'zile','o zi')} fără nicio glicemie notată`:''}.</div>
+      <div>Perioada acoperită: măsurători în <b>${nUnit(zileCuGl,'zile','o zi')}</b> din ${aziGol?'cele '+nUnit(zilePer,'zile','o zi')+' încheiate':nUnit(days,'zile','o zi')} (${acoperire}%)${zileCuGl<zilePer?`, deci ${nUnit(zilePer-zileCuGl,'zile','o zi')} fără nicio glicemie notată`:''}.${aziGol?' Ziua de azi nu are încă nicio măsurătoare, deci nu intră la socoteală.':''}</div>
       <div>Frecvența: <b>${fmtN(vals.length/nd)}</b> măsurători pe zi cu date, adică ${fmtN(glPeZi)} raportat la întreaga perioadă.</div>
       ${dk.length?`<div>Insulină: bazala apare notată în <b>${nUnit(zileBaz,'zile','o zi')}</b> din ${nUnit(dk.length,'zile','o zi')} cu insulină notată.</div>`:''}
       <div style="margin-top:4px">${
@@ -3939,6 +4376,18 @@ function doReport(days, detailed){
         : 'Datele sunt rare sau acoperă o parte mică din perioadă. Procentele și medianele rămân corecte pentru ce s-a notat, dar pot fi influențate mult de câteva zile și e bine citită și coloana cu numărul de observații.'
       }</div>
     </div>
+    ${(function(){
+      /* Analizele de laborator, toate, nu doar cele din perioadă: medicul vrea șirul
+         lor, iar perioada raportului (7–90 de zile) ar prinde de obicei cel mult una.
+         Aceleași cifre ca în Statistici, din aceeași funcție. */
+      const lr=labComparatii();
+      if(!lr.length) return '';
+      return `<h2>HbA1c de laborator față de estimarea din jurnal</h2>
+      <table><tr><th>Recoltare</th><th>HbA1c laborator</th><th>Estimat din jurnal*</th><th>Diferență</th><th>Zile cu glicemii (din 90)</th></tr>
+      ${lr.map(r=>`<tr><td>${dNice(r.ts)}</td><td><b>${fmtN(r.lab)}%</b></td><td>${r.est!=null?fmtN(r.est)+'%':'—'}</td><td>${r.dif!=null?semnN(r.dif):'—'}</td><td>${r.zile}</td></tr>`).join('')}
+      </table>
+      <p style="color:#444; font-size:calc(12px*var(--fs))">${labRezumat(lr)?labRezumat(lr)+' ':''}Estimatul folosește glicemiile notate în cele 90 de zile care se încheie în ziua recoltării și apare doar când cel puțin ${LAB_MIN_ZILE} dintre aceste zile au măsurători. Diferența e descriptivă: nu corectează estimarea și nu e o interpretare medicală.</p>`;
+    })()}
     <h2>Variabilitate și hipoglicemii</h2>
     <table>
       <tr><th>Deviație standard</th><th>Variabilitate (CV)</th>${splitHipo?`<th>Sub ${HIPO2}</th><th>${HIPO2}–${s.low-1}</th>`:`<th>Sub țintă</th>`}</tr>
@@ -4676,7 +5125,7 @@ function shGuide(){
     <div class="card"><h2>1 · Azi <span class="tag">aici stai 90% din timp</span></h2>
       <p style="margin:8px 0 0">Inima aplicației: ziua în curs.</p>
       <p style="margin:8px 0 0">Sus, cadranul cu ultima ta glicemie, colorat după încadrarea în țintă: verde dacă e bine, galben dacă e sus, roșu dacă e jos. Sub el, șase cifre despre ziua în curs: media, cât din măsurători au fost în țintă, carbohidrații, insulina rapidă și bazală, și cât timp a trecut de la ultima rapidă. Apoi graficul zilei pe 24 h.</p>
-      <p style="margin:8px 0 0">Mai jos, patru butoane mari pentru adăugat rapid: <b>Glicemie</b>, <b>Masă</b>, <b>Insulină</b> și <b>Altele</b> (notă, activitate, greutate, iar dacă ai pornit funcția, ciclul menstrual).</p>
+      <p style="margin:8px 0 0">Mai jos, patru butoane mari pentru adăugat rapid: <b>Glicemie</b>, <b>Masă</b>, <b>Insulină</b> și <b>Altele</b> (notă, activitate, greutate, analiza HbA1c de la laborator, iar dacă ai pornit funcția, ciclul menstrual).</p>
       <p style="margin:8px 0 0">Dacă ai pus Nivelo pe ecranul principal și ești pe <b>Android</b>, ține apăsat pe iconiță: apar trei scurtături care deschid aplicația direct la <b>Glicemie</b>, <b>Masă</b> sau <b>Insulină</b>. Pe iPhone scurtăturile nu apar, dar cele patru butoane mari de pe <b>Azi</b> fac același lucru.</p>
       <p style="margin:8px 0 0">Tot ce introduci apare dedesubt, în ordine cronologică, grupat pe momentele zilei.</p>
     </div>
@@ -4691,11 +5140,13 @@ function shGuide(){
       <p style="margin:8px 0 0">Biblioteca ta de alimente.</p>
       <p style="margin:8px 0 0">Fiecare aliment are carbohidrații lui, ca la masă să-l alegi dintr-o atingere, în loc să-l scrii. Aplicația vine cu vreo 30 de alimente comune; le adaugi pe ale tale cu „+ Aliment nou".</p>
       <p style="margin:8px 0 0">Cele marcate cu stea apar primele când adaugi o masă.</p>
+      <p style="margin:8px 0 0">Pentru ce gătești acasă, ciorbă, sarmale, tocăniță, folosești „+ Mâncare gătită": pui ingredientele cu carbohidrați, cântărești oala, iar aplicația calculează câți carbohidrați are mâncarea la 100 g. O rețetă se poate trimite și pe telefonul celuilalt, ca să nu o scrieți de două ori.</p>
     </div>
 
     <div class="card"><h2>4 · Statistici</h2>
       <p style="margin:8px 0 0">Imaginea de ansamblu.</p>
       <p style="margin:8px 0 0">Alegi perioada sus (7, 30 sau 90 de zile) și vezi: media glicemică, HbA1c estimat, variabilitatea (cât de mult oscilează glicemia în jurul mediei), timpul în țintă, mediile pe momentele zilei, dozele tipice de insulină. Pentru discuția cu medicul, mai jos apar ICR și ISF observate.</p><p style="margin:8px 0 0">Bara timpului în țintă arată separat hipoglicemiile ușoare de cele sub <b>54</b>, iar sub ea, cardul <b>Hipoglicemii</b> îți spune câte episoade ai avut, câte noaptea și care a fost cea mai mică valoare.</p>
+      <p style="margin:8px 0 0">Dacă îți notezi analizele <b>HbA1c</b> de la laborator, le vezi tot aici, fiecare alături de estimarea din jurnal pentru cele 90 de zile dinaintea ei.</p>
       <p style="margin:8px 0 0">Dacă notezi și ciclul menstrual, tot aici apare o comparație între zilele de ciclu și restul: media glicemică, timpul în țintă și insulina rapidă pe zi.</p><p style="margin:8px 0 0">Toate sunt rezumate descriptive din datele tale, orientative, nu recomandări.</p>
     </div>
 
@@ -4771,6 +5222,16 @@ function shHelp(){
     ${qa('„HC la 100 g" sau „HC pe porție"? Care din ele?',
       '<p><b>HC la 100 g</b> pentru ce cântărești sau ce are etichetă: pâine, orez, paste, cartofi. Scrii valoarea de pe ambalaj, iar la masă completezi gramele.</p>'+
       '<p><b>HC pe porție</b> pentru ce vine în bucăți de fiecare dată la fel: un iaurt, o napolitană, un sandviș de la același loc. La masă nu mai cântărești nimic.</p>')}
+    ${qa('Cum notez o mâncare gătită în casă, de exemplu o ciorbă?',
+      '<p><b>Alimente → + Mâncare gătită</b>. Îi dai un nume și adaugi ingredientele care au carbohidrați, cu gramajul lor crud: făina, orezul, cartofii, legumele. Carnea, uleiul și apa nu trebuie trecute, intră oricum în greutatea de la final.</p>'+
+      '<p>După ce e gata, pui oala pe cântar și scrii ce arată, apoi cât cântărește oala goală. Aplicația scade oala, împarte carbohidrații la mâncarea rămasă și îți arată câți sunt la 100 g. Apeși <b>Salvează rețeta</b>, iar la masă o alegi ca pe orice aliment și îi completezi gramele din farfurie.</p>'+
+      '<p>Pentru ce se taie în bucăți egale, o tavă de prăjitură sau un cozonac, alegi <b>În porții egale</b> în loc de cântar.</p>')}
+    ${qa('Am gătit din nou aceeași rețetă. Ce fac?',
+      '<p>Deschizi rețeta din <b>Alimente</b>, schimbi cantitățile dacă ai pus altfel, scrii noua greutate de pe cântar și apeși <b>Salvează rețeta</b>. Greutatea oalei goale rămâne ținută minte.</p>'+
+      '<p>Merită făcut la fiecare gătit: aceeași rețetă iese mai apoasă sau mai scăzută, deci are alți carbohidrați la 100 g. Mesele pe care le-ai notat deja rămân cu valorile de atunci.</p>')}
+    ${qa('Cum trimit o rețetă pe telefonul celuilalt?',
+      '<p>Deschizi rețeta din <b>Alimente</b> și apeși <b>Trimite rețeta pe alt telefon</b>. Se deschide foaia de partajare a telefonului, de unde o trimiți pe WhatsApp, pe e-mail sau cum vrei, ca pe un backup.</p>'+
+      '<p>Pe celălalt telefon salvezi fișierul primit, apoi în <b>Alimente</b> apeși <b>Primește o rețetă trimisă de pe alt telefon</b> și îl alegi. Dacă rețeta există deja acolo, e actualizată, nu dublată. Fișierul conține doar rețeta, nimic din jurnal.</p>')}
     ${qa('De ce mi-au fost adunate două mese într-una?',
       '<p>Nu au fost unite: rămân intrări separate. Dacă două mese sunt notate la mai puțin de <b>45 de minute</b> una de alta, aplicația arată dedesubt și un <b>total</b>, pentru că de obicei e vorba de aceeași masă notată în doi pași.</p>')}
 
@@ -4790,7 +5251,14 @@ function shHelp(){
       '<p>Sunt observații asupra propriului tău istoric, nu recomandări. <b>ICR</b> arată câți carbohidrați ai acoperit, în medie, cu o unitate de insulină la masă. <b>ISF</b> arată cu cât ți-a scăzut glicemia, în medie, după o unitate de corecție.</p>'+
       '<p>Sunt utile la discuția cu medicul. <b>Aplicația nu calculează și nu sugerează doze</b>, iar deciziile de tratament se iau doar împreună cu medicul.</p>')}
     ${qa('Cât de exact e HbA1c estimat?',
-      '<p>E o aproximare statistică, din media glicemiilor pe care le-ai notat. Nu înlocuiește analiza de laborator și poate diferi de ea, mai ales dacă notezi puține valori sau mai ales la anumite ore.</p>')}
+      '<p>E o aproximare statistică, din media glicemiilor pe care le-ai notat. Nu înlocuiește analiza de laborator și poate diferi de ea, mai ales dacă notezi puține valori sau mai ales la anumite ore.</p>'+
+      '<p>Dacă îți notezi analizele de laborator, <b>Statistici</b> îți arată la fiecare cu cât a diferit de estimare. Dacă diferența rămâne cam aceeași de la o analiză la alta, știi cum să-ți citești estimarea.</p>')}
+    ${qa('Cum notez analiza HbA1c de la laborator?',
+      '<p>Pe <b>Azi</b> apeși <b>Altele</b>, alegi <b>HbA1c</b> și scrii valoarea din buletin, în procente. Schimbă data cu <b>data recoltării</b>, nu cu ziua în care o notezi: comparația cu estimarea se face pe cele 90 de zile dinaintea recoltării.</p>'+
+      '<p>Analiza apare apoi în <b>Statistici</b>, alături de estimare, și în raportul pentru doctor. Estimarea lângă ea apare doar dacă ai glicemii notate în cel puțin jumătate din acele 90 de zile.</p>')}
+    ${qa('Statisticile spun că am zile fără glicemie, deși notez zilnic',
+      '<p>„Cât de solide sunt cifrele" numără, în perioada aleasă, zilele care au cel puțin o glicemie. Dacă undeva în ultimele 30 sau 90 de zile au lipsit câteva zile, de exemplu după o ștergere sau o restaurare, ele se văd acolo cât timp sunt în perioadă. Nu e o eroare: cifra se reface singură când acele zile ies din perioadă.</p>'+
+      '<p>Ziua de azi intră la socoteală abia după prima glicemie. Până atunci, perioada se socotește pe zilele încheiate, ca dimineața să nu apară o zi lipsă care de fapt abia a început.</p>')}
     ${qa('De ce nu văd încă statistici?',
       '<p>Rezumatele au nevoie de câteva zile de notări ca să însemne ceva. Până atunci, secțiunile îți spun de ce sunt goale, în loc să arate cifre pe care nu te poți sprijini.</p>')}
 
@@ -5001,7 +5469,7 @@ setTimeout(()=>document.documentElement.classList.add('gata'), 350);
 async function adunaJurnalul(){
   if(!JURNAL_IN_IDB) return;
   const m=await idbLoad(IDB_JURNAL);
-  if(m && m.data && Array.isArray(m.data.events)){ S=m.data; return; }
+  if(m && m.data && Array.isArray(m.data.events)){ separaInvalide(m.data); S=m.data; return; }
   /* Marcajul spune „e în IndexedDB", dar acolo nu e nimic citibil. E exact scenariul
      de avarie, tratat ca atare: nu ștergem nimic, nu pornim ca la prima instalare. */
   LOAD_PROBLEM='ilizibil';
@@ -5052,6 +5520,12 @@ function applyUpdate(){
    cu care omul a folosit ultima dată aplicația. La prima instalare nu se arată
    nimic: cine tocmai a intrat n-are ce compara. */
 const NOUTATI=[
+  {v:'v2.1', ce:[
+    'Mâncare gătită: la Alimente, „+ Mâncare gătită". Pui ingredientele cu carbohidrați, cântărești oala, iar aplicația îți spune câți carbohidrați are ciorba, sarmalele sau tocănița la 100 g. La masă o alegi ca pe orice aliment.',
+    'O rețetă se poate trimite pe telefonul celuilalt, prin WhatsApp sau e-mail, ca să nu o scrieți de două ori.',
+    'HbA1c de la laborator: la Altele, „HbA1c". În Statistici și în raportul pentru doctor vezi fiecare analiză lângă estimarea din jurnal și cu cât a diferit.',
+    'Statistici mai clare: dimineața, înainte de prima glicemie, ziua de azi nu mai apare ca zi lipsă, iar cele două cifre de „măsurători pe zi" spun acum fiecare la ce se raportează.'
+  ]},
   {v:'v2.0', ce:[
     'Reparat: ferestrele de 7, 30 și 90 de zile se calculau ca „azi minus N×24 de ore". O zi calendaristică nu are însă mereu 24 de ore — la schimbarea orei are 23 sau 25. Efectul: o fereastră de 90 de zile putea începe la ora 23:00 a zilei dinainte, deci chiar lua în calcul date mai vechi decât perioada. Acum se numără zile, nu ore.',
     'Reparat: aplicația refuza fișierele de import peste 15 MB — adică, la un jurnal de peste cincisprezece ani, își refuza propriul backup. Limita e acum 200 MB.',
