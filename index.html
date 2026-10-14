@@ -1032,6 +1032,27 @@ h3.antet .placuta.alb{color:#fff}
 /* ===== v2.9: codul QR ===== */
 .qrcutie{background:#fff; border-radius:16px; padding:10px; margin:4px auto 0; width:min(100%, 280px); box-shadow:0 2px 10px rgba(18,36,46,.12); border:1px solid var(--line)}
 .qrsvg{display:block; width:100%; height:auto; image-rendering:pixelated}
+
+/* ===== v2.10: mișcare ===== */
+@keyframes intraDr{from{transform:translateX(26px); opacity:.35} to{transform:none; opacity:1}}
+@keyframes intraSt{from{transform:translateX(-26px); opacity:.35} to{transform:none; opacity:1}}
+.view.intra-dr{animation:intraDr .26s cubic-bezier(.2,.8,.25,1) both}
+.view.intra-st{animation:intraSt .26s cubic-bezier(.2,.8,.25,1) both}
+#histzile.zi-vechi{animation:intraSt .26s cubic-bezier(.2,.8,.25,1) both}
+#histzile.zi-noua{animation:intraDr .26s cubic-bezier(.2,.8,.25,1) both}
+@keyframes ziMarg{0%,100%{transform:none} 35%{transform:translateX(8px)} 70%{transform:translateX(-4px)}}
+#histzile.zimarg{animation:ziMarg .3s ease-out}
+#histzile .dayhead{touch-action:pan-y}
+.hjump .zibtn{flex:none; width:40px; height:40px; border-radius:50%; border:1px solid var(--line); background:var(--card); color:var(--ink); font-size:22px; font-weight:700; line-height:1; display:inline-flex; align-items:center; justify-content:center}
+@media (prefers-reduced-motion:reduce){ .view.intra-dr, .view.intra-st, #histzile.zi-vechi, #histzile.zi-noua, #histzile.zimarg{animation:none} }
+/* bara de sus: nuanța momentului, sub text (z-index:-1 în contextul barei) */
+#topbar::after{content:""; position:absolute; inset:0; z-index:-1; pointer-events:none; opacity:0; transition:opacity .6s ease;
+  background:linear-gradient(100deg, transparent 30%, var(--tbt, transparent))}
+#topbar[data-m]::after{opacity:1}
+#topbar[data-m="dim"]{--tbt:rgba(240,168,48,.26)}
+#topbar[data-m="pranz"]{--tbt:rgba(51,173,169,.22)}
+#topbar[data-m="cina"]{--tbt:rgba(214,120,40,.30)}
+#topbar[data-m="noapte"]{--tbt:rgba(98,110,220,.30)}
 </style>
 </head>
 <body>
@@ -1194,8 +1215,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       <button class="mrow" onclick="shUpdate()"><span class="ico" aria-hidden="true" style="--mc:#3E9E6B"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M19.4 12a7.4 7.4 0 0 1-12.8 5" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" opacity=".7"/><path d="M4.6 12a7.4 7.4 0 0 1 12.8-5" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round"/><path d="M18.6 3.4v4.4h-4.4" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.4 20.6v-4.4h4.4" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/></svg></span><span>Adu versiunea nouă<small>Dacă tocmai a apărut o actualizare și încă nu a ajuns la tine</small></span></button>
       <button class="mrow" onclick="shDiag()"><span class="ico" aria-hidden="true" style="--mc:#6B7A85"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M19.6 4.8a5 5 0 0 1-6.6 6.4l-6.6 6.6a2 2 0 1 1-2.8-2.8l6.6-6.6a5 5 0 0 1 6.4-6.6l-3 3 .6 2.4 2.4.6z" fill="#fff"/><circle cx="5" cy="19" r=".9" fill="currentColor"/></svg></span><span>Diagnostic tehnic<small>Starea instalării, util dacă ceva nu merge</small></span></button>
     </div>
-    <p class="muted" style="padding:0 6px">Nivelo v2.9 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
-      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v2.9%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
+    <p class="muted" style="padding:0 6px">Nivelo v2.10 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
+      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v2.10%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
   </section>
 </main>
 
@@ -1284,7 +1305,7 @@ var PORNIT = false, ULTIMA_EROARE = null;
 })();
 
 /* ================= STOCARE ================= */
-const APP_VER='v2.9';
+const APP_VER='v2.10';
 /* Android citește manifestul — numele, iconița, scurtăturile — o singură dată, la
    instalare, și îl păstrează așa până la reinstalare. Codul se actualizează singur,
    configurarea nu. De aceea ținem minte când s-a schimbat ultima dată configurarea:
@@ -2061,11 +2082,37 @@ function histLastDose(name){
   return ''; }
 
 /* ================= NAVIGARE ================= */
+/* Tranziția între ecrane (v2.10): ecranul nou intră alunecând din partea tabului ales
+   (spre dreapta când mergi spre Statistici, spre stânga când te întorci). Schimbarea
+   ecranului rămâne SINCRONĂ, ca până acum — tot ce vine după `go()` găsește deja ecranul
+   nou —, iar mișcarea e doar un strat de animație peste el, doar pe orizontală (pozițiile
+   pe verticală, de care depinde râul glicemiei, nu se schimbă). Fără animație la mișcare
+   redusă, la același ecran sau la prima afișare. */
+let ECRAN_CURENT='today';   // ecranul de pornire
+/* Bara de sus după momentul zilei (v2.10): o nuanță discretă spre dreapta — caldă
+   dimineața, neutră la prânz, chihlimbarie seara, albastru închis noaptea —, după
+   momentele din cronologie (`daypart`); între 00 și 05 e noapte, nu dimineață. Doar un strat de culoare sub text; stânga barei
+   rămâne culoarea de dinainte, deci se potrivește cu bara de stare a telefonului. */
+function momentBara(){
+  try{ const h=new Date().getHours();
+       // ca momentele din cronologie, cu o excepție: în cronologie orele dinainte de 05 țin de „Dimineața";
+       // pentru culoarea barei, la 3 noaptea e noapte
+       const m = h<5 ? 'noapte' : ({'Dimineața':'dim','Prânz':'pranz','Cină':'cina','Seara / noaptea':'noapte'}[daypart(Date.now())]||'pranz');
+       const t=$('topbar'); if(t && t.dataset.m!==m) t.dataset.m=m; }catch(e){}
+}
 function go(v){
+  const ordine=['today','hist','foods','stats','more'];
+  const deLa=ECRAN_CURENT, i0=ordine.indexOf(deLa), i1=ordine.indexOf(v);
+  ECRAN_CURENT=v;
   if(v!=='today'){ DIAL_PCT=null; RAU_ANIMAT=false; }   // la revenire, arcul se desenează din nou de la zero
   if(v!=='stats') STATS_PREV=null;
-  document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.view').forEach(x=>{ x.classList.remove('on','intra-dr','intra-st'); });
   $('v-'+v).classList.add('on');
+  if(deLa && deLa!==v && i0>=0 && i1>=0 && !miscareRedusa()){
+    const el=$('v-'+v); void el.offsetWidth;            // repornește animația, chiar și la ecranul vizitat de curând
+    el.classList.add(i1>i0 ? 'intra-dr' : 'intra-st');
+    clearTimeout(el._intra); el._intra=setTimeout(()=>el.classList.remove('intra-dr','intra-st'), 320);
+  }
   const taburi=[...document.querySelectorAll('#tabs button')];
   /* .on marchează tabul curent vizual; aria-current îl marchează și pentru un cititor
      de ecran, care altfel ar citi cele cinci taburi la fel și n-ar spune pe care ești. */
@@ -3839,12 +3886,40 @@ function reimprospateaza(id){
 }
 function hFilt(v){ HFILT=v; HIST_SHOWN=HIST_PAS; SEARCH_SHOWN=SEARCH_PAGE; renderHist(); reimprospateaza('histbody'); }
 function hJump(v){ HIST_FROM=v||''; HIST_SHOWN=HIST_PAS; renderHist(); }
+/* Glisarea între zile (v2.10). Pe antetul unei zile din Istoric: tragi spre dreapta → ziua
+   de dinainte ajunge sus; spre stânga → ziua de după (ca într-un calendar). Se sare doar
+   între zilele care au ceva de arătat la filtrul ales. Folosește exact „Sari la", deci lista,
+   tranșele și râul se construiesc la fel ca acolo. Aceleași două mișcări sunt și butoane
+   (‹ ›) lângă „Sari la", pentru cine nu glisează sau folosește un cititor de ecran. */
+function zileCuDate(){ return [...new Set(S.events.filter(hKeep).map(e=>dKey(e.ts)))].sort().reverse(); }
+function ziVecina(k, sens){                     // sens -1 = mai veche, +1 = mai nouă
+  const z=zileCuDate(), i=z.indexOf(k);
+  if(i<0) return undefined;
+  const j=i-sens; if(j<0 || j>=z.length) return undefined;
+  return z[j];
+}
+function sariZi(k, sens){
+  const t=ziVecina(k, sens); if(t===undefined){ const el=$('histzile'); if(el && !miscareRedusa()){ el.classList.remove('zimarg'); void el.offsetWidth; el.classList.add('zimarg'); } return; }
+  const z=zileCuDate();
+  if(t===z[0]) hJumpClear(); else hJump(t);
+  const el=$('histzile');
+  if(el){ if(!miscareRedusa()){ el.classList.add(sens<0?'zi-vechi':'zi-noua'); setTimeout(()=>el.classList.remove('zi-vechi','zi-noua'), 300); }
+    try{ const top=$('histbody').getBoundingClientRect().top+scrollY-(parseInt(getComputedStyle(document.documentElement).getPropertyValue('--topbar'),10)||48)-8; if(scrollY>top) window.scrollTo(0, Math.max(0,top)); }catch(e){} }
+}
+function ziSus(){ const h=document.querySelector('#histzile .dayhead'); return h ? h.dataset.k : null; }
+let ZI_TRAG=null;
+document.addEventListener('touchstart', ev=>{ const h=ev.target.closest && ev.target.closest('#histzile .dayhead'); ZI_TRAG = (h && ev.touches.length===1) ? {k:h.dataset.k, x:ev.touches[0].clientX, y:ev.touches[0].clientY} : null; }, {passive:true});
+document.addEventListener('touchend', ev=>{ const z=ZI_TRAG; ZI_TRAG=null; if(!z || !ev.changedTouches.length) return;
+  const dx=ev.changedTouches[0].clientX-z.x, dy=ev.changedTouches[0].clientY-z.y;
+  if(Math.abs(dx)>=60 && Math.abs(dx)>Math.abs(dy)*1.5) sariZi(z.k, dx>0 ? -1 : +1); }, {passive:true});
 function hJumpClear(){ HIST_FROM=''; HIST_SHOWN=HIST_PAS; renderHist(); }
 function hJumpRow(){
   const azi=dKey(Date.now());
   return `<div class="hjump">
     <label for="hdate">Sari la</label>
     <input class="inp" type="date" id="hdate" max="${azi}" value="${HIST_FROM}" onchange="hJump(this.value)">
+    <button class="zibtn" aria-label="Ziua de dinainte" onclick="const k=ziSus(); if(k) sariZi(k,-1)">‹</button>
+    <button class="zibtn" aria-label="Ziua de după" onclick="const k=ziSus(); if(k) sariZi(k,+1)">›</button>
     ${HIST_FROM?`<button class="chip" onclick="hJumpClear()">Înapoi la zi</button>`:''}
   </div>`;
 }
@@ -3908,7 +3983,7 @@ function zileHtml(days){
     const avg=dg.length?Math.round(dg.reduce((a,b)=>a+b,0)/dg.length):null;
     const hc=de.filter(x=>x.type==='meal').reduce((a,x)=>a+(x.meal.hc||0),0);
     const meta=[avg?('medie '+avg):'', hc>0?(fmtHC(hc)+' HC'):''].filter(Boolean).join(' · ');
-    html+=`<div class="dayhead"><span>${dNice(de[0].ts)}</span><span class="muted num">${meta}</span></div>`;
+    html+=`<div class="dayhead" data-k="${k}"><span>${dNice(de[0].ts)}</span><span class="muted num">${meta}</span></div>`;
     html+= rauActiv() ? '<div class="rau">'+dayGroupedHtml(de)+'</div>' : dayGroupedHtml(de);
   });
   return html;
@@ -4340,7 +4415,7 @@ function shTrimite(fid){
     ${qr?`<div class="qrcutie">${qr.svg}</div>
       <p style="margin:10px 0 4px; text-align:center">Deschide <b>camera</b> pe celălalt telefon, îndreapt-o spre cod și atinge linkul care apare.</p>`
       :`<p style="margin:0 0 6px">${f.reteta?'Rețeta are prea multe ingrediente pentru un cod QR ușor de citit de pe ecran.':'Numele e prea lung pentru un cod QR ușor de citit.'} Trimite linkul${f.reteta?' sau fișierul':''} de mai jos.</p>`}
-    <p class="muted qrunde" style="margin:6px 0 14px; text-align:center; font-size:calc(12px*var(--fs))">Se deschide în Nivelo de la ${esc(unde)}. Celălalt telefon trebuie să folosească aceeași adresă.</p>
+    <p class="muted qrunde" style="margin:6px 0 14px; text-align:center; font-size:calc(12px*var(--fs))">Se deschide în Nivelo de la ${esc(unde)}.</p>
     <button class="btn btn-p" onclick="trimiteLink('${f.id}')">Trimite linkul (WhatsApp, e-mail…)</button>
     ${f.reteta?`<button class="btn btn-g" onclick="trimiteReteta('${f.id}')">Trimite ca fișier</button>`:''}
     <button class="btn btn-g" onclick="closeSheet2()">Închide</button>`);
@@ -4729,10 +4804,38 @@ function ziuaTipicaHtml(g){
     <details class="expl"><summary>Ce înseamnă?</summary><p class="muted" style="margin:6px 0 0">Toate zilele din perioadă puse una peste alta, pe aceleași ore. Linia e valoarea tipică (mediana) la fiecare oră, banda închisă cuprinde jumătatea din mijloc a măsurătorilor, cea deschisă 8 din 10. Unde ai măsurat prea rar (sub 8 măsurători în jurul acelei ore), graficul rămâne gol: o curbă acolo ar fi ghicită. Banda verde e ținta ta.</p></details>
   </div>`;
 }
+/* Cifrele care curg (v2.10): la schimbarea perioadei din butoanele 7 / 30 / 90, fiecare
+   cifră pornește de la valoarea veche și ajunge la cea nouă în ~0,45 s. Doar desen: ecranul
+   se scrie direct cu valorile noi, exacte, iar animația doar le arată pe drum și pune la
+   final exact același text. Pornește DOAR din butoanele de perioadă (`NR_ANIM`), deci orice
+   altă randare (pornire, salvare, teste) are cifrele finale imediat. */
+var NR_ANIM=false; let NR_TOKEN=0;
+function nrCheie(b){ const st=b.closest('.stat'); if(st){ const sp=st.querySelector('span'); return 'stat:'+(sp?sp.textContent:''); }
+  if(b.closest('.tirkpi')) return 'kpi'; const lg=b.closest('.tirlegend > div'); if(lg) return 'leg:'+lg.textContent.replace(/[\d,<%&lt;\s]+$/,'').replace(/\s+/g,' ').trim(); return null; }
+function nrCiteste(t){ const m=String(t).trim().match(/^(-?\d+(?:,\d+)?)(%?)$/); if(!m) return null; return {v:parseFloat(m[1].replace(',','.')), zec:(m[1].split(',')[1]||'').length, pr:m[2]}; }
+function nrNoduri(){ return [...document.querySelectorAll('#statsbody .stat b.num, #statsbody .tirkpi b, #statsbody .tirlegend b')].map(b=>{ const n=[...b.childNodes].find(x=>x.nodeType===3 && x.nodeValue.trim()); return n?{k:nrCheie(b), n}:null; }).filter(x=>x&&x.k); }
+function nrColecteaza(){ const m=new Map(); nrNoduri().forEach(({k,n})=>{ if(!m.has(k)) m.set(k, n.nodeValue.trim()); }); return m; }
+function nrAnimeaza(vechi){
+  if(!vechi || miscareRedusa() || typeof requestAnimationFrame!=='function') return;
+  const tok=++NR_TOKEN, lista=[];
+  nrNoduri().forEach(({k,n})=>{ const a=nrCiteste(vechi.get(k)||''), fin=n.nodeValue, b=nrCiteste(fin); if(a && b && a.v!==b.v && a.pr===b.pr) lista.push({n, a, b, fin}); });
+  if(!lista.length) return;
+  const t0=performance.now(), D=450;
+  const pas=now=>{
+    if(tok!==NR_TOKEN) return;                          // a venit o randare nouă: ne oprim
+    const x=Math.min(1,(now-t0)/D), e=1-Math.pow(1-x,3);
+    lista.forEach(o=>{ if(!o.n.isConnected) return; if(x>=1){ o.n.nodeValue=o.fin; return; }
+      const v=o.a.v+(o.b.v-o.a.v)*e; o.n.nodeValue=v.toFixed(o.b.zec).replace('.',',')+o.b.pr; });
+    if(x<1) requestAnimationFrame(pas);
+  };
+  lista.forEach(o=>{ o.n.nodeValue=o.a.v.toFixed(o.b.zec).replace('.',',')+o.b.pr; });
+  requestAnimationFrame(pas);
+}
 function renderStats(){
+  const NR_VECHI = NR_ANIM ? nrColecteaza() : null; NR_ANIM=false;
   urmarestePerioada();
   $('periodChips').innerHTML=[7,30,90].map(p=>
-    `<button class="chip ${PERIOD===p?'on':''}" aria-pressed="${PERIOD===p?'true':'false'}" onclick="PERIOD=${p};AGP_ANIM=true;renderStats()">${p} zile</button>`).join('');
+    `<button class="chip ${PERIOD===p?'on':''}" aria-pressed="${PERIOD===p?'true':'false'}" onclick="PERIOD=${p};AGP_ANIM=true;NR_ANIM=true;renderStats()">${p} zile</button>`).join('');
   const d0=new Date(); d0.setHours(0,0,0,0);
   const W=fereastraPerioadei(PERIOD, d0), from=W.from;
   const evs=S.events.filter(e=>e.ts>=from && e.ts<W.to);
@@ -5008,6 +5111,7 @@ function renderStats(){
   }
   if(AGP_ANIM){ const c=document.querySelector('#statsbody .agpcard'); if(c) c.classList.add('deseneaza'); }
   AGP_ANIM=false;
+  if(NR_VECHI) nrAnimeaza(NR_VECHI);
 }
 </script>
 
@@ -6725,6 +6829,7 @@ function shGuide(){
       <p style="margin:8px 0 0">Tot ce ai notat vreodată, pe zile.</p>
       <p style="margin:8px 0 0">Sus e o bară de căutare: scrii „pâine" sau „kebab" și vezi toate dățile când ai mâncat acel lucru. Atingi o masă din rezultate și vezi contextul: ce glicemii ai avut înainte și după, ce insulină.</p>
       <p style="margin:8px 0 0">Util când vrei să-ți amintești ce ai făcut data trecută într-o situație similară.</p>
+      <p style="margin:8px 0 0">De la o zi la alta treci trăgând cu degetul pe rândul cu data, sau cu butoanele ‹ › de lângă „Sari la".</p>
     </div>
 
     <div class="card ghid" style="--gc:#D2584B"><h2>${ghidIco('foods')}<span>3 · Alimente</span></h2>
@@ -6825,7 +6930,7 @@ function shHelp(){
     ${qa('Cum trimit un aliment sau o rețetă pe telefonul celuilalt?',
       '<p>La <b>Alimente</b> deschizi alimentul sau rețeta și apeși <b>Trimite pe alt telefon</b>. Apare un <b>cod QR</b>: pe celălalt telefon deschizi <b>camera</b> obișnuită, o îndrepți spre cod și atingi linkul care apare. Se deschide Nivelo, care arată ce ai primit; intră în bibliotecă doar după ce apeși <b>Adaugă</b>. Dacă există deja un aliment cu același nume, e actualizat, nu dublat, iar mesele deja notate rămân neschimbate.</p>'+
       '<p>Când nu sunteți unul lângă altul, apeși <b>Trimite linkul</b> și îl trimiți pe WhatsApp sau pe e-mail. Rețetele foarte mari nu încap într-un cod ușor de scanat: pentru ele rămân linkul și <b>Trimite ca fișier</b>.</p>'+
-      '<p>Linkul conține doar alimentul, nimic din jurnal, iar partea cu alimentul nu ajunge la niciun server. Linkul deschide Nivelo de la adresa celui care trimite, deci celălalt telefon trebuie să folosească aceeași adresă (scrie pe ecran care e).</p>')}
+      '<p>Linkul conține doar alimentul, nimic din jurnal, iar partea cu alimentul nu ajunge la niciun server. Linkul deschide Nivelo de la adresa celui care trimite (scrie pe ecran care e). Beta și versiunea obișnuită stau pe același site, deci alimentul ajunge în jurnalul celuilalt oricum. Când beta e înaintea versiunii obișnuite, e mai prudent să trimiți din versiunea obișnuită: altfel se deschide la celălalt codul din beta.</p>')}
     ${qa('Am atins linkul, dar nu s-a deschis aplicația',
       '<p>Se întâmplă mai ales pe iPhone, unde linkul se deschide în Safari, nu în aplicația de pe ecran. Copiază linkul, deschide Nivelo și mergi la <b>Alimente → Primește un aliment sau o rețetă</b>: lipești linkul acolo și apeși <b>Vezi ce am primit</b>. Merge la fel și cu un fișier de rețetă.</p>')}
     ${qa('De ce mi-au fost adunate două mese într-una?',
@@ -6847,6 +6952,9 @@ function shHelp(){
       '<p>Sunt o mână de ajutor pentru ochi, după cifra scrisă pe pastilă: <b>un punct</b> până la 10 HC, <b>două</b> până la 30, <b>trei</b> peste 30. Cifra e cea de pe pastilă, deci la 100 g sau pe porție, cum scrie dedesubt. Nu e o judecată: nicio treaptă nu e „bună" sau „rea", arată doar cât de mult e.</p>')}
     ${qa('Ce valori pot scrie la glicemie și la insulină?',
       '<p>În câmp nu se poate scrie mai mult de <b>1000</b>: o cifră în plus pur și simplu nu apare. La salvare, glicemia trebuie să fie între <b>20 și 900 mg/dl</b>, iar insulina peste 0 și cel mult <b>80 U</b>. Valorile din afara acestor limite sunt aproape sigur o greșeală de tastare.</p>')}
+    ${qa('Cum trec repede de la o zi la alta în Istoric?',
+      '<p>Trage cu degetul spre dreapta pe antetul unei zile (rândul cu data): sus ajunge ziua de dinainte. Spre stânga: ziua de după. Același lucru fac butoanele <b>‹</b> și <b>›</b> de lângă <b>Sari la</b>. Se sare doar între zilele care au ceva notat, iar dacă ai ales un filtru (de exemplu <b>Glicemie</b>), doar între zilele cu glicemii.</p>'+
+      '<p>Pe carduri, glisarea rămâne cea de dinainte: spre stânga pentru Șterge, spre dreapta pentru Modifică.</p>')}
     ${qa('Cum șterg sau modific mai repede o intrare?',
       '<p>Pe <b>Azi</b> sau în <b>Istoric</b>, trage cardul spre stânga: apare <b>Șterge</b>, iar la ridicarea degetului ți se cere confirmarea, cu anulare după, ca până acum. Spre dreapta: <b>Modifică</b>. Dacă tragi puțin și te răzgândești, cardul revine și nu se întâmplă nimic.</p>')}
     ${qa('Cum închid o fereastră?',
@@ -7176,6 +7284,12 @@ function applyUpdate(){
    cu care omul a folosit ultima dată aplicația. La prima instalare nu se arată
    nimic: cine tocmai a intrat n-are ce compara. */
 const NOUTATI=[
+  {v:'v2.10', ce:[
+    'Ecranele alunecă: când alegi o secțiune din bara de jos, ecranul nou intră din partea în care e butonul ei.',
+    'În Statistici, la schimbarea perioadei (7, 30, 90 de zile), cifrele curg de la valoarea veche la cea nouă, ca să vezi încotro s-au mișcat. Valorile de la final sunt exact aceleași.',
+    'În Istoric treci de la o zi la alta trăgând cu degetul pe antetul zilei (spre dreapta, ziua de dinainte; spre stânga, cea de după) sau cu butoanele ‹ › de lângă „Sari la".',
+    'Bara de sus își schimbă discret nuanța după momentul zilei: caldă dimineața, chihlimbarie seara, albastru închis noaptea.'
+  ]},
   {v:'v2.9', ce:[
     'Orice aliment sau rețetă se poate trimite pe alt telefon printr-un cod QR: deschizi alimentul la Alimente, apeși „Trimite pe alt telefon", iar celălalt scanează codul cu camera telefonului și atinge linkul. Nivelo arată ce s-a primit și îl adaugă doar după ce apeși „Adaugă".',
     'Același link se poate trimite și pe WhatsApp sau e-mail. Dacă linkul nu deschide aplicația, îl lipești la Alimente → „Primește un aliment sau o rețetă".',
@@ -7695,6 +7809,8 @@ if('serviceWorker' in navigator && location.protocol==='https:'){
   }).catch(()=>{});
 }
 PORNIT = true;   // de aici încolo, o eroare nu mai ia ecranul în primire
+momentBara(); setInterval(momentBara, 60000);
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) momentBara(); });
 setTimeout(()=>{ try{ verificaLinkPrimit(); }catch(e){} }, 300);
 requestAnimationFrame(()=>{ try{ if(window.introPleaca) window.introPleaca(); }catch(e){} });
 setTimeout(()=>{ try{ checkWhatsNew(); }catch(e){} }, 900);
