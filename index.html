@@ -841,7 +841,18 @@ html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28;
   body{background:#fff}
   #report{display:block !important; font-size:calc(12px*var(--fs)); color:#000; padding:6mm}
   #report h1{font-size:calc(20px*var(--fs)); margin-bottom:2px}
-  #report h2{font-size:calc(14px*var(--fs)); margin:14px 0 6px; border-bottom:2px solid #000; padding-bottom:3px}
+  #report h2{font-size:calc(14px*var(--fs)); margin:14px 0 6px; border-bottom:2px solid #0E7C7B; padding-bottom:4px}
+  /* v2.8: aceleași plăcuțe ca în aplicație; pe hârtie, culorile se tipăresc doar cu print-color-adjust */
+  #report h2.rh{display:flex; align-items:center; gap:8px}
+  #report .plac{--ps:22px; box-shadow:none; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+  #report .plac svg{width:66%; height:66%}
+  #report .rtitlu{display:flex; align-items:center; gap:10px; margin-bottom:2px}
+  #report .rtitlu h1{margin:0}
+  #report .plac.rlogo{--ps:40px; border-radius:11px}
+  #report .rztiles > div{background:#F2F6F7; border-color:#DDE6E9; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+  #report .rzbar{height:18px; border-radius:9px; box-shadow:inset 0 0 0 1px rgba(18,36,46,.08)}
+  #report .rzbar > div{background-image:linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,0) 55%, rgba(0,0,0,.08)) !important}
+  #report .rzbar > div + div{box-shadow:inset 1.5px 0 0 rgba(255,255,255,.7)}
   #report table{width:100%; border-collapse:collapse; margin-top:4px}
   #report th,#report td{border:1px solid #999; padding:3px 6px; text-align:left; vertical-align:top}
   #report th{background:#eee}
@@ -1000,6 +1011,22 @@ body:has(#updbar.on) #undobar.on{bottom:calc(150px + env(safe-area-inset-bottom)
 #banner button, #savefail button, #quotawarn button{background:var(--petrol); color:#fff !important; border-radius:99px; padding:8px 15px !important; margin-top:9px; min-height:40px; text-align:center}
 #savefail button + button{background:transparent; color:var(--petrol) !important; box-shadow:inset 0 0 0 1.5px var(--petrol)}
 html[data-theme="dark"] #savefail button + button{color:#7FD6D3 !important; box-shadow:inset 0 0 0 1.5px #7FD6D3}
+
+/* ===== v2.8 ===== */
+/* Alimente: pastila HC în trei trepte, pe culoarea carbohidraților (cea a mesei), plus trei puncte */
+.fooditem .hcb.hc1{background:color-mix(in srgb, var(--hc) 10%, var(--card)); border-color:color-mix(in srgb, var(--hc) 22%, var(--line))}
+.fooditem .hcb.hc2{background:color-mix(in srgb, var(--hc) 20%, var(--card)); border-color:color-mix(in srgb, var(--hc) 38%, var(--line))}
+.fooditem .hcb.hc3{background:color-mix(in srgb, var(--hc) 32%, var(--card)); border-color:color-mix(in srgb, var(--hc) 55%, var(--line))}
+.fooditem .hcb.hc1 b, .fooditem .hcb.hc2 b, .fooditem .hcb.hc3 b{color:var(--hc-ink)}
+.fooditem .hcb.hc1 small, .fooditem .hcb.hc2 small, .fooditem .hcb.hc3 small{color:color-mix(in srgb, var(--hc-ink) 75%, var(--ink-soft))}
+.hcd{display:flex; justify-content:center; gap:3px; margin-top:3px}
+.hcd i{width:5px; height:5px; border-radius:50%; background:color-mix(in srgb, var(--hc) 25%, transparent)}
+.hc1 .hcd i:nth-child(-n+1), .hc2 .hcd i:nth-child(-n+2), .hc3 .hcd i{background:var(--hc)}
+/* Lista de început: fiecare pas cu plăcuța lui; pasul făcut devine bifa verde */
+#quickstart li .mk.plac{--ps:30px; width:30px; height:30px; border:0; color:var(--mc);
+  background:linear-gradient(150deg, color-mix(in srgb, var(--mc) 78%, #fff), var(--mc) 55%, color-mix(in srgb, var(--mc) 78%, #000))}
+#quickstart li.done .mk.plac{--mc:#3E9E6B}
+#quickstart li.done .mk.plac svg{opacity:1}
 </style>
 </head>
 <body>
@@ -1154,8 +1181,8 @@ html[data-theme="dark"] #savefail button + button{color:#7FD6D3 !important; box-
       <button class="mrow" onclick="shUpdate()"><span class="ico" aria-hidden="true" style="--mc:#3E9E6B"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M19.4 12a7.4 7.4 0 0 1-12.8 5" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" opacity=".7"/><path d="M4.6 12a7.4 7.4 0 0 1 12.8-5" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round"/><path d="M18.6 3.4v4.4h-4.4" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.4 20.6v-4.4h4.4" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/></svg></span><span>Adu versiunea nouă<small>Dacă tocmai a apărut o actualizare și încă nu a ajuns la tine</small></span></button>
       <button class="mrow" onclick="shDiag()"><span class="ico" aria-hidden="true" style="--mc:#6B7A85"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M19.6 4.8a5 5 0 0 1-6.6 6.4l-6.6 6.6a2 2 0 1 1-2.8-2.8l6.6-6.6a5 5 0 0 1 6.4-6.6l-3 3 .6 2.4 2.4.6z" fill="#fff"/><circle cx="5" cy="19" r=".9" fill="currentColor"/></svg></span><span>Diagnostic tehnic<small>Starea instalării, util dacă ceva nu merge</small></span></button>
     </div>
-    <p class="muted" style="padding:0 6px">Nivelo v2.7 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
-      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v2.7%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
+    <p class="muted" style="padding:0 6px">Nivelo v2.8 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
+      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v2.8%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
   </section>
 </main>
 
@@ -1244,7 +1271,7 @@ var PORNIT = false, ULTIMA_EROARE = null;
 })();
 
 /* ================= STOCARE ================= */
-const APP_VER='v2.7';
+const APP_VER='v2.8';
 /* Android citește manifestul — numele, iconița, scurtăturile — o singură dată, la
    instalare, și îl păstrează așa până la reinstalare. Codul se actualizează singur,
    configurarea nu. De aceea ținem minte când s-a schimbat ultima dată configurarea:
@@ -2192,12 +2219,13 @@ function ghidIco(v){ try{ const x=document.querySelector('#tabs button[data-v="'
 /* Plăcuțele (v2.7): același desen alb pe degradeul culorii, oriunde în aplicație — mesaje,
    confirmări, ecrane goale, turul de început. `placuta(cheie, mărime)`; cheile de bara de
    jos (today, hist, foods, stats, more) iau desenul chiar din bară. */
-const PLACUTE={"warn": ["#D9922B", "<svg viewBox=\"0 0 24 24\"><path d=\"M12 3.2c.7 0 1.3.4 1.6 1l7.6 13.6c.7 1.2-.2 2.6-1.6 2.6H4.4c-1.4 0-2.3-1.4-1.6-2.6L10.4 4.2c.3-.6.9-1 1.6-1z\" fill=\"#fff\"/><rect x=\"10.9\" y=\"8.4\" width=\"2.2\" height=\"6.2\" rx=\"1.1\" fill=\"currentColor\"/><circle cx=\"12\" cy=\"17.2\" r=\"1.3\" fill=\"currentColor\"/></svg>"], "trash": ["#C2554A", "<svg viewBox=\"0 0 24 24\"><rect x=\"3.6\" y=\"5.2\" width=\"16.8\" height=\"2.6\" rx=\"1.3\" fill=\"#fff\"/><path d=\"M9.4 5.2V4a1.2 1.2 0 0 1 1.2-1.2h2.8A1.2 1.2 0 0 1 14.6 4v1.2\" fill=\"none\" stroke=\"#fff\" stroke-width=\"1.8\"/><path d=\"M5.6 9h12.8l-1 10.6a2 2 0 0 1-2 1.8H8.6a2 2 0 0 1-2-1.8z\" fill=\"#fff\"/><path d=\"M10 11.6v6.4M14 11.6v6.4\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" opacity=\".6\"/></svg>"], "check": ["#3E9E6B", "<svg viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"12\" r=\"8.8\" fill=\"#fff\"/><path d=\"M7.8 12.4l2.9 2.9 5.6-6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>"], "phone": ["#7A62B8", "<svg viewBox=\"0 0 24 24\"><rect x=\"7.6\" y=\"2.8\" width=\"8.8\" height=\"18.4\" rx=\"2.2\" fill=\"#fff\"/><rect x=\"10.4\" y=\"18\" width=\"3.2\" height=\"1.4\" rx=\".7\" fill=\"currentColor\" opacity=\".6\"/><path d=\"M4.6 8.4v7.2M2.6 10v4M19.4 8.4v7.2M21.4 10v4\" stroke=\"#fff\" stroke-width=\"1.7\" stroke-linecap=\"round\" opacity=\".8\"/></svg>"], "search": ["#4F7FB0", "<svg viewBox=\"0 0 24 24\"><circle cx=\"10.6\" cy=\"10.6\" r=\"6.4\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.6\"/><circle cx=\"10.6\" cy=\"10.6\" r=\"4.2\" fill=\"#fff\" opacity=\".35\"/><path d=\"M15.4 15.4l4.8 4.8\" stroke=\"#fff\" stroke-width=\"2.8\" stroke-linecap=\"round\"/></svg>"], "cal": ["#4F7FB0", "<svg viewBox=\"0 0 24 24\"><rect x=\"3.6\" y=\"5\" width=\"16.8\" height=\"15.4\" rx=\"2.4\" fill=\"#fff\"/><path d=\"M3.6 9.4h16.8\" stroke=\"currentColor\" stroke-width=\"1.4\" opacity=\".5\"/><rect x=\"7.2\" y=\"2.8\" width=\"2\" height=\"4.4\" rx=\"1\" fill=\"#fff\"/><rect x=\"14.8\" y=\"2.8\" width=\"2\" height=\"4.4\" rx=\"1\" fill=\"#fff\"/><rect x=\"7\" y=\"12\" width=\"3\" height=\"2.6\" rx=\".6\" fill=\"currentColor\" opacity=\".55\"/><rect x=\"11\" y=\"12\" width=\"3\" height=\"2.6\" rx=\".6\" fill=\"currentColor\" opacity=\".55\"/><rect x=\"7\" y=\"15.8\" width=\"3\" height=\"2.6\" rx=\".6\" fill=\"currentColor\" opacity=\".55\"/></svg>"], "undo": ["#4F9F9B", "<svg viewBox=\"0 0 24 24\"><path d=\"M9 6.4L4.6 10.8 9 15.2\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M5.2 10.8h9a5 5 0 0 1 0 10h-3\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.4\" stroke-linecap=\"round\"/></svg>"], "backup": ["#0E7C7B", "<svg viewBox=\"0 0 24 24\"><path d=\"M5.2 3.6h10.9l3.7 3.7v11.5a1.6 1.6 0 0 1-1.6 1.6H5.2a1.6 1.6 0 0 1-1.6-1.6V5.2a1.6 1.6 0 0 1 1.6-1.6z\" fill=\"#fff\"/><rect x=\"7.2\" y=\"3.6\" width=\"8\" height=\"5.4\" rx=\".8\" fill=\"currentColor\" opacity=\".55\"/><rect x=\"12.2\" y=\"4.6\" width=\"1.8\" height=\"3.4\" rx=\".5\" fill=\"#fff\"/><rect x=\"6.6\" y=\"12.4\" width=\"10.8\" height=\"6.2\" rx=\"1.2\" fill=\"currentColor\" opacity=\".55\"/></svg>"], "import": ["#5B6FB8", "<svg viewBox=\"0 0 24 24\"><path d=\"M3.8 13.4h4.6l1.6 2.6h4l1.6-2.6h4.6v5a2 2 0 0 1-2 2H5.8a2 2 0 0 1-2-2z\" fill=\"#fff\"/><path d=\"M12 3.4v8.4M8.4 8.4L12 12l3.6-3.6\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>"], "update": ["#3E9E6B", "<svg viewBox=\"0 0 24 24\"><path d=\"M19.4 12a7.4 7.4 0 0 1-12.8 5\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.3\" stroke-linecap=\"round\" opacity=\".7\"/><path d=\"M4.6 12a7.4 7.4 0 0 1 12.8-5\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.3\" stroke-linecap=\"round\"/><path d=\"M18.6 3.4v4.4h-4.4\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M5.4 20.6v-4.4h4.4\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" opacity=\".7\"/></svg>"], "guide": ["#E3A12F", "<svg viewBox=\"0 0 24 24\"><path d=\"M2.8 5.4c3-1.4 6.1-1.3 9.2.6v13.6c-3.1-1.9-6.2-2-9.2-.6z\" fill=\"#fff\"/><path d=\"M21.2 5.4c-3-1.4-6.1-1.3-9.2.6v13.6c3.1-1.9 6.2-2 9.2-.6z\" fill=\"#fff\" opacity=\".75\"/><path d=\"M15.6 4.8v6l1.6-1.2 1.6 1.2V4.6\" fill=\"currentColor\" opacity=\".8\"/></svg>"], "about": ["#4F7FB0", "<svg viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"12\" r=\"8.8\" fill=\"#fff\"/><circle cx=\"12\" cy=\"7.8\" r=\"1.5\" fill=\"currentColor\"/><rect x=\"10.8\" y=\"10.4\" width=\"2.4\" height=\"7\" rx=\"1.2\" fill=\"currentColor\"/></svg>"], "csv": ["#4F7FB0", "<svg viewBox=\"0 0 24 24\"><path d=\"M6 2.8h8.4l4.8 4.8v12a1.6 1.6 0 0 1-1.6 1.6H6a1.6 1.6 0 0 1-1.6-1.6V4.4A1.6 1.6 0 0 1 6 2.8z\" fill=\"#fff\"/><path d=\"M14.4 2.8v4.8h4.8\" fill=\"currentColor\" opacity=\".45\"/><path d=\"M7.8 11.6h8.4M7.8 14.6h8.4M7.8 17.6h5.4\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" opacity=\".6\"/></svg>"], "promises": ["#0E7C7B", "<svg viewBox=\"0 0 24 24\"><path d=\"M12 2.8l7 2.8v5.8c0 4.6-2.9 8.2-7 10-4.1-1.8-7-5.4-7-10V5.6z\" fill=\"#fff\"/><path d=\"M8.4 12.2l2.6 2.6 4.8-5.2\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.1\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>"], "privacy": ["#8A6A3E", "<svg viewBox=\"0 0 24 24\"><path d=\"M8 10.2V7.6a4 4 0 0 1 8 0v2.6\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.2\" opacity=\".8\"/><rect x=\"4.8\" y=\"10\" width=\"14.4\" height=\"11\" rx=\"2.6\" fill=\"#fff\"/><circle cx=\"12\" cy=\"14.8\" r=\"1.7\" fill=\"currentColor\"/><rect x=\"11.2\" y=\"15.4\" width=\"1.6\" height=\"3\" rx=\".8\" fill=\"currentColor\"/></svg>"], "stop": ["#C2554A", "<svg viewBox=\"0 0 24 24\"><path d=\"M8.2 2.8h7.6l5.4 5.4v7.6l-5.4 5.4H8.2l-5.4-5.4V8.2z\" fill=\"#fff\"/><path d=\"M9 9l6 6M15 9l-6 6\" stroke=\"currentColor\" stroke-width=\"2.3\" stroke-linecap=\"round\"/></svg>"], "offline": ["#6B7A85", "<svg viewBox=\"0 0 24 24\"><path d=\"M2.6 9.2a13.6 13.6 0 0 1 18.8 0M5.8 12.6a9 9 0 0 1 12.4 0M9 16a4.4 4.4 0 0 1 6 0\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.2\" stroke-linecap=\"round\" opacity=\".55\"/><circle cx=\"12\" cy=\"19.2\" r=\"1.6\" fill=\"#fff\"/><path d=\"M4 3.6l16.4 16.8\" stroke=\"#fff\" stroke-width=\"2.2\" stroke-linecap=\"round\"/></svg>"]};
+const PLACUTE={"warn": ["#D9922B", "<svg viewBox=\"0 0 24 24\"><path d=\"M12 3.2c.7 0 1.3.4 1.6 1l7.6 13.6c.7 1.2-.2 2.6-1.6 2.6H4.4c-1.4 0-2.3-1.4-1.6-2.6L10.4 4.2c.3-.6.9-1 1.6-1z\" fill=\"#fff\"/><rect x=\"10.9\" y=\"8.4\" width=\"2.2\" height=\"6.2\" rx=\"1.1\" fill=\"currentColor\"/><circle cx=\"12\" cy=\"17.2\" r=\"1.3\" fill=\"currentColor\"/></svg>"], "trash": ["#C2554A", "<svg viewBox=\"0 0 24 24\"><rect x=\"3.6\" y=\"5.2\" width=\"16.8\" height=\"2.6\" rx=\"1.3\" fill=\"#fff\"/><path d=\"M9.4 5.2V4a1.2 1.2 0 0 1 1.2-1.2h2.8A1.2 1.2 0 0 1 14.6 4v1.2\" fill=\"none\" stroke=\"#fff\" stroke-width=\"1.8\"/><path d=\"M5.6 9h12.8l-1 10.6a2 2 0 0 1-2 1.8H8.6a2 2 0 0 1-2-1.8z\" fill=\"#fff\"/><path d=\"M10 11.6v6.4M14 11.6v6.4\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" opacity=\".6\"/></svg>"], "check": ["#3E9E6B", "<svg viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"12\" r=\"8.8\" fill=\"#fff\"/><path d=\"M7.8 12.4l2.9 2.9 5.6-6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>"], "phone": ["#7A62B8", "<svg viewBox=\"0 0 24 24\"><rect x=\"7.6\" y=\"2.8\" width=\"8.8\" height=\"18.4\" rx=\"2.2\" fill=\"#fff\"/><rect x=\"10.4\" y=\"18\" width=\"3.2\" height=\"1.4\" rx=\".7\" fill=\"currentColor\" opacity=\".6\"/><path d=\"M4.6 8.4v7.2M2.6 10v4M19.4 8.4v7.2M21.4 10v4\" stroke=\"#fff\" stroke-width=\"1.7\" stroke-linecap=\"round\" opacity=\".8\"/></svg>"], "search": ["#4F7FB0", "<svg viewBox=\"0 0 24 24\"><circle cx=\"10.6\" cy=\"10.6\" r=\"6.4\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.6\"/><circle cx=\"10.6\" cy=\"10.6\" r=\"4.2\" fill=\"#fff\" opacity=\".35\"/><path d=\"M15.4 15.4l4.8 4.8\" stroke=\"#fff\" stroke-width=\"2.8\" stroke-linecap=\"round\"/></svg>"], "cal": ["#4F7FB0", "<svg viewBox=\"0 0 24 24\"><rect x=\"3.6\" y=\"5\" width=\"16.8\" height=\"15.4\" rx=\"2.4\" fill=\"#fff\"/><path d=\"M3.6 9.4h16.8\" stroke=\"currentColor\" stroke-width=\"1.4\" opacity=\".5\"/><rect x=\"7.2\" y=\"2.8\" width=\"2\" height=\"4.4\" rx=\"1\" fill=\"#fff\"/><rect x=\"14.8\" y=\"2.8\" width=\"2\" height=\"4.4\" rx=\"1\" fill=\"#fff\"/><rect x=\"7\" y=\"12\" width=\"3\" height=\"2.6\" rx=\".6\" fill=\"currentColor\" opacity=\".55\"/><rect x=\"11\" y=\"12\" width=\"3\" height=\"2.6\" rx=\".6\" fill=\"currentColor\" opacity=\".55\"/><rect x=\"7\" y=\"15.8\" width=\"3\" height=\"2.6\" rx=\".6\" fill=\"currentColor\" opacity=\".55\"/></svg>"], "undo": ["#4F9F9B", "<svg viewBox=\"0 0 24 24\"><path d=\"M9 6.4L4.6 10.8 9 15.2\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M5.2 10.8h9a5 5 0 0 1 0 10h-3\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.4\" stroke-linecap=\"round\"/></svg>"], "backup": ["#0E7C7B", "<svg viewBox=\"0 0 24 24\"><path d=\"M5.2 3.6h10.9l3.7 3.7v11.5a1.6 1.6 0 0 1-1.6 1.6H5.2a1.6 1.6 0 0 1-1.6-1.6V5.2a1.6 1.6 0 0 1 1.6-1.6z\" fill=\"#fff\"/><rect x=\"7.2\" y=\"3.6\" width=\"8\" height=\"5.4\" rx=\".8\" fill=\"currentColor\" opacity=\".55\"/><rect x=\"12.2\" y=\"4.6\" width=\"1.8\" height=\"3.4\" rx=\".5\" fill=\"#fff\"/><rect x=\"6.6\" y=\"12.4\" width=\"10.8\" height=\"6.2\" rx=\"1.2\" fill=\"currentColor\" opacity=\".55\"/></svg>"], "import": ["#5B6FB8", "<svg viewBox=\"0 0 24 24\"><path d=\"M3.8 13.4h4.6l1.6 2.6h4l1.6-2.6h4.6v5a2 2 0 0 1-2 2H5.8a2 2 0 0 1-2-2z\" fill=\"#fff\"/><path d=\"M12 3.4v8.4M8.4 8.4L12 12l3.6-3.6\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>"], "update": ["#3E9E6B", "<svg viewBox=\"0 0 24 24\"><path d=\"M19.4 12a7.4 7.4 0 0 1-12.8 5\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.3\" stroke-linecap=\"round\" opacity=\".7\"/><path d=\"M4.6 12a7.4 7.4 0 0 1 12.8-5\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.3\" stroke-linecap=\"round\"/><path d=\"M18.6 3.4v4.4h-4.4\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M5.4 20.6v-4.4h4.4\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" opacity=\".7\"/></svg>"], "guide": ["#E3A12F", "<svg viewBox=\"0 0 24 24\"><path d=\"M2.8 5.4c3-1.4 6.1-1.3 9.2.6v13.6c-3.1-1.9-6.2-2-9.2-.6z\" fill=\"#fff\"/><path d=\"M21.2 5.4c-3-1.4-6.1-1.3-9.2.6v13.6c3.1-1.9 6.2-2 9.2-.6z\" fill=\"#fff\" opacity=\".75\"/><path d=\"M15.6 4.8v6l1.6-1.2 1.6 1.2V4.6\" fill=\"currentColor\" opacity=\".8\"/></svg>"], "about": ["#4F7FB0", "<svg viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"12\" r=\"8.8\" fill=\"#fff\"/><circle cx=\"12\" cy=\"7.8\" r=\"1.5\" fill=\"currentColor\"/><rect x=\"10.8\" y=\"10.4\" width=\"2.4\" height=\"7\" rx=\"1.2\" fill=\"currentColor\"/></svg>"], "csv": ["#4F7FB0", "<svg viewBox=\"0 0 24 24\"><path d=\"M6 2.8h8.4l4.8 4.8v12a1.6 1.6 0 0 1-1.6 1.6H6a1.6 1.6 0 0 1-1.6-1.6V4.4A1.6 1.6 0 0 1 6 2.8z\" fill=\"#fff\"/><path d=\"M14.4 2.8v4.8h4.8\" fill=\"currentColor\" opacity=\".45\"/><path d=\"M7.8 11.6h8.4M7.8 14.6h8.4M7.8 17.6h5.4\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" opacity=\".6\"/></svg>"], "promises": ["#0E7C7B", "<svg viewBox=\"0 0 24 24\"><path d=\"M12 2.8l7 2.8v5.8c0 4.6-2.9 8.2-7 10-4.1-1.8-7-5.4-7-10V5.6z\" fill=\"#fff\"/><path d=\"M8.4 12.2l2.6 2.6 4.8-5.2\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.1\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>"], "privacy": ["#8A6A3E", "<svg viewBox=\"0 0 24 24\"><path d=\"M8 10.2V7.6a4 4 0 0 1 8 0v2.6\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.2\" opacity=\".8\"/><rect x=\"4.8\" y=\"10\" width=\"14.4\" height=\"11\" rx=\"2.6\" fill=\"#fff\"/><circle cx=\"12\" cy=\"14.8\" r=\"1.7\" fill=\"currentColor\"/><rect x=\"11.2\" y=\"15.4\" width=\"1.6\" height=\"3\" rx=\".8\" fill=\"currentColor\"/></svg>"], "stop": ["#C2554A", "<svg viewBox=\"0 0 24 24\"><path d=\"M8.2 2.8h7.6l5.4 5.4v7.6l-5.4 5.4H8.2l-5.4-5.4V8.2z\" fill=\"#fff\"/><path d=\"M9 9l6 6M15 9l-6 6\" stroke=\"currentColor\" stroke-width=\"2.3\" stroke-linecap=\"round\"/></svg>"], "offline": ["#6B7A85", "<svg viewBox=\"0 0 24 24\"><path d=\"M2.6 9.2a13.6 13.6 0 0 1 18.8 0M5.8 12.6a9 9 0 0 1 12.4 0M9 16a4.4 4.4 0 0 1 6 0\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.2\" stroke-linecap=\"round\" opacity=\".55\"/><circle cx=\"12\" cy=\"19.2\" r=\"1.6\" fill=\"#fff\"/><path d=\"M4 3.6l16.4 16.8\" stroke=\"#fff\" stroke-width=\"2.2\" stroke-linecap=\"round\"/></svg>"], "report": ["#2F7FA0", "<svg viewBox=\"0 0 24 24\"><rect x=\"4.6\" y=\"4\" width=\"14.8\" height=\"17.2\" rx=\"2.2\" fill=\"#fff\"/><rect x=\"8.4\" y=\"2.6\" width=\"7.2\" height=\"3.6\" rx=\"1.2\" fill=\"#fff\" stroke=\"currentColor\" stroke-width=\"1.2\" opacity=\".9\"/><path d=\"M7.4 14.4h2.4l1.4-3.2 2 5.4 1.5-2.2h2\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>"], "lab": ["#B8434E", "<svg viewBox=\"0 0 24 24\"><path d=\"M8.6 2.8h6.8v2h-1v11.8a2.4 2.4 0 0 1-4.8 0V4.8h-1z\" fill=\"#fff\"/><path d=\"M9.6 11h4.8v5.6a2.4 2.4 0 0 1-4.8 0z\" fill=\"currentColor\" opacity=\".6\"/><path d=\"M17.4 9.4h3.2M17.4 12.8h3.2M17.4 16.2h3.2\" stroke=\"#fff\" stroke-width=\"1.6\" stroke-linecap=\"round\" opacity=\".75\"/></svg>"]};
 const PLACUTE_BARA={today:'#E3A12F', hist:'#4F7FB0', foods:'#D2584B', stats:'#3E9E6B', more:'#6B7A85'};
 function placuta(k, px){
   let cul='', svg='';
   try{
-    if(PLACUTE_BARA[k]){ cul=PLACUTE_BARA[k]; const x=document.querySelector('#tabs button[data-v="'+k+'"] svg'); svg=(x && typeof x.outerHTML==='string') ? x.outerHTML.replace(/ width="\d+" height="\d+"/,'') : ''; }
+    if(/^i-(gluc|meal|ins|note)$/.test(k)){ cul={'i-gluc':'#0E7C7B','i-meal':'#B0672E','i-ins':'#3F5E8C','i-note':'#6B7A85'}[k]; const x=document.querySelector('#quick .'+k+' svg'); svg=(x && typeof x.outerHTML==='string') ? x.outerHTML : ''; }
+    else if(PLACUTE_BARA[k]){ cul=PLACUTE_BARA[k]; const x=document.querySelector('#tabs button[data-v="'+k+'"] svg'); svg=(x && typeof x.outerHTML==='string') ? x.outerHTML.replace(/ width="\d+" height="\d+"/,'') : ''; }
     else if(PLACUTE[k]){ cul=PLACUTE[k][0]; svg=PLACUTE[k][1]; }
   }catch(e){ svg=''; }
   if(!svg) return '';
@@ -3321,10 +3349,10 @@ function renderQuickStart(){
   // backupul de referință pus la prima configurare (bkFake) NU e un backup real
   const hasBackup = !!S.settings.lastBackup && !S.settings.bkFake;
   const steps=[
-    {done:hasGluc,       lbl:'Notează prima glicemie',           act:"shGluc()",           btn:'Adaugă'},
-    {done:hasCustomFood, lbl:'Adaugă un aliment pe care îl mănânci des', act:"go('foods');shFood()", btn:'Adaugă'},
-    {done:hasMeal,       lbl:'Logează prima masă',              act:"shMeal()",           btn:'Adaugă'},
-    {done:hasBackup,     lbl:'Fă primul backup',                act:"backupNow()",        btn:'Backup'},
+    {done:hasGluc,       lbl:'Notează prima glicemie',           act:"shGluc()",           btn:'Adaugă', ic:'i-gluc'},
+    {done:hasCustomFood, lbl:'Adaugă un aliment pe care îl mănânci des', act:"go('foods');shFood()", btn:'Adaugă', ic:'foods'},
+    {done:hasMeal,       lbl:'Logează prima masă',              act:"shMeal()",           btn:'Adaugă', ic:'i-meal'},
+    {done:hasBackup,     lbl:'Fă primul backup',                act:"backupNow()",        btn:'Backup', ic:'backup'},
   ];
   const doneN=steps.filter(s=>s.done).length;
   if(doneN===steps.length){ S.settings.qsDone=1; save(); el.innerHTML=''; return; }
@@ -3333,11 +3361,22 @@ function renderQuickStart(){
       <button class="qs-close" onclick="qsDismiss()" aria-label="Ascunde">×</button></div>
     <div class="qs-hint">Dispare singură când e completă. O poți relua din Mai mult → Ghid rapid.</div>
     <ul>${steps.map(s=>`<li class="${s.done?'done':''}">
-        <span class="mk">${s.done?'✓':''}</span>
+        ${qsPlac(s)}
         <span class="lbl">${s.lbl}</span>
         ${s.done?'':`<button class="go" onclick="${s.act}">${s.btn} →</button>`}
       </li>`).join('')}</ul>
   </div>`;
+}
+/* plăcuța unui pas: desenul butonului de notare (glicemie, masă), al secțiunii Alimente sau
+   al backupului; pasul făcut devine bifa verde. Orice lipsă → cercul de dinainte. */
+function qsPlac(st){
+  let h='';
+  try{
+    if(st.done) h=placuta('check',30);
+    else if(/^i-/.test(st.ic)){ const x=document.querySelector('#quick .'+st.ic+' svg'); if(x && typeof x.outerHTML==='string') h=`<span class="plac" aria-hidden="true" style="--mc:${st.ic==='i-gluc'?'#0E7C7B':'#B0672E'}; --ps:30px">${x.outerHTML}</span>`; }
+    else h=placuta(st.ic,30);
+  }catch(e){ h=''; }
+  return h ? h.replace('class="plac','class="mk plac') : `<span class="mk">${st.done?'✓':''}</span>`;
 }
 function qsDismiss(){
   shConfirm('Poți reveni la ea din Mai mult → Ghid rapid, oricând.',
@@ -4235,6 +4274,10 @@ function adaugaRetetaPrimita(){
   toast('„'+a.name+'" e în bibliotecă');
 }
 let FQ_GOL=true;   // eram sau nu în căutare la randarea anterioară
+/* Treapta pastilei de carbohidrați din Alimente (v2.8), după cifra afișată pe ea (la 100 g
+   sau pe porție, cum e scris dedesubt): 1 = până la 10 HC, 2 = până la 30, 3 = peste 30.
+   E doar o mână de ajutor pentru ochi, nu o judecată: nicio treaptă nu e „bună" sau „rea". */
+function hcTreapta(v){ v=+v||0; return v<=10 ? 1 : v<=30 ? 2 : 3; }
 function renderFoods(){
   const q=fold(($('fq').value||'').trim());
   /* Lista se estompează la INTRAREA și la IEȘIREA din căutare, nu la fiecare literă:
@@ -4262,7 +4305,7 @@ function renderFoods(){
           <span class="n">${esc(f.name)}</span>
           ${f.reteta||f.uses?`<span class="d">${f.reteta?'<span class="ftag">rețetă</span>':''}${f.uses?`folosit de ${f.uses} ori`:''}</span>`:''}
         </span>
-        <span class="hcb"><b>${fmtHC(f.val)} HC</b><small>${f.mode==='per100'?'/ 100g':'/ porție'}</small></span>
+        <span class="hcb hc${hcTreapta(f.val)}"><b>${fmtHC(f.val)} HC</b><small>${f.mode==='per100'?'/ 100g':'/ porție'}</small><i class="hcd" aria-hidden="true"><i></i><i></i><i></i></i></span>
       </button>
     </div>`).join('') || (q
       ? emptyState({ic:'🔍', t:'Niciun aliment pentru „'+esc(q)+'"',
@@ -5926,8 +5969,17 @@ function doReport(days, detailed){
     <p>*HbA1c estimat din media măsurătorilor capilare (formula ADA eAG→A1c); tendință orientativă, nu înlocuiește dozarea de laborator.</p>
     ${journal}`);
   const capPagina=`${esc(s.name||'Jurnal glicemic')} · ultimele ${nUnit(days,'zile','o zi')}, până la ${dNice(panaLa)} · Nivelo ${APP_VER}`;
+  /* v2.8: fiecare titlu de secțiune primește plăcuța lui, iar sus stă iconița aplicației.
+     Doar desen (SVG și o imagine fără text alternativ): textul raportului rămâne identic,
+     cuvânt cu cuvânt — verificat față de versiunea anterioară în `a65`. */
+  /* iconița de sus e desenată (nu o imagine de încărcat): tipărirea pornește imediat,
+     iar o imagine încă neîncărcată ar fi ieșit un pătrat gol pe hârtie */
+  const rapLogo=()=>{ try{ const x=document.querySelector('#quick .i-gluc svg'); return (x && typeof x.outerHTML==='string') ? `<span class="plac rlogo" aria-hidden="true" style="--mc:#0D5C61; --ps:40px">${x.outerHTML}</span>` : ''; }catch(e){ return ''; } };
+  const RAP_PLAC=[[/^Pe scurt/,'stats'],[/^Ziua tipică/,'today'],[/^Imagine de ansamblu/,'report'],[/^HbA1c/,'lab'],[/^Variabilitate/,'warn'],[/^Jurnal detaliat/,'hist'],[/^Cifrele față/,'check'],[/^Evoluția/,'cal'],[/^Glicemii pe momente/,'today'],[/^Zile lucrătoare/,'cal'],[/^Insulină și mese/,'i-ins']];
+  const REP2=REP.replace(/<h2>([^<]*)/g, (m,t)=>{ const k=(RAP_PLAC.find(([re])=>re.test(t))||[0,'stats'])[1]; return '<h2 class="rh">'+placuta(k,22)+t; })
+    .replace('<h1>','<div class="rtitlu">'+rapLogo()+'<h1>').replace('</h1>','</h1></div>');
   $('report').innerHTML=`<table class="rsheet"><thead><tr><td class="rhead">${capPagina}</td></tr></thead>`
-    +`<tbody><tr><td>${REP}</td></tr></tbody></table>`;
+    +`<tbody><tr><td>${REP2}</td></tr></tbody></table>`;
   closeSheet();
   window.print();
 }
@@ -6645,6 +6697,8 @@ function shHelp(){
     ${qa('Cum aleg ora unei intrări?',
       '<p>Sub <b>Când</b> ai butoanele <b>Acum</b>, <b>−15 min</b>, <b>−30 min</b> și <b>−1 h</b>. „Acum" înseamnă clipa în care apeși <b>Salvează</b>, nu cea în care ai deschis fereastra.</p>'+
       '<p>Pentru altă zi sau altă oră apeși <b>Altă oră</b> și apar câmpurile de dată și oră. Când modifici o intrare veche, ora ei rămâne exact cea salvată până o schimbi tu.</p>')}
+    ${qa('Ce înseamnă punctele de pe pastila de carbohidrați de la Alimente?',
+      '<p>Sunt o mână de ajutor pentru ochi, după cifra scrisă pe pastilă: <b>un punct</b> până la 10 HC, <b>două</b> până la 30, <b>trei</b> peste 30. Cifra e cea de pe pastilă, deci la 100 g sau pe porție, cum scrie dedesubt. Nu e o judecată: nicio treaptă nu e „bună" sau „rea", arată doar cât de mult e.</p>')}
     ${qa('Ce valori pot scrie la glicemie și la insulină?',
       '<p>În câmp nu se poate scrie mai mult de <b>1000</b>: o cifră în plus pur și simplu nu apare. La salvare, glicemia trebuie să fie între <b>20 și 900 mg/dl</b>, iar insulina peste 0 și cel mult <b>80 U</b>. Valorile din afara acestor limite sunt aproape sigur o greșeală de tastare.</p>')}
     ${qa('Cum șterg sau modific mai repede o intrare?',
@@ -6976,6 +7030,11 @@ function applyUpdate(){
    cu care omul a folosit ultima dată aplicația. La prima instalare nu se arată
    nimic: cine tocmai a intrat n-are ce compara. */
 const NOUTATI=[
+  {v:'v2.8', ce:[
+    'Raportul pentru medic are la fiecare secțiune plăcuța ei și iconița aplicației sus. Textul și cifrele raportului sunt exact aceleași.',
+    'La Alimente, pastila cu carbohidrați are trei trepte de culoare și trei puncte: un punct până la 10 HC, două până la 30, trei peste 30 (la 100 g sau pe porție, cum scrie pe ea).',
+    'Lista de început pentru cine începe acum are câte o plăcuță la fiecare pas; pasul făcut devine bifa verde.'
+  ]},
   {v:'v2.7', ce:[
     'Toată aplicația are acum același stil: mesajele, confirmările, ecranele goale, turul de început, bannerele de backup și fereastra de bun venit au plăcuțele colorate, în loc de emoji.',
     'Bara „O versiune nouă e gata" are iconița aplicației și un buton clar „Reîncarcă". Bara „Anulează" are și ea plăcuța ei.',
