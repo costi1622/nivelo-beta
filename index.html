@@ -207,18 +207,29 @@ html.gata #banner, html.gata .chip{ transition:background-color .2s ease, color 
 
 #tabs{position:fixed; bottom:0; left:0; right:0; z-index:30; background:var(--card);
   border-top:1px solid var(--line); display:flex; padding-bottom:env(safe-area-inset-bottom)}
-#tabs button{flex:1; padding:9px 2px 8px; font-size:11.5px; color:var(--ink-soft); display:flex; flex-direction:column; align-items:center; gap:3px}
+#tabs button{flex:1; padding:7px 2px 6px; font-size:11.5px; color:var(--ink-soft); display:flex; flex-direction:column; align-items:center; gap:2px}
 /* Iconițele barei de jos sunt desene SVG, nu emoji. Emoji-urile se randează diferit
    pe fiecare telefon, nu urmează tema și nu au aceeași grosime între ele. Desenele
    folosesc `currentColor`, deci preiau singure culoarea stării active și a temei. */
-#tabs button .ico{line-height:0; display:block}
-#tabs button .ico svg{width:25px; height:25px; display:block}
-/* Iconițele colorate nu se pot tinge din `currentColor`, așa că secțiunea activă se
-   vede prin intensitate: cele inactive stau puțin estompate. Informația nu stă doar
-   aici — eticheta activă e și colorată, și îngroșată. */
-#tabs button .ico{opacity:.74; transition:opacity .15s}
-#tabs button.on .ico{opacity:1}
-@media (prefers-reduced-motion:reduce){ #tabs button .ico{transition:none} }
+#tabs button .ico{line-height:0; display:flex; align-items:center; justify-content:center; width:36px; height:30px; border-radius:10px; color:var(--tabc)}
+#tabs button .ico svg{width:24px; height:24px; display:block}
+/* v2.4: aceeași familie ca butoanele de notare. Fiecare secțiune are culoarea ei; cea
+   activă stă pe o plăcuță în degradeu, cu desenul alb, cele inactive sunt doar desenul
+   colorat. Informația nu stă doar în culoare — eticheta activă e și îngroșată. */
+#tabs button[data-v="today"]{--tabc:#E3A12F} #tabs button[data-v="hist"]{--tabc:#4F7FB0}
+#tabs button[data-v="foods"]{--tabc:#D2584B} #tabs button[data-v="stats"]{--tabc:#3E9E6B}
+#tabs button[data-v="more"]{--tabc:#6B7A85}
+/* pe fundal închis, desenele inactive au nevoie de nuanța mai deschisă; plăcuța activă rămâne */
+html[data-theme="dark"] #tabs button[data-v="today"]{--tabc:#F0B44A} html[data-theme="dark"] #tabs button[data-v="hist"]{--tabc:#7FA6D2}
+html[data-theme="dark"] #tabs button[data-v="foods"]{--tabc:#EE8579} html[data-theme="dark"] #tabs button[data-v="stats"]{--tabc:#5FC48C}
+html[data-theme="dark"] #tabs button[data-v="more"]{--tabc:#9AAAB4}
+html[data-theme="dark"] #tabs button.on[data-v="today"]{--tabc:#E3A12F} html[data-theme="dark"] #tabs button.on[data-v="hist"]{--tabc:#4F7FB0}
+html[data-theme="dark"] #tabs button.on[data-v="foods"]{--tabc:#D2584B} html[data-theme="dark"] #tabs button.on[data-v="stats"]{--tabc:#3E9E6B}
+html[data-theme="dark"] #tabs button.on[data-v="more"]{--tabc:#6B7A85}
+#tabs button.on .ico{color:#fff; background:linear-gradient(150deg, color-mix(in srgb, var(--tabc) 78%, #fff), var(--tabc) 55%, color-mix(in srgb, var(--tabc) 78%, #000));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.32), 0 2px 6px rgba(18,36,46,.18); animation:tabPlaca .26s ease-out}
+@keyframes tabPlaca{from{transform:scale(.82)} to{transform:none}}
+@media (prefers-reduced-motion:reduce){ #tabs button.on .ico{animation:none} }
 #tabs button.on{color:var(--petrol); font-weight:700}
 
 /* ---------- carduri ---------- */
@@ -464,6 +475,22 @@ h3.antet .tipico svg{width:62%; height:62%}
 .noaptedet{padding:2px 0 6px}
 .noaptesvg{display:block; width:100%; height:calc(60px*var(--fs)); max-height:90px; margin-top:2px}
 .noaptetxt{margin:4px 0 0; font-size:calc(13px*var(--fs))}
+/* panoul de stare din „Mai mult” (v2.3) — repus în v2.4, după ce fusese șters din greșeală odată cu vechiul card al nopții */
+.panou{border-radius:var(--r); padding:16px; margin-bottom:10px; color:#fff; box-shadow:var(--shadow)}
+.panou.bine{background:linear-gradient(140deg,#177A4E,#106842)}
+.panou.atentie{background:linear-gradient(140deg,#9C6400,#7F5100)}
+.panou.rau{background:linear-gradient(140deg,#B3392F,#952C24)}
+.panoubk{display:flex; align-items:center; gap:12px; margin-bottom:12px}
+.pbsemn{flex:none; width:44px; height:44px; border-radius:50%; background:rgba(255,255,255,.2); display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:800}
+.pbtxt b{display:block; font-size:calc(18px*var(--fs)); font-weight:800}
+.pbtxt span{display:block; font-size:calc(13px*var(--fs)); opacity:.92; margin-top:2px}
+.panou .btn{margin:0}
+.panou .btn-g{background:rgba(255,255,255,.18); color:#fff}
+.panou .btn-p{background:#fff; color:#12242E}
+.panoumic{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px}
+.panoumic > div{background:var(--card); border-radius:14px; padding:11px 12px; box-shadow:var(--shadow)}
+.panoumic b{display:block; font-size:calc(20px*var(--fs)); font-weight:800}
+.panoumic span{display:block; font-size:calc(12px*var(--fs)); color:var(--ink-soft)}
 .foaiectx{margin:-6px 0 12px; font-size:calc(13px*var(--fs)); color:var(--ink-soft)}
 .foaiectx b{color:var(--ink); font-weight:800}
 .ginstr{display:flex; align-items:center; gap:12px}
@@ -848,7 +875,8 @@ html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28;
   #topbar .brand{font-size:calc(15px*var(--fs))}
   main{padding:10px 14px calc(74px + env(safe-area-inset-bottom))}
   #tabs button{padding:5px 2px 4px; font-size:calc(10.5px*var(--fs)); gap:1px}
-  #tabs button .ico svg{width:22px; height:22px}
+  #tabs button .ico{width:28px; height:26px; border-radius:9px}
+  #tabs button .ico svg{width:19px; height:19px}
   #dial .gauge{width:88px; height:88px}
   #dial .v b{font-size:calc(31px*var(--fs))}
   #spark svg{height:84px}
@@ -974,17 +1002,17 @@ html[data-theme="dark"] #banner.urgent{background:#3E2018; border-color:#7A3A28;
       <button class="mrow" onclick="shUpdate()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M7.4 9.4A5.2 5.2 0 0 1 17 8.6h1.6a4 4 0 0 1 .6 8" fill="#5B8FBF" opacity="0"/> <path d="M6.8 18.4a4.4 4.4 0 0 1 .6-8.8 5.6 5.6 0 0 1 10.8 1 3.9 3.9 0 0 1-.6 7.8z" fill="#5B8FBF"/> <path d="M12 10.6v6.6" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/> <path d="M9.2 14.6l2.8 2.8 2.8-2.8" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Adu versiunea nouă<small>Dacă tocmai a apărut o actualizare și încă nu a ajuns la tine</small></span></button>
       <button class="mrow" onclick="shDiag()"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M19.4 4.6a5.2 5.2 0 0 1-6.8 6.8L6.2 17.8a2 2 0 1 1-2.8-2.8l6.4-6.4a5.2 5.2 0 0 1 6.8-6.8l-3 3 .6 3.4 3.4.6z" fill="#5C7480"/></svg></span><span>Diagnostic tehnic<small>Starea instalării, util dacă ceva nu merge</small></span></button>
     </div>
-    <p class="muted" style="padding:0 6px">Nivelo v2.4 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
-      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v2.4%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
+    <p class="muted" style="padding:0 6px">Nivelo v2.4.1 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
+      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v2.4.1%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
   </section>
 </main>
 
 <nav id="tabs"><i id="tabmark" aria-hidden="true"></i>
-  <button class="on" data-v="today" onclick="go('today')"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="25" height="25"><g transform="translate(12 12) scale(0.9) translate(-12 -12)"><g stroke="#F0A830" stroke-width="2.6" stroke-linecap="round"> <path d="M12 1.9v2.8M12 19.3v2.8M4.3 4.3l1.9 1.9M17.8 17.8l1.9 1.9M1.9 12h2.8M19.3 12h2.8M4.3 19.7l1.9-1.9M17.8 6.2l1.9-1.9"/></g> <circle cx="12" cy="12" r="5.7" fill="#FFC24D"/> <path d="M12 6.3a5.7 5.7 0 0 1 0 11.4 5.7 5.7 0 0 0 0-11.4z" fill="#F0A830"/></g></svg></span>Azi</button>
-  <button data-v="hist" onclick="go('hist')"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="25" height="25"><circle cx="12" cy="12.3" r="8.6" fill="#5B8FBF"/> <circle cx="12" cy="12.3" r="6.6" fill="#EAF2F8"/> <path d="M12 8.1v4.4l3 1.9" stroke="#2F5A82" stroke-width="1.9" stroke-linecap="round" fill="none"/> <path d="M3.9 8.3V4.6M3.9 8.3h3.7" stroke="#2F5A82" stroke-width="1.9" stroke-linecap="round" fill="none"/></svg></span>Istoric</button>
-  <button data-v="foods" onclick="go('foods')"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="25" height="25"><g transform="translate(12 12) scale(1.32) translate(-12 -12)"><path d="M12 8.6c-1.1-1.6-4.1-2.1-5.5.1-1.5 2.2-.5 6.5 1.7 8.6.9.9 2 .6 2.8.2.6-.3 1.4-.3 2 0 .8.4 1.9.7 2.8-.2 2.2-2.1 3.2-6.4 1.7-8.6-1.4-2.2-4.4-1.7-5.5-.1z" fill="#E05A4D"/> <path d="M12 8.6c1.1-1.6 4.1-2.1 5.5.1 1.5 2.2.5 6.5-1.7 8.6-.9.9-2 .6-2.8.2-.3-.15-.66-.22-1-.22z" fill="#C74538"/> <path d="M12 8.4V5.4" stroke="#7A4A2B" stroke-width="1.7" stroke-linecap="round"/> <path d="M12.3 5.8c1.1-1.9 3.2-1.8 3.2-1.8s0 2.1-1.8 2.7c-.9.3-1.4-.9-1.4-.9z" fill="#57A85C"/></g></svg></span>Alimente</button>
-  <button data-v="stats" onclick="go('stats')"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="25" height="25"><rect x="5.4" y="10.6" width="3.9" height="9.4" rx="1.2" fill="#3E9E6B"/><rect x="10.05" y="4.4" width="3.9" height="15.6" rx="1.2" fill="#E3A72F"/><rect x="14.7" y="7.6" width="3.9" height="12.4" rx="1.2" fill="#C2703C"/><path d="M3.6 20.6h16.8" stroke="#5C7480" stroke-width="1.9" stroke-linecap="round"/></svg></span>Statistici</button>
-  <button data-v="more" onclick="go('more')"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="25" height="25"><rect x="3.4" y="5.6" width="17.2" height="3.1" rx="1.55" fill="#4E8FA8"/> <rect x="3.4" y="10.45" width="17.2" height="3.1" rx="1.55" fill="#6FA98C"/> <rect x="3.4" y="15.3" width="17.2" height="3.1" rx="1.55" fill="#93A3AC"/></svg></span>Mai mult</button>
+  <button class="on" data-v="today" onclick="go('today')"><span class="ico" aria-hidden="true"><svg width="21" height="21" viewBox="0 0 24 24"><g fill="currentColor"><circle cx="12" cy="12" r="4.6"/><g opacity=".55"><rect x="11" y="2.2" width="2" height="3.6" rx="1"/><rect x="11" y="18.2" width="2" height="3.6" rx="1"/><rect x="2.2" y="11" width="3.6" height="2" rx="1"/><rect x="18.2" y="11" width="3.6" height="2" rx="1"/><rect x="11" y="2.2" width="2" height="3.6" rx="1" transform="rotate(45 12 12)"/><rect x="11" y="18.2" width="2" height="3.6" rx="1" transform="rotate(45 12 12)"/><rect x="2.2" y="11" width="3.6" height="2" rx="1" transform="rotate(45 12 12)"/><rect x="18.2" y="11" width="3.6" height="2" rx="1" transform="rotate(45 12 12)"/></g></g></svg></span>Azi</button>
+  <button data-v="hist" onclick="go('hist')"><span class="ico" aria-hidden="true"><svg width="21" height="21" viewBox="0 0 24 24"><path d="M4.6 9.2A8 8 0 1 1 4.3 14" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" opacity=".55"/><path d="M2.6 5.4l1.9 4.3 4.4-1.6" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/><path d="M12 7.6v4.6l3.2 2" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Istoric</button>
+  <button data-v="foods" onclick="go('foods')"><span class="ico" aria-hidden="true"><svg width="21" height="21" viewBox="0 0 24 24"><g transform="translate(12 12) scale(1.12) translate(-12 -12)"><path d="M12 8.2c-1.4-1.4-4.6-1.8-6.2.6-1.7 2.6-.6 7.3 1.9 9.6 1 .9 2.3.7 3.2.3.7-.3 1.5-.3 2.2 0 .9.4 2.2.6 3.2-.3 2.5-2.3 3.6-7 1.9-9.6-1.6-2.4-4.8-2-6.2-.6z" fill="currentColor"/><path d="M12.1 8.1c.1-1.9.8-3.3 2-4.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity=".55"/><path d="M12.6 6.4c1.6-2.5 4.4-2.4 4.4-2.4s-.1 2.8-2.6 3.4c-1 .2-1.8-1-1.8-1z" fill="currentColor" opacity=".55"/></g></svg></span>Alimente</button>
+  <button data-v="stats" onclick="go('stats')"><span class="ico" aria-hidden="true"><svg width="21" height="21" viewBox="0 0 24 24"><g fill="currentColor" opacity=".55"><rect x="3.6" y="13" width="4" height="7.6" rx="1.3"/><rect x="10" y="9.4" width="4" height="11.2" rx="1.3"/><rect x="16.4" y="11.4" width="4" height="9.2" rx="1.3"/></g><path d="M4.4 9.4l5.8-4.6 4 3.1 5.6-4.4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Statistici</button>
+  <button data-v="more" onclick="go('more')"><span class="ico" aria-hidden="true"><svg width="21" height="21" viewBox="0 0 24 24"><g fill="currentColor"><rect x="3.6" y="3.6" width="7.4" height="7.4" rx="2.2"/><rect x="13" y="13" width="7.4" height="7.4" rx="2.2"/><rect x="13" y="3.6" width="7.4" height="7.4" rx="2.2" opacity=".55"/><rect x="3.6" y="13" width="7.4" height="7.4" rx="2.2" opacity=".55"/></g></svg></span>Mai mult</button>
 </nav>
 
 <div id="veil" onclick="closeSheet()" aria-hidden="true"></div>
@@ -1064,7 +1092,7 @@ var PORNIT = false, ULTIMA_EROARE = null;
 })();
 
 /* ================= STOCARE ================= */
-const APP_VER='v2.4';
+const APP_VER='v2.4.1';
 /* Android citește manifestul — numele, iconița, scurtăturile — o singură dată, la
    instalare, și îl păstrează așa până la reinstalare. Codul se actualizează singur,
    configurarea nu. De aceea ținem minte când s-a schimbat ultima dată configurarea:
@@ -1610,12 +1638,18 @@ function cuZileInUrma(n, dela){
   d.setHours(0,0,0,0);     // din nou: ziua-țintă poate avea alt decalaj de fus
   return d.getTime();
 }
-/* Câte zile din fereastră se socotesc la „cât de solide sunt cifrele". Fereastra de N
-   zile include ziua de azi, care e în curs: dacă n-are încă nicio glicemie, nu e o zi
-   ratată, e o zi neîncepută. `g` sunt glicemiile din fereastră, `aziStart` miezul
-   nopții de azi. */
-function zileDeSocotit(g, n, aziStart){
-  return g.some(x=>x.ts>=aziStart) ? n : n-1;
+/* Fereastra de N zile din Statistici și din raport (v2.4). Are mereu N zile întregi:
+   · dacă azi există deja o glicemie: azi și cele N−1 zile dinainte;
+   · dacă nu: cele N zile încheiate, până ieri inclusiv.
+   Până în v2.3 fereastra era mereu „azi + N−1", iar dimineața, înainte de prima
+   glicemie, ziua de azi nu se număra — deci la 7 zile se vedeau doar 6 (observația
+   autorului: „care mai e logica să aleg o perioadă care nu e completă?"). Acum perioada
+   aleasă e întotdeauna întreagă. `to` e exclusiv; `cuAzi` spune care variantă e. */
+function fereastraPerioadei(n, d0){
+  const azi=d0.getTime();
+  const cuAzi=S.events.some(e=>e.type==='gluc' && e.ts>=azi);
+  return cuAzi ? {from:cuZileInUrma(n-1, d0), to:Infinity, cuAzi:true}
+               : {from:cuZileInUrma(n, d0),   to:azi,      cuAzi:false};
 }
 function dKey(ts){ const d=new Date(ts); return d.getFullYear()+'-'+two(d.getMonth()+1)+'-'+two(d.getDate()); }
 function tHM(ts){ const d=new Date(ts); return two(d.getHours())+':'+two(d.getMinutes()); }
@@ -4282,8 +4316,8 @@ function renderStats(){
   $('periodChips').innerHTML=[7,30,90].map(p=>
     `<button class="chip ${PERIOD===p?'on':''}" aria-pressed="${PERIOD===p?'true':'false'}" onclick="PERIOD=${p};AGP_ANIM=true;renderStats()">${p} zile</button>`).join('');
   const d0=new Date(); d0.setHours(0,0,0,0);
-  const from=cuZileInUrma(PERIOD-1, d0);
-  const evs=S.events.filter(e=>e.ts>=from);
+  const W=fereastraPerioadei(PERIOD, d0), from=W.from;
+  const evs=S.events.filter(e=>e.ts>=from && e.ts<W.to);
   const g=evs.filter(e=>e.type==='gluc').map(e=>({v:e.gluc.v, ts:e.ts}));
   if(!g.length){ $('statsbody').innerHTML = S.events.some(e=>e.type==='gluc')
     ? emptyState({ic:'📅', t:'Nicio glicemie în ultimele '+nUnit(PERIOD,'zile','o zi'),
@@ -4299,13 +4333,10 @@ function renderStats(){
      ca unul din 500, deși nu se citește la fel, iar aici e locul unde te uiți zilnic.
      Descriptiv, fără reproș: e o precizare despre date, nu despre om. */
   const zileCuGl=new Set(g.map(x=>dKey(x.ts))).size;
-  /* Ziua de azi e în fereastră, dar e în curs. Dimineața, înainte de prima glicemie,
-     o număram ca zi „fără nicio glicemie notată", deci la 06:30 apărea „29 din 30" la
-     un om care n-a ratat nicio zi. Azi intră la socoteală doar dacă are deja o
-     măsurătoare; altfel perioada se socotește pe zilele încheiate. Aceeași regulă în
-     raport (`zileDeSocotit`). */
-  const zilePer=zileDeSocotit(g, PERIOD, d0.getTime());
-  const aziGol=zilePer<PERIOD;
+  /* Perioada are mereu PERIOD zile întregi (`fereastraPerioadei`): fără glicemie azi,
+     sunt zilele încheiate până ieri. Aceeași regulă în raport. */
+  const zilePer=PERIOD;
+  const aziGol=!W.cuAzi;
   const acoperire=Math.round(zileCuGl/zilePer*100);
   const glPeZi=vals.length/zilePer;
   const soliditate = (glPeZi>=3 && acoperire>=80) ? 'dese'
@@ -4441,7 +4472,7 @@ function renderStats(){
     </div>
     <div class="card dens ${soliditate}">
       <b>Cât de solide sunt cifrele</b>
-      <div>Măsurători în <b>${nUnit(zileCuGl,'zile','o zi')}</b> din ${aziGol?'cele '+nUnit(zilePer,'zile','o zi')+' încheiate':nUnit(PERIOD,'zile','o zi')} (${acoperire}%)${zileCuGl<zilePer?`, deci ${nUnit(zilePer-zileCuGl,'zile','o zi')} fără nicio glicemie notată`:''}.${aziGol?' Azi nu ai notat încă nicio glicemie, așa că ziua de azi nu intră la socoteală.':''}</div>
+      <div>Măsurători în <b>${nUnit(zileCuGl,'zile','o zi')}</b> din ${nUnit(PERIOD,'zile','o zi')} (${acoperire}%)${zileCuGl<zilePer?`, deci ${nUnit(zilePer-zileCuGl,'zile','o zi')} fără nicio glicemie notată`:''}.${aziGol?' Azi nu ai notat încă nicio glicemie, așa că perioada cuprinde ultimele '+nUnit(PERIOD,'zile','o zi')+' încheiate, până ieri inclusiv.':''}</div>
       <div><b>${fmtN(glPeZi)}</b> măsurători pe zi, raportat la toată perioada${fmtN(glPeZi)!==fmtN(vals.length/days)?`; în zilele cu date, <b>${fmtN(vals.length/days)}</b>`:''}.</div>
       <p class="muted" style="margin:6px 0 0">${
         soliditate==='dese' ? 'Datele sunt dese și acoperă aproape toată perioada, deci cifrele de mai jos sunt bine sprijinite.'
@@ -5229,9 +5260,10 @@ function agpSvg(g, s){
 }
 function doReport(days, detailed){
   const d0=new Date(); d0.setHours(0,0,0,0);
-  const from=cuZileInUrma(days-1, d0);
-  const evs=S.events.filter(e=>e.ts>=from);
+  const W=fereastraPerioadei(days, d0), from=W.from;
+  const evs=S.events.filter(e=>e.ts>=from && e.ts<W.to);
   const g=evs.filter(e=>e.type==='gluc').map(e=>({v:e.gluc.v,ts:e.ts}));
+  const panaLa = W.cuAzi ? Date.now() : W.to-1;     // ultima zi din perioadă
   if(!g.length){ toast('Nu există date în această perioadă'); return; }
   const s=S.settings, vals=g.map(x=>x.v);
   const avg=vals.reduce((a,b)=>a+b,0)/vals.length, a1c=(avg+46.7)/28.7;
@@ -5278,9 +5310,9 @@ function doReport(days, detailed){
      știe pe ce se sprijină cifrele: în câte zile din perioadă există măsurători și cât
      de dese sunt. Descriptiv, fără reproș: e o precizare despre date, nu despre om. */
   const zileCuGl=new Set(g.map(x=>dKey(x.ts))).size;
-  // azi, dacă n-are încă nicio glicemie, nu e o zi ratată (aceeași regulă ca în Statistici)
-  const zilePer=zileDeSocotit(g, days, d0.getTime());
-  const aziGol=zilePer<days;
+  // perioada are mereu `days` zile întregi (aceeași regulă ca în Statistici)
+  const zilePer=days;
+  const aziGol=!W.cuAzi;
   const acoperire=Math.round(zileCuGl/zilePer*100);
   /* Zile lucrătoare față de weekend. Glicemia se poartă adesea altfel sâmbăta și
      duminica: alt program, alte mese, altă mișcare. Tot restul raportului adună toate
@@ -5427,7 +5459,7 @@ function doReport(days, detailed){
     (m,head)=>'<table><thead>'+head+'</thead><tbody>').replace(/<\/table>/g,'</tbody></table>');
   const REP=withTheads(`
     <h1>Jurnal glicemic · ${esc(s.name||'')}</h1>
-    <div class="rmeta">Perioada: ultimele ${nUnit(days,'zile','o zi')}, până la ${dNice(Date.now())} · ${nUnit(daysSet.length,'zile','o zi')} cu date · Țintă: ${s.low}–${s.high} mg/dl · Generat din Nivelo</div>
+    <div class="rmeta">Perioada: ultimele ${nUnit(days,'zile','o zi')}, până la ${dNice(panaLa)} · ${nUnit(daysSet.length,'zile','o zi')} cu date · Țintă: ${s.low}–${s.high} mg/dl · Generat din Nivelo</div>
     <div class="rmeta">${(function(){
       /* Raportul spunea „Bazală / zi 18 U" fără să scrie niciodată CARE insulină.
          Medicul care primește foaia nu are de unde să știe. Bazala se marchează
@@ -5500,7 +5532,7 @@ function doReport(days, detailed){
     </table>
     <div style="border:1px solid #ccc; border-radius:8px; padding:10px 13px; margin:12px 0; font-size:calc(12px*var(--fs)); color:#333; line-height:1.55">
       <b style="display:block; margin-bottom:4px">Cât de solide sunt cifrele</b>
-      <div>Perioada acoperită: măsurători în <b>${nUnit(zileCuGl,'zile','o zi')}</b> din ${aziGol?'cele '+nUnit(zilePer,'zile','o zi')+' încheiate':nUnit(days,'zile','o zi')} (${acoperire}%)${zileCuGl<zilePer?`, deci ${nUnit(zilePer-zileCuGl,'zile','o zi')} fără nicio glicemie notată`:''}.${aziGol?' Ziua de azi nu are încă nicio măsurătoare, deci nu intră la socoteală.':''}</div>
+      <div>Perioada acoperită: măsurători în <b>${nUnit(zileCuGl,'zile','o zi')}</b> din ${nUnit(days,'zile','o zi')} (${acoperire}%)${zileCuGl<zilePer?`, deci ${nUnit(zilePer-zileCuGl,'zile','o zi')} fără nicio glicemie notată`:''}.${aziGol?' Ziua de azi nu are încă nicio măsurătoare, deci perioada cuprinde ultimele '+nUnit(days,'zile','o zi')+' încheiate, până ieri inclusiv.':''}</div>
       <div>Frecvența: <b>${fmtN(vals.length/nd)}</b> măsurători pe zi cu date, adică ${fmtN(glPeZi)} raportat la întreaga perioadă.</div>
       ${dk.length?`<div>Insulină: bazala apare notată în <b>${nUnit(zileBaz,'zile','o zi')}</b> din ${nUnit(dk.length,'zile','o zi')} cu insulină notată.</div>`:''}
       <div style="margin-top:4px">${
@@ -5658,7 +5690,7 @@ function doReport(days, detailed){
     })()}
     <p>*HbA1c estimat din media măsurătorilor capilare (formula ADA eAG→A1c); tendință orientativă, nu înlocuiește dozarea de laborator.</p>
     ${journal}`);
-  const capPagina=`${esc(s.name||'Jurnal glicemic')} · ultimele ${nUnit(days,'zile','o zi')}, până la ${dNice(Date.now())} · Nivelo ${APP_VER}`;
+  const capPagina=`${esc(s.name||'Jurnal glicemic')} · ultimele ${nUnit(days,'zile','o zi')}, până la ${dNice(panaLa)} · Nivelo ${APP_VER}`;
   $('report').innerHTML=`<table class="rsheet"><thead><tr><td class="rhead">${capPagina}</td></tr></thead>`
     +`<tbody><tr><td>${REP}</td></tr></tbody></table>`;
   closeSheet();
@@ -6275,7 +6307,7 @@ function shGuide(){
     <div class="card"><h2>4 · Statistici</h2>
       <p style="margin:8px 0 0">Imaginea de ansamblu.</p>
       <p style="margin:8px 0 0">Sus stă <b>Ziua ta tipică</b>: toate zilele din perioadă puse una peste alta, pe ore, ca să vezi dintr-o privire în ce parte a zilei ești de obicei sus sau jos. Explicațiile lungi de sub cifre sunt strânse sub „Ce înseamnă?".</p>
-      <p style="margin:8px 0 0">Alegi perioada sus (7, 30 sau 90 de zile) și vezi: media glicemică, HbA1c estimat, variabilitatea (cât de mult oscilează glicemia în jurul mediei), timpul în țintă, mediile pe momentele zilei, dozele tipice de insulină. Pentru discuția cu medicul, mai jos apar ICR și ISF observate.</p><p style="margin:8px 0 0">Bara timpului în țintă arată separat hipoglicemiile ușoare de cele sub <b>54</b>, iar sub ea, cardul <b>Hipoglicemii</b> îți spune câte episoade ai avut, câte noaptea și care a fost cea mai mică valoare.</p>
+      <p style="margin:8px 0 0">Alegi perioada sus (7, 30 sau 90 de zile) și vezi: media glicemică, HbA1c estimat, variabilitatea (cât de mult oscilează glicemia în jurul mediei), timpul în țintă, mediile pe momentele zilei, dozele tipice de insulină. Pentru discuția cu medicul, mai jos apar ICR și ISF observate. Perioada are mereu toate zilele alese: dimineața, până la prima glicemie, înseamnă zilele încheiate, până ieri.</p><p style="margin:8px 0 0">Bara timpului în țintă arată separat hipoglicemiile ușoare de cele sub <b>54</b>, iar sub ea, cardul <b>Hipoglicemii</b> îți spune câte episoade ai avut, câte noaptea și care a fost cea mai mică valoare.</p>
       <p style="margin:8px 0 0">Dacă îți notezi analizele <b>HbA1c</b> de la laborator, le vezi tot aici, fiecare alături de estimarea din jurnal pentru cele 90 de zile dinaintea ei.</p>
       <p style="margin:8px 0 0">Dacă notezi și ciclul menstrual, tot aici apare o comparație între zilele de ciclu și restul: media glicemică, timpul în țintă și insulina rapidă pe zi.</p><p style="margin:8px 0 0">Toate sunt rezumate descriptive din datele tale, orientative, nu recomandări.</p>
     </div>
@@ -6414,7 +6446,7 @@ function shHelp(){
       '<p>Analiza apare apoi în <b>Statistici</b>, alături de estimare, și în raportul pentru doctor. Estimarea lângă ea apare doar dacă ai glicemii notate în cel puțin jumătate din acele 90 de zile.</p>')}
     ${qa('Statisticile spun că am zile fără glicemie, deși notez zilnic',
       '<p>„Cât de solide sunt cifrele" numără, în perioada aleasă, zilele care au cel puțin o glicemie. Dacă undeva în ultimele 30 sau 90 de zile au lipsit câteva zile, de exemplu după o ștergere sau o restaurare, ele se văd acolo cât timp sunt în perioadă. Nu e o eroare: cifra se reface singură când acele zile ies din perioadă.</p>'+
-      '<p>Ziua de azi intră la socoteală abia după prima glicemie. Până atunci, perioada se socotește pe zilele încheiate, ca dimineața să nu apară o zi lipsă care de fapt abia a început.</p>')}
+      '<p>Perioada are mereu exact câte zile ai ales. După prima glicemie de azi, înseamnă azi și zilele dinainte. Până atunci, înseamnă zilele încheiate, până ieri inclusiv, ca dimineața să nu apară o zi lipsă care de fapt abia a început și nici o perioadă mai scurtă cu o zi.</p>')}
     ${qa('De ce nu văd încă statistici?',
       '<p>Rezumatele au nevoie de câteva zile de notări ca să însemne ceva. Până atunci, secțiunile îți spun de ce sunt goale, în loc să arate cifre pe care nu te poți sprijini.</p>')}
 
@@ -6706,6 +6738,11 @@ function applyUpdate(){
    cu care omul a folosit ultima dată aplicația. La prima instalare nu se arată
    nimic: cine tocmai a intrat n-are ce compara. */
 const NOUTATI=[
+  {v:'v2.4.1', ce:[
+    'Statisticile și raportul arată acum perioada întreagă: la 7 zile, 7 zile; la 90, 90. Dimineața, până la prima glicemie, se iau cele 7 (sau 30, 90) zile încheiate, până ieri; după prima glicemie, azi și zilele dinainte.',
+    'Reparat: în „Mai mult", panoul cu starea backupului apărea ca text simplu, iar „Fă backup acum" nu mai arăta a buton.',
+    'Bara de jos are iconițe noi, din aceeași familie cu butoanele de notare: secțiunea în care ești stă pe o plăcuță colorată.'
+  ]},
   {v:'v2.4', ce:[
     'Pe cardul fiecărei mese vezi acum ce a făcut masa: glicemia dinainte, cea de după aproximativ 2 ore și diferența (de exemplu 118 → 171, +53 după 2 h 05). Apare doar când ai ambele măsurători și nu e altă masă între ele.',
     'Ferestrele se închid trăgând în jos din orice punct al lor, nu doar de mâner. Din câmpurile în care scrii nu se închid, iar o fereastră derulată se derulează întâi înapoi.',
