@@ -1,7 +1,7 @@
 /* Nivelo service worker — funcționare 100% offline */
-const CACHE = 'glucolog-v2.4.1';
+const CACHE = 'glucolog-v2.5';
 const SHELL = ['./', './index.html', './privacy.html',
-               './icon-192.png', './icon-512.png', './icon-maskable-512.png'];
+               './icon2-192.png', './icon2-512.png', './icon2-maskable-512.png'];
 
 self.addEventListener('install', e => {
   // NU folosim cache.addAll: e totul-sau-nimic. Dacă UN singur fișier din listă
