@@ -961,6 +961,45 @@ h3.antet .placuta svg [fill="currentColor"], h3.antet .placuta svg [stroke="curr
 /* Ce e nou: versiunea cea mai nouă iese în față */
 .wn-card.wn-nou{box-shadow:var(--shadow), inset 0 3px 0 var(--petrol)}
 .wn-ver{background:linear-gradient(150deg, color-mix(in srgb, var(--petrol) 78%, #fff), var(--petrol) 55%, color-mix(in srgb, var(--petrol) 78%, #000))}
+
+.plusc{display:inline-flex; width:20px; height:20px; border-radius:50%; align-items:center; justify-content:center; background:var(--petrol); color:#fff; font-style:normal; font-weight:800; font-size:15px; line-height:1; vertical-align:-3px; margin-right:4px}
+/* ===== Uniformizare (v2.7) ===== */
+.plac{--ps:34px; flex:none; width:var(--ps); height:var(--ps); border-radius:calc(var(--ps)*.31); display:inline-flex; align-items:center; justify-content:center; color:var(--mc);
+  background:linear-gradient(150deg, color-mix(in srgb, var(--mc) 78%, #fff), var(--mc) 55%, color-mix(in srgb, var(--mc) 78%, #000));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.32), 0 2px 6px rgba(18,36,46,.16); vertical-align:middle}
+.plac svg{width:64%; height:64%; display:block; color:inherit}
+.plac.alb{color:#fff}   /* desenele din bara de jos sunt în currentColor: pe plăcuță, alb */
+h3.antet .plac{--ps:calc(30px*var(--fs))}
+.alertic{display:flex; justify-content:center; margin:2px 0 10px}
+.empty .ei .plac{margin:0 auto}
+#sheet2[data-info]{box-shadow:inset 0 4px 0 var(--tipc), 0 -8px 30px rgba(18,36,46,.18);
+  background:linear-gradient(180deg, color-mix(in srgb, var(--tipc) 8%, var(--card)) 0, var(--card) 150px)}
+/* bara de versiune nouă: iconița aplicației, titlu și buton plin */
+#updbar{align-items:center; gap:12px; padding:12px 12px 12px 12px; border-radius:16px; background:linear-gradient(150deg,#14857F,#0D5C61 60%,#093F46); border:0; box-shadow:0 8px 26px rgba(9,63,70,.38)}
+#updbar img{flex:none; width:40px; height:40px; border-radius:11px; box-shadow:0 2px 8px rgba(0,0,0,.25)}
+#updbar .ut{flex:1; min-width:0; line-height:1.35}
+#updbar .ut b{display:block; font-size:calc(14.5px*var(--fs))}
+#updbar .ut span{display:block; opacity:.85; font-size:calc(12.5px*var(--fs))}
+#updbar button{text-decoration:none; background:#fff; color:#0D5C61; border-radius:99px; padding:9px 16px; min-height:40px; box-shadow:0 2px 6px rgba(0,0,0,.18)}
+/* bara de anulare: plăcuță și buton conturat */
+#undobar{padding-left:10px}
+#undobar .plac{--ps:30px}
+#undobar > span{display:flex; align-items:center; gap:10px; min-width:0}
+#undobar button{border:1.5px solid rgba(127,209,200,.6); border-radius:99px; padding:7px 14px}
+/* mesajul scurt nu mai cade peste bara de anulare sau de versiune: urcă deasupra lor */
+body:has(#undobar.on) #toast, body:has(#updbar.on) #toast{bottom:calc(150px + env(safe-area-inset-bottom))}
+body:has(#updbar.on) #undobar.on{bottom:calc(150px + env(safe-area-inset-bottom))}
+#toast{box-shadow:0 6px 20px rgba(0,0,0,.25)}
+/* bannerele de sus: plăcuța în stânga, butonul ca buton */
+#banner, #savefail, #quotawarn{position:relative; padding-left:60px}
+#banner::before, #savefail::before, #quotawarn::before{content:""; position:absolute; left:13px; top:13px; width:34px; height:34px; border-radius:11px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.32), 0 2px 6px rgba(18,36,46,.16); background-repeat:no-repeat; background-position:center, 0 0; background-size:22px, 100% 100%}
+#banner::before{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Cpath d=%22M5.2 3.6h10.9l3.7 3.7v11.5a1.6 1.6 0 0 1-1.6 1.6H5.2a1.6 1.6 0 0 1-1.6-1.6V5.2a1.6 1.6 0 0 1 1.6-1.6z%22 fill=%22%23fff%22/%3E%3Crect x=%227.2%22 y=%223.6%22 width=%228%22 height=%225.4%22 rx=%22.8%22 fill=%22%230E7C7B%22 opacity=%22.55%22/%3E%3Crect x=%2212.2%22 y=%224.6%22 width=%221.8%22 height=%223.4%22 rx=%22.5%22 fill=%22%23fff%22/%3E%3Crect x=%226.6%22 y=%2212.4%22 width=%2210.8%22 height=%226.2%22 rx=%221.2%22 fill=%22%230E7C7B%22 opacity=%22.55%22/%3E%3C/svg%3E"), linear-gradient(150deg,#3A9C98,#0E7C7B 55%,#0A5F5E)}
+#banner.urgent::before, #savefail::before{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Cpath d=%22M12 3.2c.7 0 1.3.4 1.6 1l7.6 13.6c.7 1.2-.2 2.6-1.6 2.6H4.4c-1.4 0-2.3-1.4-1.6-2.6L10.4 4.2c.3-.6.9-1 1.6-1z%22 fill=%22%23fff%22/%3E%3Crect x=%2210.9%22 y=%228.4%22 width=%222.2%22 height=%226.2%22 rx=%221.1%22 fill=%22%23C2554A%22/%3E%3Ccircle cx=%2212%22 cy=%2217.2%22 r=%221.3%22 fill=%22%23C2554A%22/%3E%3C/svg%3E"), linear-gradient(150deg,#D97A6E,#C2554A 55%,#9E4138)}
+#quotawarn::before{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Cpath d=%22M12 3.2c.7 0 1.3.4 1.6 1l7.6 13.6c.7 1.2-.2 2.6-1.6 2.6H4.4c-1.4 0-2.3-1.4-1.6-2.6L10.4 4.2c.3-.6.9-1 1.6-1z%22 fill=%22%23fff%22/%3E%3Crect x=%2210.9%22 y=%228.4%22 width=%222.2%22 height=%226.2%22 rx=%221.1%22 fill=%22%23C2554A%22/%3E%3Ccircle cx=%2212%22 cy=%2217.2%22 r=%221.3%22 fill=%22%23C2554A%22/%3E%3C/svg%3E"), linear-gradient(150deg,#E4AE5E,#D9922B 55%,#B07423)}
+#banner button, #savefail button, #quotawarn button{background:var(--petrol); color:#fff !important; border-radius:99px; padding:8px 15px !important; margin-top:9px; min-height:40px; text-align:center}
+#savefail button + button{background:transparent; color:var(--petrol) !important; box-shadow:inset 0 0 0 1.5px var(--petrol)}
+html[data-theme="dark"] #savefail button + button{color:#7FD6D3 !important; box-shadow:inset 0 0 0 1.5px #7FD6D3}
 </style>
 </head>
 <body>
@@ -1115,8 +1154,8 @@ h3.antet .placuta svg [fill="currentColor"], h3.antet .placuta svg [stroke="curr
       <button class="mrow" onclick="shUpdate()"><span class="ico" aria-hidden="true" style="--mc:#3E9E6B"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M19.4 12a7.4 7.4 0 0 1-12.8 5" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" opacity=".7"/><path d="M4.6 12a7.4 7.4 0 0 1 12.8-5" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round"/><path d="M18.6 3.4v4.4h-4.4" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.4 20.6v-4.4h4.4" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/></svg></span><span>Adu versiunea nouă<small>Dacă tocmai a apărut o actualizare și încă nu a ajuns la tine</small></span></button>
       <button class="mrow" onclick="shDiag()"><span class="ico" aria-hidden="true" style="--mc:#6B7A85"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M19.6 4.8a5 5 0 0 1-6.6 6.4l-6.6 6.6a2 2 0 1 1-2.8-2.8l6.6-6.6a5 5 0 0 1 6.4-6.6l-3 3 .6 2.4 2.4.6z" fill="#fff"/><circle cx="5" cy="19" r=".9" fill="currentColor"/></svg></span><span>Diagnostic tehnic<small>Starea instalării, util dacă ceva nu merge</small></span></button>
     </div>
-    <p class="muted" style="padding:0 6px">Nivelo v2.6 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
-      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v2.6%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
+    <p class="muted" style="padding:0 6px">Nivelo v2.7 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
+      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v2.7%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
   </section>
 </main>
 
@@ -1205,7 +1244,7 @@ var PORNIT = false, ULTIMA_EROARE = null;
 })();
 
 /* ================= STOCARE ================= */
-const APP_VER='v2.6';
+const APP_VER='v2.7';
 /* Android citește manifestul — numele, iconița, scurtăturile — o singură dată, la
    instalare, și îl păstrează așa până la reinstalare. Codul se actualizează singur,
    configurarea nu. De aceea ținem minte când s-a schimbat ultima dată configurarea:
@@ -1522,7 +1561,7 @@ async function offerMirror(reason){
   const cand=m.data;
   const cat = m.ts ? dNice(m.ts)+' '+tHM(m.ts) : 'necunoscut';
   MIRROR_CAND=cand;
-  openSheet(`<h3>Am găsit o copie de siguranță în telefon</h3>
+  openSheet(`${antetInfo('backup', 'Am găsit o copie de siguranță în telefon')}
     <p>${reason}</p>
     <p style="margin-top:10px">Aplicația păstrează în telefon o a doua copie a jurnalului, actualizată automat. Cea găsită are <b>${nUnit(m.n,'intrări','o intrare')}</b> și e din <b>${cat}</b>.</p>
     <p style="margin-top:10px">O pot pune la loc acum. Dacă între timp ai notat ceva, acele notări se înlocuiesc cu ce e în copie.</p>
@@ -1557,7 +1596,7 @@ function shLoadProblem(){
   const cauza = LOAD_PROBLEM==='ilizibil'
     ? 'Textul salvat pe telefon pare întrerupt la jumătate.'
     : 'Datele salvate nu au forma pe care o aștept.';
-  openSheet(`<h3>Nu am putut citi jurnalul</h3>
+  openSheet(`${antetInfo('warn', 'Nu am putut citi jurnalul')}
     <p>Am găsit date salvate pe telefon, dar nu am reușit să le deschid. ${cauza}</p>
     <p style="margin-top:10px"><b>Jurnalul apare gol, dar nu am șters nimic.</b> Am pus deoparte o copie a datelor originale (${kb} KB), ca să nu se piardă la prima salvare.</p>
     <p style="margin-top:10px">Cel mai simplu e să pui la loc ultimul backup. Dacă nu ai unul, salvează copia de mai jos: din ea se pot recupera manual o parte din date.</p>
@@ -1646,7 +1685,7 @@ function scrieIdb(txt){
 function shConflict(){
   if(CONFLICT_ON) return;
   CONFLICT_ON=true;
-  openSheet(`<h3>Jurnalul a fost modificat în altă fereastră</h3>
+  openSheet(`${antetInfo('warn', 'Jurnalul a fost modificat în altă fereastră')}
     <p>Nivelo e deschisă în două locuri deodată — de obicei aplicația instalată și o filă de browser — iar cealaltă fereastră a salvat ceva între timp.</p>
     <p style="margin-top:10px">Ca să nu se piardă nimic, aici nu s-a salvat nimic încă. Alege ce faci:</p>
     <button class="btn btn-p" style="margin-top:14px" onclick="conflictReload()">Ia varianta nouă (recomandat)</button>
@@ -1675,7 +1714,7 @@ window.addEventListener('storage', e=>{
 function showSaveFail(){
   const el=$('savefail');
   if(el){
-    el.innerHTML='<b>⚠ Nu am reușit să salvez pe telefon.</b>'
+    el.innerHTML='<b>Nu am reușit să salvez pe telefon.</b>'
       +'Ultimele intrări sunt încă pe ecran, dar <b>se pierd dacă închizi aplicația</b>. '
       +'Cel mai probabil s-a umplut spațiul din memoria telefonului. '
       +'Salvează acum o copie, apoi eliberează spațiu (șterge poze sau alte aplicații).'
@@ -2150,10 +2189,28 @@ const INFO_FOAIE={
   nou:{cul:'#0E7C7B', svg:'<svg viewBox="0 0 24 24"><path d="M12 2.6l2.2 6.2 6.2 2.2-6.2 2.2L12 19.4l-2.2-6.2L3.6 11l6.2-2.2z" fill="#fff"/><path d="M18.6 15.4l.9 2.4 2.4.9-2.4.9-.9 2.4-.9-2.4-2.4-.9 2.4-.9z" fill="#fff" opacity=".7"/></svg>'}
 };
 function ghidIco(v){ try{ const x=document.querySelector('#tabs button[data-v="'+v+'"] svg'); return (x && typeof x.outerHTML==='string') ? `<span class="ghidnr" aria-hidden="true">${x.outerHTML}</span>` : ''; }catch(e){ return ''; } }
+/* Plăcuțele (v2.7): același desen alb pe degradeul culorii, oriunde în aplicație — mesaje,
+   confirmări, ecrane goale, turul de început. `placuta(cheie, mărime)`; cheile de bara de
+   jos (today, hist, foods, stats, more) iau desenul chiar din bară. */
+const PLACUTE={"warn": ["#D9922B", "<svg viewBox=\"0 0 24 24\"><path d=\"M12 3.2c.7 0 1.3.4 1.6 1l7.6 13.6c.7 1.2-.2 2.6-1.6 2.6H4.4c-1.4 0-2.3-1.4-1.6-2.6L10.4 4.2c.3-.6.9-1 1.6-1z\" fill=\"#fff\"/><rect x=\"10.9\" y=\"8.4\" width=\"2.2\" height=\"6.2\" rx=\"1.1\" fill=\"currentColor\"/><circle cx=\"12\" cy=\"17.2\" r=\"1.3\" fill=\"currentColor\"/></svg>"], "trash": ["#C2554A", "<svg viewBox=\"0 0 24 24\"><rect x=\"3.6\" y=\"5.2\" width=\"16.8\" height=\"2.6\" rx=\"1.3\" fill=\"#fff\"/><path d=\"M9.4 5.2V4a1.2 1.2 0 0 1 1.2-1.2h2.8A1.2 1.2 0 0 1 14.6 4v1.2\" fill=\"none\" stroke=\"#fff\" stroke-width=\"1.8\"/><path d=\"M5.6 9h12.8l-1 10.6a2 2 0 0 1-2 1.8H8.6a2 2 0 0 1-2-1.8z\" fill=\"#fff\"/><path d=\"M10 11.6v6.4M14 11.6v6.4\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" opacity=\".6\"/></svg>"], "check": ["#3E9E6B", "<svg viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"12\" r=\"8.8\" fill=\"#fff\"/><path d=\"M7.8 12.4l2.9 2.9 5.6-6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>"], "phone": ["#7A62B8", "<svg viewBox=\"0 0 24 24\"><rect x=\"7.6\" y=\"2.8\" width=\"8.8\" height=\"18.4\" rx=\"2.2\" fill=\"#fff\"/><rect x=\"10.4\" y=\"18\" width=\"3.2\" height=\"1.4\" rx=\".7\" fill=\"currentColor\" opacity=\".6\"/><path d=\"M4.6 8.4v7.2M2.6 10v4M19.4 8.4v7.2M21.4 10v4\" stroke=\"#fff\" stroke-width=\"1.7\" stroke-linecap=\"round\" opacity=\".8\"/></svg>"], "search": ["#4F7FB0", "<svg viewBox=\"0 0 24 24\"><circle cx=\"10.6\" cy=\"10.6\" r=\"6.4\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.6\"/><circle cx=\"10.6\" cy=\"10.6\" r=\"4.2\" fill=\"#fff\" opacity=\".35\"/><path d=\"M15.4 15.4l4.8 4.8\" stroke=\"#fff\" stroke-width=\"2.8\" stroke-linecap=\"round\"/></svg>"], "cal": ["#4F7FB0", "<svg viewBox=\"0 0 24 24\"><rect x=\"3.6\" y=\"5\" width=\"16.8\" height=\"15.4\" rx=\"2.4\" fill=\"#fff\"/><path d=\"M3.6 9.4h16.8\" stroke=\"currentColor\" stroke-width=\"1.4\" opacity=\".5\"/><rect x=\"7.2\" y=\"2.8\" width=\"2\" height=\"4.4\" rx=\"1\" fill=\"#fff\"/><rect x=\"14.8\" y=\"2.8\" width=\"2\" height=\"4.4\" rx=\"1\" fill=\"#fff\"/><rect x=\"7\" y=\"12\" width=\"3\" height=\"2.6\" rx=\".6\" fill=\"currentColor\" opacity=\".55\"/><rect x=\"11\" y=\"12\" width=\"3\" height=\"2.6\" rx=\".6\" fill=\"currentColor\" opacity=\".55\"/><rect x=\"7\" y=\"15.8\" width=\"3\" height=\"2.6\" rx=\".6\" fill=\"currentColor\" opacity=\".55\"/></svg>"], "undo": ["#4F9F9B", "<svg viewBox=\"0 0 24 24\"><path d=\"M9 6.4L4.6 10.8 9 15.2\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M5.2 10.8h9a5 5 0 0 1 0 10h-3\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.4\" stroke-linecap=\"round\"/></svg>"], "backup": ["#0E7C7B", "<svg viewBox=\"0 0 24 24\"><path d=\"M5.2 3.6h10.9l3.7 3.7v11.5a1.6 1.6 0 0 1-1.6 1.6H5.2a1.6 1.6 0 0 1-1.6-1.6V5.2a1.6 1.6 0 0 1 1.6-1.6z\" fill=\"#fff\"/><rect x=\"7.2\" y=\"3.6\" width=\"8\" height=\"5.4\" rx=\".8\" fill=\"currentColor\" opacity=\".55\"/><rect x=\"12.2\" y=\"4.6\" width=\"1.8\" height=\"3.4\" rx=\".5\" fill=\"#fff\"/><rect x=\"6.6\" y=\"12.4\" width=\"10.8\" height=\"6.2\" rx=\"1.2\" fill=\"currentColor\" opacity=\".55\"/></svg>"], "import": ["#5B6FB8", "<svg viewBox=\"0 0 24 24\"><path d=\"M3.8 13.4h4.6l1.6 2.6h4l1.6-2.6h4.6v5a2 2 0 0 1-2 2H5.8a2 2 0 0 1-2-2z\" fill=\"#fff\"/><path d=\"M12 3.4v8.4M8.4 8.4L12 12l3.6-3.6\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>"], "update": ["#3E9E6B", "<svg viewBox=\"0 0 24 24\"><path d=\"M19.4 12a7.4 7.4 0 0 1-12.8 5\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.3\" stroke-linecap=\"round\" opacity=\".7\"/><path d=\"M4.6 12a7.4 7.4 0 0 1 12.8-5\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.3\" stroke-linecap=\"round\"/><path d=\"M18.6 3.4v4.4h-4.4\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M5.4 20.6v-4.4h4.4\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" opacity=\".7\"/></svg>"], "guide": ["#E3A12F", "<svg viewBox=\"0 0 24 24\"><path d=\"M2.8 5.4c3-1.4 6.1-1.3 9.2.6v13.6c-3.1-1.9-6.2-2-9.2-.6z\" fill=\"#fff\"/><path d=\"M21.2 5.4c-3-1.4-6.1-1.3-9.2.6v13.6c3.1-1.9 6.2-2 9.2-.6z\" fill=\"#fff\" opacity=\".75\"/><path d=\"M15.6 4.8v6l1.6-1.2 1.6 1.2V4.6\" fill=\"currentColor\" opacity=\".8\"/></svg>"], "about": ["#4F7FB0", "<svg viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"12\" r=\"8.8\" fill=\"#fff\"/><circle cx=\"12\" cy=\"7.8\" r=\"1.5\" fill=\"currentColor\"/><rect x=\"10.8\" y=\"10.4\" width=\"2.4\" height=\"7\" rx=\"1.2\" fill=\"currentColor\"/></svg>"], "csv": ["#4F7FB0", "<svg viewBox=\"0 0 24 24\"><path d=\"M6 2.8h8.4l4.8 4.8v12a1.6 1.6 0 0 1-1.6 1.6H6a1.6 1.6 0 0 1-1.6-1.6V4.4A1.6 1.6 0 0 1 6 2.8z\" fill=\"#fff\"/><path d=\"M14.4 2.8v4.8h4.8\" fill=\"currentColor\" opacity=\".45\"/><path d=\"M7.8 11.6h8.4M7.8 14.6h8.4M7.8 17.6h5.4\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" opacity=\".6\"/></svg>"], "promises": ["#0E7C7B", "<svg viewBox=\"0 0 24 24\"><path d=\"M12 2.8l7 2.8v5.8c0 4.6-2.9 8.2-7 10-4.1-1.8-7-5.4-7-10V5.6z\" fill=\"#fff\"/><path d=\"M8.4 12.2l2.6 2.6 4.8-5.2\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.1\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>"], "privacy": ["#8A6A3E", "<svg viewBox=\"0 0 24 24\"><path d=\"M8 10.2V7.6a4 4 0 0 1 8 0v2.6\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.2\" opacity=\".8\"/><rect x=\"4.8\" y=\"10\" width=\"14.4\" height=\"11\" rx=\"2.6\" fill=\"#fff\"/><circle cx=\"12\" cy=\"14.8\" r=\"1.7\" fill=\"currentColor\"/><rect x=\"11.2\" y=\"15.4\" width=\"1.6\" height=\"3\" rx=\".8\" fill=\"currentColor\"/></svg>"], "stop": ["#C2554A", "<svg viewBox=\"0 0 24 24\"><path d=\"M8.2 2.8h7.6l5.4 5.4v7.6l-5.4 5.4H8.2l-5.4-5.4V8.2z\" fill=\"#fff\"/><path d=\"M9 9l6 6M15 9l-6 6\" stroke=\"currentColor\" stroke-width=\"2.3\" stroke-linecap=\"round\"/></svg>"], "offline": ["#6B7A85", "<svg viewBox=\"0 0 24 24\"><path d=\"M2.6 9.2a13.6 13.6 0 0 1 18.8 0M5.8 12.6a9 9 0 0 1 12.4 0M9 16a4.4 4.4 0 0 1 6 0\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.2\" stroke-linecap=\"round\" opacity=\".55\"/><circle cx=\"12\" cy=\"19.2\" r=\"1.6\" fill=\"#fff\"/><path d=\"M4 3.6l16.4 16.8\" stroke=\"#fff\" stroke-width=\"2.2\" stroke-linecap=\"round\"/></svg>"]};
+const PLACUTE_BARA={today:'#E3A12F', hist:'#4F7FB0', foods:'#D2584B', stats:'#3E9E6B', more:'#6B7A85'};
+function placuta(k, px){
+  let cul='', svg='';
+  try{
+    if(PLACUTE_BARA[k]){ cul=PLACUTE_BARA[k]; const x=document.querySelector('#tabs button[data-v="'+k+'"] svg'); svg=(x && typeof x.outerHTML==='string') ? x.outerHTML.replace(/ width="\d+" height="\d+"/,'') : ''; }
+    else if(PLACUTE[k]){ cul=PLACUTE[k][0]; svg=PLACUTE[k][1]; }
+  }catch(e){ svg=''; }
+  if(!svg) return '';
+  return `<span class="plac${PLACUTE_BARA[k]?' alb':''}" aria-hidden="true" style="--mc:${cul}; --ps:${px||34}px">${svg}</span>`;
+}
+// emoji-urile vechi ale mesajelor, traduse în plăcuțe (ce nu e aici rămâne cum era)
+const PLACUTA_EMOJI={'⚠️':'warn','🛑':'stop','📭':'stop','📶':'offline','ℹ️':'about','⚖️':'promises','✅':'check','📄':'csv','📦':'import','📳':'phone','🛟':'backup',
+  '☀️':'today','📈':'stats','📜':'hist','👋':'today','🔍':'search','🔎':'search','🥖':'foods','📅':'cal'};
 function antetInfo(k, titlu){
-  const d=INFO_FOAIE[k]; let svg='';
+  const d=INFO_FOAIE[k] || (k==='meal' ? {cul:'#B0672E', quick:'i-meal'} : (PLACUTE[k] ? {cul:PLACUTE[k][0], svg:PLACUTE[k][1]} : null)); let svg='';
   try{
     if(d && d.svg) svg=d.svg;
+    else if(d && d.quick){ const x=document.querySelector('#quick .'+d.quick+' svg'); svg=(x && typeof x.outerHTML==='string') ? x.outerHTML : ''; }
     else if(d && d.tab){ const x=document.querySelector('#tabs button[data-v="'+d.tab+'"] svg'); svg=(x && typeof x.outerHTML==='string') ? x.outerHTML : ''; }
     else if(d){ const r=[...document.querySelectorAll('#v-more .mrow')].find(b=>(b.getAttribute('onclick')||'').includes(d.rand));
       const x=r && r.querySelector('.ico svg'); svg=(x && typeof x.outerHTML==='string') ? x.outerHTML : ''; }
@@ -2349,7 +2406,9 @@ let CONFIRM_CB=null;
 function shConfirm(msg, cb, opts){
   opts=opts||{};
   CONFIRM_CB=cb;
-  openSheet2(`<h3>${esc(opts.title||'Ești sigur?')}</h3>
+  const ic = opts.ic || (opts.confirmLabel==='Ascunde' ? 'guide' : /^Adu versiunea/.test(opts.confirmLabel||'') ? 'update'
+    : /^Continu/.test(opts.confirmLabel||'') ? 'import' : /înapoi/.test(opts.confirmLabel||'') ? 'backup' : 'trash');
+  openSheet2(`<h3 class="antet">${placuta(ic,30)}<span>${esc(opts.title||'Ești sigur?')}</span></h3>
     <p style="margin-bottom:18px">${msg}</p>
     <button class="btn btn-danger" onclick="runConfirm()">${esc(opts.confirmLabel||'Șterge')}</button>
     <button class="btn btn-g" onclick="closeSheet2()">Anulează</button>`);
@@ -2357,7 +2416,8 @@ function shConfirm(msg, cb, opts){
 function runConfirm(){ const cb=CONFIRM_CB; CONFIRM_CB=null; closeSheet2(); closeSheet(); if(cb) cb(); }
 function shAlert(msg, opts){
   opts=opts||{};
-  const ic=opts.ic?`<div style="font-size:calc(34px*var(--fs)); text-align:center; margin-bottom:6px">${opts.ic}</div>`:'';
+  const pl=opts.ic && PLACUTA_EMOJI[opts.ic] ? placuta(PLACUTA_EMOJI[opts.ic],52) : '';
+  const ic=opts.ic?(pl?`<div class="alertic">${pl}</div>`:`<div style="font-size:calc(34px*var(--fs)); text-align:center; margin-bottom:6px">${opts.ic}</div>`):'';
   const alt=opts.alt?`<button class="btn btn-d" onclick="${opts.alt.go}">${esc(opts.alt.t)}</button>`:'';
   openSheet2(`${ic}<h3 style="text-align:center">${esc(opts.title||'Info')}</h3>
     <p style="margin-bottom:18px; text-align:center; white-space:pre-line">${esc(msg)}</p>
@@ -2694,7 +2754,7 @@ function mealHits(){
     .sort((a,b)=>(b.fav?1:0)-(a.fav?1:0) || (b.uses||0)-(a.uses||0) || a.name.localeCompare(b.name,'ro'))
     .slice(0,6);
   let h=hits.map(f=>`<button class="foodhit" onclick="pickFood('${f.id}')"><span>${esc(f.name)}</span><small>${foodLabel(f)}</small></button>`).join('');
-  h+=`<button class="foodhit" onclick="quickNewFood()"><span>➕ Adaugă „${esc($('msrch').value.trim())}" ca aliment nou</span></button>`;
+  h+=`<button class="foodhit" onclick="quickNewFood()"><span><i class="plusc" aria-hidden="true">+</i> Adaugă „${esc($('msrch').value.trim())}" ca aliment nou</span></button>`;
   $('mhits').innerHTML=h;
 }
 function quickNewFood(){ shFood(null, $('msrch').value.trim(), true); }
@@ -2704,7 +2764,7 @@ function pickFood(fid){
   else{ askGrams(f); }
 }
 function askGrams(f){
-  openSheet2(`<h3>Câte grame?</h3>
+  openSheet2(`${antetInfo('meal', 'Câte grame?')}
     <p class="muted" style="margin:-4px 0 12px">${esc(f.name)} · ${fmtHC(f.val)} HC / 100 g</p>
     ${f.reteta && f.reteta.ts?`<p class="muted" style="margin:-6px 0 12px">Mâncare gătită, cântărită pe ${dNice(f.reteta.ts).replace(/^\S+, /,'')}. Dacă mănânci din altă oală, cântăreș-o întâi în Alimente: fiecare gătit iese altfel.</p>`:''}
     <div class="bigwrap"><input class="inp bignum num" id="gramin" type="text" inputmode="decimal" autocomplete="off" aria-label="Cantitate în grame" style="text-align:center; font-size:calc(26px*var(--fs)); font-weight:800"><span class="unit" aria-hidden="true">g</span></div>
@@ -3007,7 +3067,8 @@ const EMPTY_ICONS={
   '📶':'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.2" y="14.6" width="3.4" height="5.6" rx="1.1" fill="#9CB0BA"/> <rect x="8.4" y="11" width="3.4" height="9.2" rx="1.1" fill="#9CB0BA"/> <rect x="13.6" y="7.4" width="3.4" height="12.8" rx="1.1" fill="#C9D4DA"/> <rect x="18.8" y="3.8" width="3.4" height="16.4" rx="1.1" fill="#C9D4DA"/></svg>'
 };
 function emptyState(o){
-  return `<div class="card empty"><span class="ei">${EMPTY_ICONS[o.ic]||o.ic}</span><b>${o.t}</b>
+  const pl=PLACUTA_EMOJI[o.ic] ? placuta(PLACUTA_EMOJI[o.ic],52) : '';
+  return `<div class="card empty"><span class="ei">${pl||EMPTY_ICONS[o.ic]||o.ic}</span><b>${o.t}</b>
     <span class="hint">${o.d}</span>
     ${o.btn?`<button class="act" onclick="${o.btn.go}">${o.btn.t}</button>`:''}</div>`;
 }
@@ -3830,7 +3891,7 @@ function ctx(id){
   const e=S.events.find(x=>x.id===id); if(!e){return;}
   const from=e.ts-2.5*3600e3, to=e.ts+4*3600e3;
   const around=S.events.filter(x=>x.ts>=from && x.ts<=to);
-  openSheet(`<h3>Context · ${dNice(e.ts)}</h3>
+  openSheet(`${antetInfo('meal', 'Context · '+dNice(e.ts))}
     <p class="muted" style="margin:0 0 10px">Fereastră: 2½ h înainte → 4 h după masă.</p>
     ${around.map(eventCard).join('')}
     <button class="btn btn-g" onclick="closeSheet()">Închide</button>`);
@@ -3996,12 +4057,12 @@ function retetaHits(){
     .sort((a,b)=>(b.fav?1:0)-(a.fav?1:0) || (b.uses||0)-(a.uses||0) || a.name.localeCompare(b.name,'ro'))
     .slice(0,6);
   $('rhits').innerHTML = hits.map(f=>`<button class="foodhit" onclick="retetaAlege('${f.id}')"><span>${esc(f.name)}</span><small>${foodLabel(f)}</small></button>`).join('')
-    + `<button class="foodhit" onclick="retetaManual()"><span>➕ „${esc(raw)}" nu e în bibliotecă: îl scriu de mână</span></button>`;
+    + `<button class="foodhit" onclick="retetaManual()"><span><i class="plusc" aria-hidden="true">+</i> „${esc(raw)}" nu e în bibliotecă: îl scriu de mână</span></button>`;
 }
 function retetaAlege(fid){
   const f=S.foods.find(x=>x.id===fid); if(!f) return;
   const porti=f.mode==='portie';
-  openSheet2(`<h3>${porti?'Câte porții?':'Câte grame?'}</h3>
+  openSheet2(`${antetInfo('foods', porti?'Câte porții?':'Câte grame?')}
     <p class="muted" style="margin:-4px 0 12px">${esc(f.name)} · ${foodLabel(f)}${porti?'':'. Cântărit crud, cum intră în oală.'}</p>
     <div class="bigwrap"><input class="inp bignum num" id="ramt" type="text" inputmode="decimal" autocomplete="off" aria-label="${porti?'Număr de porții':'Cantitate în grame'}" value="${porti?'1':''}" style="text-align:center; font-size:calc(26px*var(--fs)); font-weight:800"><span class="unit" aria-hidden="true">${porti?'porții':'g'}</span></div>
     <div id="rampv" style="text-align:center; font-size:calc(14px*var(--fs)); color:var(--hc-ink); font-weight:700; min-height:20px; margin-top:10px"></div>
@@ -4897,7 +4958,7 @@ function clearUndo(){ try{ localStorage.removeItem(UNDO_KEY); }catch(e){} hideUn
 function showUndoBar(rec){
   const el=$('undobar'); if(!el) return;
   clearTimeout(el._iesire); el.classList.remove('pleaca');   // o ieșire pornită se anulează
-  el.innerHTML=`<span><b>${esc(rec.label)}</b></span><button onclick="runUndo()">Anulează</button>`;
+  el.innerHTML=`<span>${placuta('undo',30)}<b>${esc(rec.label)}</b></span><button onclick="runUndo()">Anulează</button>`;
   el.classList.add('on');
   clearTimeout(el._x); el._x=setTimeout(hideUndoBar, 12000);
 }
@@ -5980,7 +6041,7 @@ function shTracking(){
 }
 function shConsent(){
   $('veil').classList.add('on'); $('sheet').classList.add('on'); syncLock();
-  $('sheet').innerHTML=`<h3>Bine ai venit la Nivelo 👋</h3>
+  $('sheet').innerHTML=`<div class="desprehero"><img src="icon2-192.png" alt="" width="64" height="64"><div><b>Nive<span>lo</span></b><span class="muted">Jurnal personal de diabet</span></div></div><h3>Bine ai venit la Nivelo</h3>
     <p><b>Nivelo e un jurnal personal de diabet.</b> Notezi tu glicemiile, mesele și insulina, iar aplicația le organizează, îți arată tendințele și îți face rezumate pentru medic.</p>
     <p style="margin-top:10px">Pe scurt, ca să fim în siguranță: <b>nu e un dispozitiv medical</b>, nu dă sfaturi și nu calculează doze. Deciziile de tratament rămân între tine și medicul tău (urgențe: 112). Datele stau doar pe telefonul tău.</p>
     <p class="muted" style="margin-top:8px">Poți reciti oricând aceste detalii la <b>Mai mult → Despre</b>.</p>
@@ -6085,7 +6146,7 @@ function renderTour(){
   const dots=TOUR_STEPS.map((_,i)=>`<span style="width:8px;height:8px;border-radius:9px;display:inline-block;background:${i===TOUR?'var(--petrol)':'var(--line)'}"></span>`).join(' ');
   $('veil').classList.add('on'); $('sheet').classList.add('on'); syncLock(); syncHist();
   $('sheet').innerHTML=`<div style="text-align:center;padding:4px 0 2px">
-      <div style="font-size:calc(40px*var(--fs));line-height:1">${st.ic}</div>
+      <div style="font-size:calc(40px*var(--fs));line-height:1">${(PLACUTA_EMOJI[st.ic] && placuta(PLACUTA_EMOJI[st.ic],60))||st.ic}</div>
       <h3 style="margin:10px 0 4px">${st.t}</h3></div>
     <p style="text-align:left">${st.d}</p>
     ${st.extra||''}
@@ -6105,7 +6166,7 @@ function closeTour(){
     setTimeout(shImportOffer, 300);
     return;
   }
-  toast('Gata de folosit! 🎉');
+  toast('Gata de folosit!');
 }
 function shImportOffer(){
   openSheet(`${antetInfo('import', 'Ai deja un jurnal?')}
@@ -6113,7 +6174,7 @@ function shImportOffer(){
     <p style="margin-top:10px">Se acceptă un backup Nivelo (.json) sau un tabel salvat ca .csv. Importul îți arată ce a găsit înainte să schimbe ceva, iar dacă nu iese cum voiai, se poate anula.</p>
     <p class="muted" style="margin-top:10px">Nu e obligatoriu. Poți face asta oricând mai târziu, din <b>Mai mult → Import</b>.</p>
     <button class="btn btn-p" onclick="closeSheet(); $('impfile').click()">Adu jurnalul meu</button>
-    <button class="btn btn-g" onclick="closeSheet(); toast('Gata de folosit! 🎉')">Încep de la zero</button>`);
+    <button class="btn btn-g" onclick="closeSheet(); toast('Gata de folosit!')">Încep de la zero</button>`);
 }
 /* ================= DIAGNOSTIC =================
    Arată de ce nu merge instalarea, în loc să ghicim. Util și pentru testeri:
@@ -6847,7 +6908,7 @@ function bannerCheck(){
     b.innerHTML='<b>Nu ai făcut încă niciun backup.</b>Datele tale trăiesc doar pe acest telefon. Dacă îl schimbi sau ștergi aplicația, se pierd. Un backup durează 30 de secunde.<br><button onclick="backupNow()">Fă primul backup →</button>';
   } else if(dd>=21){
     b.classList.add('urgent');
-    b.innerHTML='<b>⚠ Au trecut '+nUnit(dd,'zile','o zi')+' fără backup!</b>Riști să pierzi tot jurnalul dacă se întâmplă ceva cu telefonul. Fă un backup chiar acum, durează 30 de secunde.<br><button onclick="backupNow()">Fă backup acum →</button>';
+    b.innerHTML='<b>Au trecut '+nUnit(dd,'zile','o zi')+' fără backup!</b>Riști să pierzi tot jurnalul dacă se întâmplă ceva cu telefonul. Fă un backup chiar acum, durează 30 de secunde.<br><button onclick="backupNow()">Fă backup acum →</button>';
   } else if(dd>=14){
     b.innerHTML='<b>Au trecut '+nUnit(dd,'zile','o zi')+' de la ultimul backup.</b>Jurnalul e doar pe acest telefon. Merită 30 de secunde de siguranță.<br><button onclick="backupNow()">Fă backup acum →</button>';
   } else {
@@ -6895,7 +6956,7 @@ function openShortcut(){
 function showUpdateBar(){
   const el=$('updbar');
   if(!el || el.classList.contains('on')) return;
-  el.innerHTML='<span><b>O versiune nouă e gata.</b> Se aplică la reîncărcare.</span>'
+  el.innerHTML='<img src="icon2-192.png" alt="" width="40" height="40"><span class="ut"><b>O versiune nouă e gata.</b><span>Se aplică la reîncărcare. Jurnalul nu se atinge.</span></span>'
     +'<button onclick="applyUpdate()">Reîncarcă</button>';
   el.classList.add('on');
 }
@@ -6915,6 +6976,12 @@ function applyUpdate(){
    cu care omul a folosit ultima dată aplicația. La prima instalare nu se arată
    nimic: cine tocmai a intrat n-are ce compara. */
 const NOUTATI=[
+  {v:'v2.7', ce:[
+    'Toată aplicația are acum același stil: mesajele, confirmările, ecranele goale, turul de început, bannerele de backup și fereastra de bun venit au plăcuțele colorate, în loc de emoji.',
+    'Bara „O versiune nouă e gata" are iconița aplicației și un buton clar „Reîncarcă". Bara „Anulează" are și ea plăcuța ei.',
+    'Reparat: mesajul scurt de jos (de exemplu „Glicemie salvată") nu mai cade peste bara „Anulează"; urcă deasupra ei.',
+    'Pagina cu politica de confidențialitate are același stil, inclusiv tema întunecată. Textul ei e neschimbat.'
+  ]},
   {v:'v2.6', ce:[
     'Ferestrele din „Mai mult" au identitate: Ghid rapid, Întrebări frecvente, Despre, Promisiuni, Confidențialitate, setările, raportul și celelalte au în antet plăcuța rândului lor și culoarea ei pe marginea de sus.',
     'Ghidul rapid are fiecare secțiune cu iconița și culoarea ei din bara de jos. La Întrebări frecvente, cea deschisă se vede colorată; promisiunile au ✓ la ce garantez și — la ce nu.',
