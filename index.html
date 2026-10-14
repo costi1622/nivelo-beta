@@ -1038,6 +1038,7 @@ h3.antet .placuta.alb{color:#fff}
 @keyframes intraSt{from{transform:translateX(-26px); opacity:.35} to{transform:none; opacity:1}}
 .view.intra-dr{animation:intraDr .26s cubic-bezier(.2,.8,.25,1) both}
 .view.intra-st{animation:intraSt .26s cubic-bezier(.2,.8,.25,1) both}
+.view.on.intrat{animation:none}   /* după alunecare: nimic nu mai pornește pe ecran */
 #histzile.zi-vechi{animation:intraSt .26s cubic-bezier(.2,.8,.25,1) both}
 #histzile.zi-noua{animation:intraDr .26s cubic-bezier(.2,.8,.25,1) both}
 @keyframes ziMarg{0%,100%{transform:none} 35%{transform:translateX(8px)} 70%{transform:translateX(-4px)}}
@@ -1250,8 +1251,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       <button class="mrow" onclick="shUpdate()"><span class="ico" aria-hidden="true" style="--mc:#3E9E6B"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M19.4 12a7.4 7.4 0 0 1-12.8 5" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" opacity=".7"/><path d="M4.6 12a7.4 7.4 0 0 1 12.8-5" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round"/><path d="M18.6 3.4v4.4h-4.4" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.4 20.6v-4.4h4.4" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/></svg></span><span>Adu versiunea nouă<small>Dacă tocmai a apărut o actualizare și încă nu a ajuns la tine</small></span></button>
       <button class="mrow" onclick="shDiag()"><span class="ico" aria-hidden="true" style="--mc:#6B7A85"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M19.6 4.8a5 5 0 0 1-6.6 6.4l-6.6 6.6a2 2 0 1 1-2.8-2.8l6.6-6.6a5 5 0 0 1 6.4-6.6l-3 3 .6 2.4 2.4.6z" fill="#fff"/><circle cx="5" cy="19" r=".9" fill="currentColor"/></svg></span><span>Diagnostic tehnic<small>Starea instalării, util dacă ceva nu merge</small></span></button>
     </div>
-    <p class="muted" style="padding:0 6px">Nivelo v2.11 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
-      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v2.11%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
+    <p class="muted" style="padding:0 6px">Nivelo v2.11.1 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
+      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v2.11.1%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
   </section>
 </main>
 
@@ -1340,7 +1341,7 @@ var PORNIT = false, ULTIMA_EROARE = null;
 })();
 
 /* ================= STOCARE ================= */
-const APP_VER='v2.11';
+const APP_VER='v2.11.1';
 /* Android citește manifestul — numele, iconița, scurtăturile — o singură dată, la
    instalare, și îl păstrează așa până la reinstalare. Codul se actualizează singur,
    configurarea nu. De aceea ținem minte când s-a schimbat ultima dată configurarea:
@@ -2141,12 +2142,23 @@ function go(v){
   ECRAN_CURENT=v;
   if(v!=='today'){ DIAL_PCT=null; RAU_ANIMAT=false; }   // la revenire, arcul se desenează din nou de la zero
   if(v!=='stats') STATS_PREV=null;
-  document.querySelectorAll('.view').forEach(x=>{ x.classList.remove('on','intra-dr','intra-st'); });
+  document.querySelectorAll('.view').forEach(x=>{ x.classList.remove('on','intra-dr','intra-st','intrat'); });
   $('v-'+v).classList.add('on');
   if(deLa && deLa!==v && i0>=0 && i1>=0 && !miscareRedusa()){
-    const el=$('v-'+v); void el.offsetWidth;            // repornește animația, chiar și la ecranul vizitat de curând
-    el.classList.add(i1>i0 ? 'intra-dr' : 'intra-st');
-    clearTimeout(el._intra); el._intra=setTimeout(()=>el.classList.remove('intra-dr','intra-st'), 320);
+    /* v2.11.1: ecranul tocmai a trecut din display:none în display:block, deci animația
+       pornește de la zero oricum; nu mai forțăm o reașezare a paginii (costa până la
+       ~100 ms pe telefon).
+       La final, alunecarea se scoate (o animație de transform lăsată pe ecran îl ține ca
+       un singur strat uriaș și derularea Istoricului cade la câteva cadre pe secundă),
+       dar ÎMPREUNĂ cu „intrat", care oprește și animația veche de intrare (viewIn). Fără
+       ea, scoaterea clasei pornea din nou viewIn, de la transparent: ecranul clipea la
+       finalul alunecării — sacadarea văzută pe telefon în v2.10–v2.11. */
+    const el=$('v-'+v); el.classList.add(i1>i0 ? 'intra-dr' : 'intra-st');
+    const gata=()=>{ clearTimeout(el._intra); el.removeEventListener('animationend', laSfarsit);
+      if(el.classList.contains('intra-dr') || el.classList.contains('intra-st')){ el.classList.add('intrat'); el.classList.remove('intra-dr','intra-st'); } };
+    const laSfarsit=e=>{ if(e.target===el) gata(); };
+    el.addEventListener('animationend', laSfarsit);
+    clearTimeout(el._intra); el._intra=setTimeout(gata, 1500);   // plasă, dacă animationend nu vine
   }
   const taburi=[...document.querySelectorAll('#tabs button')];
   /* .on marchează tabul curent vizual; aria-current îl marchează și pentru un cititor
@@ -7381,6 +7393,9 @@ function applyUpdate(){
    cu care omul a folosit ultima dată aplicația. La prima instalare nu se arată
    nimic: cine tocmai a intrat n-are ce compara. */
 const NOUTATI=[
+  {v:'v2.11.1', ce:[
+    'Trecerea între Azi, Istoric, Alimente, Statistici și Mai mult e din nou lină: la finalul alunecării, ecranul nu mai clipește.'
+  ]},
   {v:'v2.11', ce:[
     'Întrebările frecvente sunt pe categorii care se strâng: vezi întâi cele cinci categorii, cu numărul de întrebări din fiecare, și o deschizi doar pe cea care te interesează.',
     'Diagnosticul tehnic arată sus, dintr-o privire, dacă totul e în regulă sau ce anume trebuie verificat. Rândurile sunt pe trei carduri (Aplicația, Spațiul, Telefonul), iar spațiul are bare de umplere. Raportul copiat a rămas exact la fel.'
