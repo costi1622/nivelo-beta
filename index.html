@@ -1053,6 +1053,41 @@ h3.antet .placuta.alb{color:#fff}
 #topbar[data-m="pranz"]{--tbt:rgba(51,173,169,.22)}
 #topbar[data-m="cina"]{--tbt:rgba(214,120,40,.30)}
 #topbar[data-m="noapte"]{--tbt:rgba(98,110,220,.30)}
+
+/* v2.11 — Întrebări frecvente pe categorii care se strâng */
+.qagr{margin:0 0 8px}
+.qagr > summary{list-style:none; cursor:pointer; display:flex; align-items:center; gap:10px; padding:13px 14px; border-radius:14px;
+  background:var(--card); border:1px solid var(--line); box-shadow:var(--shadow)}
+.qagr > summary::-webkit-details-marker{display:none}
+.qagr > summary::before{content:""; flex:none; width:14px; height:4px; border-radius:2px; background:var(--tipc, var(--petrol))}
+.qagt{flex:1; font-size:calc(12px*var(--fs)); font-weight:800; letter-spacing:.7px; text-transform:uppercase; color:var(--tipc, var(--petrol))}
+.qagn{flex:none; font-size:calc(12px*var(--fs)); font-weight:700; color:var(--ink-soft); padding:3px 9px; border-radius:999px;
+  background:color-mix(in srgb, var(--tipc, var(--petrol)) 10%, transparent)}
+.qagv{flex:none; width:9px; height:9px; border-right:2.5px solid var(--ink-soft); border-bottom:2.5px solid var(--ink-soft); transform:rotate(45deg) translate(-2px,-2px); transition:transform .2s ease}
+.qagr[open] > summary .qagv{transform:rotate(225deg) translate(-2px,-2px)}
+.qagr[open] > summary{border-color:color-mix(in srgb, var(--tipc, var(--petrol)) 40%, var(--line))}
+.qagc{padding:8px 0 4px 10px}
+/* v2.11 — Diagnostic tehnic */
+.dgpanou{margin-bottom:12px}
+.dgcard{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:4px 14px; margin-bottom:10px}
+.dgtitlu{display:flex; align-items:center; gap:8px; font-size:calc(11px*var(--fs)); font-weight:800; letter-spacing:.7px; text-transform:uppercase;
+  color:var(--tipc, var(--petrol)); padding:10px 0 4px}
+.dgtitlu::before{content:""; width:14px; height:4px; border-radius:2px; background:var(--tipc, var(--petrol))}
+.dgrand{display:flex; gap:10px; padding:9px 0; border-top:1px solid var(--line); font-size:calc(13.5px*var(--fs))}
+.dgtitlu + .dgrand{border-top:0}
+.dgk{flex:none; width:42%; color:var(--ink-soft)}
+.dgv{flex:1; min-width:0; overflow-wrap:anywhere}
+.dgv b{font-weight:700}
+.dgp{display:inline-flex; align-items:flex-start; gap:5px; padding:2px 9px 2px 7px; border-radius:9px; font-weight:700}
+.dgp svg{flex:none; margin-top:3px}
+.dgp.ok{color:color-mix(in srgb, var(--ok-ink) 72%, var(--ink)); background:color-mix(in srgb, var(--ok) 11%, transparent)}
+.dgp.rau{color:color-mix(in srgb, var(--low-ink) 72%, var(--ink)); background:color-mix(in srgb, var(--low) 11%, transparent)}
+.dgloc{display:inline-block; font-weight:800; font-size:calc(12px*var(--fs)); padding:2px 9px; border-radius:999px; margin-bottom:4px;
+  color:var(--petrol); background:color-mix(in srgb, var(--petrol) 12%, transparent)}
+.dgadr{display:block; font-size:calc(12px*var(--fs)); color:var(--ink-soft)}
+.dgbara{display:block; height:6px; border-radius:3px; margin-top:7px; background:color-mix(in srgb, var(--ink-soft) 16%, transparent); overflow:hidden}
+.dgbara i{display:block; height:100%; border-radius:3px}
+@media (prefers-reduced-motion:reduce){ .qagv{transition:none} }
 </style>
 </head>
 <body>
@@ -1215,8 +1250,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       <button class="mrow" onclick="shUpdate()"><span class="ico" aria-hidden="true" style="--mc:#3E9E6B"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M19.4 12a7.4 7.4 0 0 1-12.8 5" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" opacity=".7"/><path d="M4.6 12a7.4 7.4 0 0 1 12.8-5" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round"/><path d="M18.6 3.4v4.4h-4.4" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.4 20.6v-4.4h4.4" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/></svg></span><span>Adu versiunea nouă<small>Dacă tocmai a apărut o actualizare și încă nu a ajuns la tine</small></span></button>
       <button class="mrow" onclick="shDiag()"><span class="ico" aria-hidden="true" style="--mc:#6B7A85"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M19.6 4.8a5 5 0 0 1-6.6 6.4l-6.6 6.6a2 2 0 1 1-2.8-2.8l6.6-6.6a5 5 0 0 1 6.4-6.6l-3 3 .6 2.4 2.4.6z" fill="#fff"/><circle cx="5" cy="19" r=".9" fill="currentColor"/></svg></span><span>Diagnostic tehnic<small>Starea instalării, util dacă ceva nu merge</small></span></button>
     </div>
-    <p class="muted" style="padding:0 6px">Nivelo v2.10 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
-      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v2.10%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
+    <p class="muted" style="padding:0 6px">Nivelo v2.11 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
+      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v2.11%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
   </section>
 </main>
 
@@ -1305,7 +1340,7 @@ var PORNIT = false, ULTIMA_EROARE = null;
 })();
 
 /* ================= STOCARE ================= */
-const APP_VER='v2.10';
+const APP_VER='v2.11';
 /* Android citește manifestul — numele, iconița, scurtăturile — o singură dată, la
    instalare, și îl păstrează așa până la reinstalare. Codul se actualizează singur,
    configurarea nu. De aceea ținem minte când s-a schimbat ultima dată configurarea:
@@ -6477,6 +6512,49 @@ function shImportOffer(){
 /* ================= DIAGNOSTIC =================
    Arată de ce nu merge instalarea, în loc să ghicim. Util și pentru testeri:
    „deschide Mai mult → Diagnostic și trimite-mi ce scrie". */
+/* v2.11: aceleași rânduri și aceleași verificări, doar așezate altfel:
+   un panou de stare sus, apoi trei carduri. Ordinea din raportul copiat
+   (DIAG_TEXT) nu se schimbă: se construiește tot din R, în ordinea lui. */
+const DIAG_GRUPE=[
+  ['Aplicația', ['Versiune','Versiune în cache','Adresă','Instalată pe ecran','Configurare (scurtături, iconițe)','Service worker','Manifest','Iconițe','Ultima eroare']],
+  ['Spațiul', ['Jurnalul (limita care contează)','Copia de siguranță și cache-ul','Intrări în jurnal']],
+  ['Telefonul', ['Dispozitiv','Conexiune securizată','Trimitere fișiere','Stocare persistentă']]];
+const DIAG_SEMN={ok:'<svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  rau:'<svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v9" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"/><circle cx="12" cy="19.2" r="2" fill="currentColor"/></svg>'};
+function diagValoare(k,v,ok,x){
+  x=x||{};
+  let h;
+  if(k==='Adresă'){
+    const unde = /beta/i.test(location.pathname) ? 'beta' : /github\.io$/i.test(location.hostname) ? 'stabil' : '';
+    h=(unde?`<span class="dgloc">${unde}</span>`:'')+`<span class="dgadr">${esc(v)}</span>`;
+  } else {
+    const t=esc(x.afis||v);
+    h = ok===true ? `<span class="dgp ok">${DIAG_SEMN.ok}<span>${t}</span></span>`
+      : ok===false ? `<span class="dgp rau">${DIAG_SEMN.rau}<span>${t}</span></span>`
+      : `<b>${t}</b>`;
+  }
+  if(typeof x.bara==='number' && isFinite(x.bara)){
+    const pr=Math.max(0,Math.min(1,x.bara)), cul = k.indexOf('Jurnalul')===0 ? (pr<0.6?'var(--ok)':pr<0.8?'var(--high)':'var(--low)') : 'var(--petrol)';
+    h+=`<span class="dgbara" aria-hidden="true"><i style="width:${Math.max(pr>0?2:0, Math.round(pr*1000)/10)}%; background:${cul}"></i></span>`;
+  }
+  return h;
+}
+function diagVedere(R){
+  const dupaNume=new Map(R.map(r=>[r[0],r])), folosite=new Set();
+  const probleme=R.filter(r=>r[2]===false).map(r=>r[0]);
+  const instalabil = R.every(r=>!['Conexiune securizată','Service worker','Manifest','Iconițe'].includes(r[0]) || r[2]===true);
+  const nivel = !probleme.length ? 'bine' : instalabil ? 'atentie' : 'rau';
+  const titlu = !probleme.length ? 'Totul e în regulă' : probleme.length===1 ? 'Un lucru de verificat' : probleme.length+' lucruri de verificat';
+  const sub = !probleme.length ? 'Nicio verificare n-a găsit o problemă.' : esc(probleme.join(' · '));
+  let h=`<div class="panou ${nivel} dgpanou"><div class="panoubk" style="margin:0"><span class="pbsemn" aria-hidden="true">${nivel==='bine'?'✓':'!'}</span><div class="pbtxt"><b>${titlu}</b><span>${sub}</span></div></div></div>`;
+  const grupe=DIAG_GRUPE.map(([n,chei])=>[n, chei.filter(c=>dupaNume.has(c))]);
+  // un rând nou, neprevăzut în grupe, nu se pierde: ajunge în primul card
+  R.forEach(r=>{ if(!grupe.some(g=>g[1].includes(r[0]))) grupe[0][1].push(r[0]); });
+  grupe.forEach(([n,chei])=>{ if(!chei.length) return;
+    h+=`<div class="dgcard"><div class="dgtitlu">${n}</div>`+chei.map(c=>{ const r=dupaNume.get(c);
+      return `<div class="dgrand"><span class="dgk">${esc(r[0])}</span><span class="dgv">${diagValoare(r[0],r[1],r[2],r[3])}</span></div>`; }).join('')+`</div>`; });
+  return h;
+}
 function diagRow(k,v,ok){
   const col = ok===true?'var(--ok)' : ok===false?'var(--low)' : 'var(--ink-soft)';
   return `<div style="display:flex; gap:10px; padding:7px 0; border-bottom:1px solid var(--line); font-size:calc(13.5px*var(--fs))">
@@ -6698,16 +6776,20 @@ async function shDiag(){
           !spJ ? 'necunoscut'
                : spJ.mutat ? 'mutat într-un spațiu mai mare (IndexedDB)'
                : mb(spJ.folosit)+' din '+mb(spJ.limita)+' · '+Math.round(spJ.pct*100)+'%',
-          spJ ? (spJ.mutat || spJ.pct<0.8) : null]);
-  let sp='necunoscut';
+          spJ ? (spJ.mutat || spJ.pct<0.8) : null,
+          {bara: spJ && !spJ.mutat ? spJ.pct : null}]);
+  let sp='necunoscut', spAfis=null, spBara=null;
   try{
     if(navigator.storage && navigator.storage.estimate){
       const q=await navigator.storage.estimate();
       sp = q.usage!=null ? mb(q.usage)+(q.quota? ' din '+mb(q.quota):'') : 'necunoscut';
+      // doar pe ecran: plafonul mare în GB, ca să se citească ușor; raportul copiat rămâne în MB
+      if(q.usage!=null && q.quota){ spBara=q.usage/q.quota;
+        spAfis=mb(q.usage)+' din '+(q.quota>=1073741824 ? fmtN(q.quota/1073741824)+' GB' : mb(q.quota)); }
     }
   }catch(e){}
-  R.push(['Copia de siguranță și cache-ul', sp, null]);
-  R.push(['Intrări în jurnal', String(S.events.length), null]);
+  R.push(['Copia de siguranță și cache-ul', sp, null, {bara:spBara, afis:spAfis}]);
+  R.push(['Intrări în jurnal', String(S.events.length), null, {afis:S.events.length.toLocaleString('ro-RO')}]);
   R.push(['Dispozitiv', await deviceLabel(), null]);
   // o eroare apărută după pornire nu ia ecranul în primire, dar merită să apară
   // aici: e exact ce lipsește dintr-un raport când cineva zice „a fost ceva ciudat"
@@ -6717,7 +6799,7 @@ async function shDiag(){
     ? '<p class="muted" style="margin:12px 0 0">Toate condițiile de instalare sunt îndeplinite. Dacă Chrome tot oferă doar „Create shortcut", închide complet aplicația și redeschide-o de două ori, apoi reîncearcă.</p>'
     : '<p class="muted" style="margin:12px 0 0">Rândurile marcate cu roșu sunt motivul pentru care instalarea nu e oferită.</p>';
   const el=$('diagbody');
-  if(el) el.innerHTML=R.map(r=>diagRow(r[0],r[1],r[2])).join('')+verdict
+  if(el) el.innerHTML=diagVedere(R)+verdict
     +'<button class="btn btn-g" style="margin-top:12px" onclick="copyDiag()">Copiază raportul</button>'
     +'<button class="btn btn-g" style="margin-top:8px" onclick="shUpdate()">Adu versiunea nouă</button>'
     +'<button class="btn btn-g" style="margin-top:8px" onclick="shReinstall()">Scurtăturile sau iconița nu s-au schimbat?</button>';
@@ -6872,9 +6954,24 @@ function shGuide(){
 function qa(q, a){
   return `<details class="qa"><summary>${q}</summary><div>${a}</div></details>`;
 }
+/* v2.11: fiecare categorie din Întrebări frecvente se strânge și se deschide.
+   Întrebările rămân exact cum erau; doar le punem într-un <details> pe categorie,
+   cu numărul lor. Ce urmează după ultima întrebare (butonul Închide) rămâne afară. */
+function grupeazaQA(html){
+  const parti=html.split(/<div class="qagroup">([^<]*)<\/div>/);
+  if(parti.length<3) return html;
+  let out=parti[0];
+  for(let i=1;i<parti.length;i+=2){
+    const nume=parti[i], corp=parti[i+1], cap=corp.lastIndexOf('</details>');
+    const inauntru = cap<0 ? corp : corp.slice(0,cap+10), dupa = cap<0 ? '' : corp.slice(cap+10);
+    const n=(inauntru.match(/<details class="qa">/g)||[]).length;
+    out+=`<details class="qagr"><summary><span class="qagt">${nume}</span><span class="qagn">${n===1?'o întrebare':n+' întrebări'}</span><span class="qagv" aria-hidden="true"></span></summary><div class="qagc">${inauntru}</div></details>${dupa}`;
+  }
+  return out;
+}
 function shHelp(){
-  openSheet(`${antetInfo('faq', 'Întrebări frecvente')}
-    <p class="muted" style="margin-bottom:12px">Întrebările care apar cel mai des. Atinge una ca să vezi răspunsul.</p>
+  openSheet(grupeazaQA(`${antetInfo('faq', 'Întrebări frecvente')}
+    <p class="muted" style="margin-bottom:12px">Întrebările care apar cel mai des, pe categorii. Atinge o categorie, apoi o întrebare, ca să vezi răspunsul.</p>
 
     <div class="qagroup">Notare și corecturi</div>
     ${qa('Pot nota mai repede, direct de pe ecranul principal?',
@@ -7024,7 +7121,7 @@ function shHelp(){
       '<p>Deschide <b>Mai mult → Diagnostic tehnic</b> și apasă <b>Copiază raportul</b>: strânge într-un text starea instalării, versiunea și dispozitivul, fără nimic din datele tale.</p>'+
       '<p>Apoi <b>Suport → Trimite feedback</b> și lipește raportul în e-mail, cu o frază despre ce ai încercat să faci. Așa problema se găsește mult mai repede.</p>')}
 
-    <button class="btn btn-g" onclick="closeSheet()">Închide</button>`);
+    <button class="btn btn-g" onclick="closeSheet()">Închide</button>`));
 }
 function shPrivacy(){
   openSheet(`${antetInfo('privacy', 'Confidențialitate')}
@@ -7284,6 +7381,10 @@ function applyUpdate(){
    cu care omul a folosit ultima dată aplicația. La prima instalare nu se arată
    nimic: cine tocmai a intrat n-are ce compara. */
 const NOUTATI=[
+  {v:'v2.11', ce:[
+    'Întrebările frecvente sunt pe categorii care se strâng: vezi întâi cele cinci categorii, cu numărul de întrebări din fiecare, și o deschizi doar pe cea care te interesează.',
+    'Diagnosticul tehnic arată sus, dintr-o privire, dacă totul e în regulă sau ce anume trebuie verificat. Rândurile sunt pe trei carduri (Aplicația, Spațiul, Telefonul), iar spațiul are bare de umplere. Raportul copiat a rămas exact la fel.'
+  ]},
   {v:'v2.10', ce:[
     'Ecranele alunecă: când alegi o secțiune din bara de jos, ecranul nou intră din partea în care e butonul ei.',
     'În Statistici, la schimbarea perioadei (7, 30, 90 de zile), cifrele curg de la valoarea veche la cea nouă, ca să vezi încotro s-au mișcat. Valorile de la final sunt exact aceleași.',
