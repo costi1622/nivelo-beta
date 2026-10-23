@@ -1095,6 +1095,15 @@ main{overflow-x:clip}
 .dgbara{display:block; height:6px; border-radius:3px; margin-top:7px; background:color-mix(in srgb, var(--ink-soft) 16%, transparent); overflow:hidden}
 .dgbara i{display:block; height:100%; border-radius:3px}
 @media (prefers-reduced-motion:reduce){ .qagv{transition:none} }
+
+/* v2.12 — glicemiile pe 7 zile și „Când măsori" */
+.agpleg i.pt{width:9px; height:9px; border-radius:50%; vertical-align:0}
+.cmas{margin-top:12px; padding-top:10px; border-top:1px solid var(--line)}
+.cmgrid{display:grid; grid-template-columns:repeat(5,1fr); gap:6px; margin-top:8px; text-align:center}
+.cmbar{height:38px; display:flex; align-items:flex-end; justify-content:center; background:color-mix(in srgb, var(--ink-soft) 8%, transparent); border-radius:6px; overflow:hidden}
+.cmbar i{display:block; width:100%; background:var(--petrol); opacity:.75; border-radius:6px 6px 0 0}
+.cmcol b{display:block; font-size:calc(14px*var(--fs)); font-weight:800; margin-top:4px}
+.cmcol span{display:block; font-size:calc(11px*var(--fs)); color:var(--ink-soft)}
 </style>
 </head>
 <body>
@@ -1257,8 +1266,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       <button class="mrow" onclick="shUpdate()"><span class="ico" aria-hidden="true" style="--mc:#3E9E6B"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M19.4 12a7.4 7.4 0 0 1-12.8 5" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" opacity=".7"/><path d="M4.6 12a7.4 7.4 0 0 1 12.8-5" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round"/><path d="M18.6 3.4v4.4h-4.4" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.4 20.6v-4.4h4.4" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/></svg></span><span>Adu versiunea nouă<small>Dacă tocmai a apărut o actualizare și încă nu a ajuns la tine</small></span></button>
       <button class="mrow" onclick="shDiag()"><span class="ico" aria-hidden="true" style="--mc:#6B7A85"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M19.6 4.8a5 5 0 0 1-6.6 6.4l-6.6 6.6a2 2 0 1 1-2.8-2.8l6.6-6.6a5 5 0 0 1 6.4-6.6l-3 3 .6 2.4 2.4.6z" fill="#fff"/><circle cx="5" cy="19" r=".9" fill="currentColor"/></svg></span><span>Diagnostic tehnic<small>Starea instalării, util dacă ceva nu merge</small></span></button>
     </div>
-    <p class="muted" style="padding:0 6px">Nivelo v2.11.2 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
-      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v2.11.2%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
+    <p class="muted" style="padding:0 6px">Nivelo v2.12 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
+      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v2.12%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
   </section>
 </main>
 
@@ -1347,7 +1356,7 @@ var PORNIT = false, ULTIMA_EROARE = null;
 })();
 
 /* ================= STOCARE ================= */
-const APP_VER='v2.11.2';
+const APP_VER='v2.12';
 /* Android citește manifestul — numele, iconița, scurtăturile — o singură dată, la
    instalare, și îl păstrează așa până la reinstalare. Codul se actualizează singur,
    configurarea nu. De aceea ținem minte când s-a schimbat ultima dată configurarea:
@@ -4800,6 +4809,63 @@ function agpBenzi(g){
   if(cur.length) runs.push(cur);
   return {band, runs, pts};
 }
+/* v2.12: la 7 zile, fiecare glicemie pe ora ei. Ziua tipică (percentile) cere cel puțin
+   8 măsurători în jurul fiecărei ore; cu ~6 pe zi, într-o săptămână rămâneau desenate doar
+   câteva puncte din 49, iar graficul părea stricat. Aici nu se calculează nimic: se arată
+   exact ce ai notat. Zilele se leagă cu o linie subțire, care se rupe peste goluri mai lungi
+   de 4 ore, ca să nu inventeze ce s-a întâmplat între măsurători (aceeași regulă ca la ziua
+   tipică: gol e mai onest decât greșit). */
+/* v2.12: „Când măsori". Media, HbA1c estimat și procentele descriu momentele în care ai
+   măsurat. Dacă o parte a zilei aproape lipsește (de obicei noaptea), cifrele nu o prind,
+   iar asta se spune aici. Intervalele au orele scrise, ca să nu fie confundate cu momentele
+   (Dimineața, Prânz…) din cronologie, care au alte limite. Procentele se repartizează ca la
+   timpul în țintă (însumează 100). */
+const CAND_INTERVALE=[[0,6],[6,11],[11,17],[17,21],[21,24]];
+function candMasoriHtml(g){
+  if(g.length<10) return '';
+  const n=CAND_INTERVALE.map(([a,b])=>g.filter(x=>{ const h=new Date(x.ts).getHours(); return h>=a && h<b; }).length);
+  const pc=bandPct(n), mx=Math.max(...n,1);
+  const col=CAND_INTERVALE.map(([a,b],i)=>`<div class="cmcol"><div class="cmbar"><i style="height:${Math.max(n[i]?4:0, Math.round(n[i]/mx*100))}%"></i></div><b class="num">${n[i]&&!pc[i]?'&lt;1':pc[i]}%</b><span>${two(a)}–${two(b)}</span></div>`).join('');
+  const putine=CAND_INTERVALE.map(([a,b],i)=>({a,b,n:n[i],p:pc[i]})).filter(x=>x.n/g.length<0.05);
+  const avert = !putine.length ? '' : `<p class="muted" style="margin:8px 0 0">${putine.map(x=>`Între ${two(x.a)} și ${two(x.b)} ai ${x.n?'doar '+x.n:'nicio măsurătoare'} din ${g.length}${x.n?` (${x.p?x.p+'%':'sub 1%'})`:''}`).join('; ')}. Ce se întâmplă atunci se vede puțin în cifrele de mai jos: media, HbA1c estimat și procentele descriu mai ales orele în care măsori.</p>`;
+  return `<div class="cmas"><b>Când măsori</b><div class="cmgrid" role="img" aria-label="${esc('Câte măsurători ai pe fiecare interval de ore: '+CAND_INTERVALE.map(([a,b],i)=>two(a)+'–'+two(b)+' '+pc[i]+'%').join(', '))}">${col}</div>${avert}</div>`;
+}
+function masuratoriHtml(g){
+  if(!g.length) return '';
+  const s=S.settings;
+  const W=340, H=150, ML=26, MR=6, TOP=8, BOT=18, iw=W-ML-MR, ih=H-TOP-BOT;
+  const vmax=Math.max(...g.map(x=>x.v));
+  const yMax=Math.min(400, Math.max(250, Math.ceil(vmax/50)*50)), yMin=40;
+  const ora=ts=>{ const d=new Date(ts); return d.getHours()+d.getMinutes()/60; };
+  const X=h=>ML+h/24*iw;
+  const Y=v=>TOP+(yMax-Math.max(yMin,Math.min(yMax,v)))/(yMax-yMin)*ih;
+  const ord=[...g].sort((a,b)=>a.ts-b.ts);
+  const zile={}; ord.forEach(x=>{ (zile[dKey(x.ts)]=zile[dKey(x.ts)]||[]).push(x); });
+  const linii=Object.values(zile).map(z=>{ let d='', prev=null;
+    z.forEach(x=>{ const pt=X(ora(x.ts)).toFixed(1)+' '+Y(x.v).toFixed(1);
+      d += (!prev || x.ts-prev.ts>4*3600000) ? ' M'+pt : ' L'+pt; prev=x; });
+    return d; }).join('');
+  const puncte=ord.map(x=>`<circle cx="${X(ora(x.ts)).toFixed(1)}" cy="${Y(x.v).toFixed(1)}" r="2.6" fill="${rangeColor(x.v)}" stroke="var(--card)" stroke-width="1"/>`).join('');
+  const ticks=[0,6,12,18,24].map(h=>`<text x="${X(h).toFixed(1)}" y="${H-4}" font-size="9" fill="var(--ink-soft)" text-anchor="middle">${two(h)}</text>`).join('');
+  const yl=[s.low,s.high,250].filter(v=>v<yMax).map(v=>`<text x="${ML-4}" y="${(Y(v)+3).toFixed(1)}" font-size="9" fill="var(--ink-soft)" text-anchor="end">${v}</text>`
+    +`<line x1="${ML}" y1="${Y(v).toFixed(1)}" x2="${W-MR}" y2="${Y(v).toFixed(1)}" stroke="var(--line)" stroke-width="1"${v===250?' stroke-dasharray="3 3"':''}/>`).join('');
+  const mic=ord.reduce((a,b)=>b.v<a.v?b:a), mare=ord.reduce((a,b)=>b.v>a.v?b:a);
+  const cand=x=>ZILE[new Date(x.ts).getDay()].toLowerCase()+', '+tHM(x.ts);
+  const rez=`${nUnit(ord.length,'măsurători','o măsurătoare')}. Cea mai mică: ${mic.v} mg/dl (${cand(mic)}). Cea mai mare: ${mare.v} mg/dl (${cand(mare)}).`;
+  const svg=`<svg class="agpsvg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+    <rect x="${ML}" y="${Y(s.high).toFixed(1)}" width="${iw}" height="${Math.max(2,Y(s.low)-Y(s.high)).toFixed(1)}" fill="var(--ok)" opacity=".12" rx="3"/>
+    ${yl}
+    <g class="agpdes">
+      <path d="${linii}" fill="none" stroke="var(--petrol)" stroke-width="1.2" stroke-linejoin="round" opacity=".28"/>
+      ${puncte}
+    </g>${ticks}</svg>`;
+  return `<div class="card agpcard mascard"><h2>Glicemiile tale · ${nUnit(PERIOD,'zile','o zi')}</h2>
+    <div role="img" aria-label="${esc('Glicemiile tale pe ultimele '+nUnit(PERIOD,'zile','o zi')+', fiecare pe ora ei. '+rez)}">${svg}</div>
+    <div class="agpleg" aria-hidden="true"><span><i class="pt" style="background:var(--low)"></i>sub țintă</span><span><i class="pt" style="background:var(--ok)"></i>în țintă</span><span><i class="pt" style="background:var(--high)"></i>peste țintă</span><span><i class="pt" style="background:var(--vhigh)"></i>peste 250</span></div>
+    <p style="margin:8px 0 0">${rez}</p>
+    <details class="expl"><summary>Ce înseamnă?</summary><p class="muted" style="margin:6px 0 0">Fiecare punct e o glicemie notată, așezată pe ora la care ai măsurat-o; punctele din aceeași zi sunt legate cu o linie subțire, întreruptă unde trec peste 4 ore între măsurători. Pentru o săptămână sunt prea puține măsurători ca să se poată spune care e valoarea tipică la fiecare oră, așa că vezi chiar măsurătorile. <b>Ziua ta tipică</b> apare la 30 și la 90 de zile.</p></details>
+  </div>`;
+}
 function ziuaTipicaHtml(g){
   const s=S.settings;
   const {band, runs}=agpBenzi(g);
@@ -4821,7 +4887,10 @@ function ziuaTipicaHtml(g){
   const yl=[s.low,s.high,250].filter(v=>v<yMax).map(v=>`<text x="${ML-4}" y="${(Y(v)+3).toFixed(1)}" font-size="9" fill="var(--ink-soft)" text-anchor="end">${v}</text>`
     +`<line x1="${ML}" y1="${Y(v).toFixed(1)}" x2="${W-MR}" y2="${Y(v).toFixed(1)}" stroke="var(--line)" stroke-width="1"${v===250?' stroke-dasharray="3 3"':''}/>`).join('');
   // rezumatul în cuvinte: mediana tipică pe fiecare moment al zilei
-  const pe=[['dimineața',5,11],['la prânz',11,17],['seara',17,21],['noaptea',21,29]].map(([n,a,b])=>{
+  /* v2.12: numele urmează momentele din restul aplicației (Cină = 17–21, Seara / noaptea = după 21).
+     Înainte, 17–21 se numea „seara" și 21–05 „noaptea": „cel mai sus noaptea" se putea citi ca
+     00–06, unde de obicei se măsoară foarte rar. */
+  const pe=[['dimineața',5,11],['la prânz',11,17],['la cină',17,21],['seara și noaptea',21,29]].map(([n,a,b])=>{
     const bs=solid.filter(x=>{ const h=x.h<5?x.h+24:x.h; return h>=a && h<b; });
     return bs.length ? {n, md:Math.round(median(bs.map(x=>x.md)))} : null; }).filter(Boolean);
   let rez='';
@@ -5031,7 +5100,7 @@ function renderStats(){
     }
   }
   $('statsbody').innerHTML=`
-    ${ziuaTipicaHtml(g)}
+    ${PERIOD<=7 ? masuratoriHtml(g) : ziuaTipicaHtml(g)}
     <div class="card"><h2>Glicemie · ultimele ${nUnit(PERIOD,'zile','o zi')}</h2>
       <div class="statgrid">
         <div class="stat"><b class="num">${Math.round(avg)}<small class="u">mg/dl</small></b><span>medie</span></div>
@@ -5053,6 +5122,7 @@ function renderStats(){
         : soliditate==='medii' ? 'Datele acoperă o bună parte din perioadă, dar nu tot. Procentele descriu fidel momentele în care ai măsurat, care pot să nu fie repartizate uniform în zi.'
         : 'Datele sunt rare sau acoperă o parte mică din perioadă. Cifrele rămân corecte pentru ce ai notat, dar pot fi influențate mult de câteva zile.'
       }</p>
+      ${candMasoriHtml(g)}
     </div>
     ${labCardHtml()}
     <div class="card"><h2>Timp în țintă (${s.low}–${s.high})</h2>
@@ -6818,7 +6888,8 @@ async function shDiag(){
     : '<p class="muted" style="margin:12px 0 0">Rândurile marcate cu roșu sunt motivul pentru care instalarea nu e oferită.</p>';
   const el=$('diagbody');
   if(el) el.innerHTML=diagVedere(R)+verdict
-    +'<button class="btn btn-g" style="margin-top:12px" onclick="copyDiag()">Copiază raportul</button>'
+    +'<button class="btn btn-p" style="margin-top:12px" onclick="shVerificaCifrele()">Verifică cifrele din Statistici</button>'
+    +'<button class="btn btn-g" style="margin-top:8px" onclick="copyDiag()">Copiază raportul</button>'
     +'<button class="btn btn-g" style="margin-top:8px" onclick="shUpdate()">Adu versiunea nouă</button>'
     +'<button class="btn btn-g" style="margin-top:8px" onclick="shReinstall()">Scurtăturile sau iconița nu s-au schimbat?</button>';
   DIAG_TEXT = R.map(r=>r[0]+': '+r[1]).join('\n');
@@ -6942,9 +7013,10 @@ function shGuide(){
 
     <div class="card ghid" style="--gc:#3E9E6B"><h2>${ghidIco('stats')}<span>4 · Statistici</span></h2>
       <p style="margin:8px 0 0">Imaginea de ansamblu.</p>
-      <p style="margin:8px 0 0">Sus stă <b>Ziua ta tipică</b>: toate zilele din perioadă puse una peste alta, pe ore, ca să vezi dintr-o privire în ce parte a zilei ești de obicei sus sau jos. Explicațiile lungi de sub cifre sunt strânse sub „Ce înseamnă?".</p>
+      <p style="margin:8px 0 0">Sus stă <b>Ziua ta tipică</b>: toate zilele din perioadă puse una peste alta, pe ore, ca să vezi dintr-o privire în ce parte a zilei ești de obicei sus sau jos. La 7 zile, în locul ei vezi fiecare glicemie pe ora ei: o săptămână are prea puține măsurători pentru o zi tipică. Explicațiile lungi de sub cifre sunt strânse sub „Ce înseamnă?".</p>
       <p style="margin:8px 0 0">Alegi perioada sus (7, 30 sau 90 de zile) și vezi: media glicemică, HbA1c estimat, variabilitatea (cât de mult oscilează glicemia în jurul mediei), timpul în țintă, mediile pe momentele zilei, dozele tipice de insulină. Pentru discuția cu medicul, mai jos apar ICR și ISF observate. Perioada are mereu toate zilele alese: dimineața, până la prima glicemie, înseamnă zilele încheiate, până ieri.</p><p style="margin:8px 0 0">Bara timpului în țintă arată separat hipoglicemiile ușoare de cele sub <b>54</b>, iar sub ea, cardul <b>Hipoglicemii</b> îți spune câte episoade ai avut, câte noaptea și care a fost cea mai mică valoare.</p>
       <p style="margin:8px 0 0">Dacă îți notezi analizele <b>HbA1c</b> de la laborator, le vezi tot aici, fiecare alături de estimarea din jurnal pentru cele 90 de zile dinaintea ei.</p>
+      <p style="margin:8px 0 0">La <b>Cât de solide sunt cifrele</b>, „Când măsori" arată cum îți sunt împărțite măsurătorile pe ore. Iar dacă vrei să verifici că cifrele sunt calculate corect: <b>Mai mult → Diagnostic tehnic → Verifică cifrele din Statistici</b>.</p>
       <p style="margin:8px 0 0">Dacă notezi și ciclul menstrual, tot aici apare o comparație între zilele de ciclu și restul: media glicemică, timpul în țintă și insulina rapidă pe zi.</p><p style="margin:8px 0 0">Toate sunt rezumate descriptive din datele tale, orientative, nu recomandări.</p>
     </div>
 
@@ -7085,6 +7157,10 @@ function shHelp(){
       '<p>Ca să se vadă cât de veche e valoarea. Inelul e plin cât timp măsurătoarea are sub o jumătate de oră și se stinge treptat până la 4 ore. Cifra rămâne la fel de clară; sub ea scrie ora și de cât timp e, de exemplu „20:48, acum 1 h 40 min".</p>')}
 
     <div class="qagroup">Cifre și raportul pentru medic</div>
+    ${qa('Cum verific că cifrele din Statistici sunt calculate corect?',
+      '<p><b>Mai mult → Diagnostic tehnic → Verifică cifrele din Statistici</b>. O a doua metodă de calcul, scrisă separat de cea a ecranului, reface din jurnalul de pe telefon toate cifrele din Statistici pe 7, 30 și 90 de zile, plus comparația cu laboratorul, și le compară cu ce scrie pe ecran. Durează o clipă și nu schimbă nimic în jurnal.</p>'+
+      '<p>Dacă iese ceva diferit, apare lista exactă: ce scrie pe ecran și ce a dat recalculul. Trimite-mi o captură.</p>'+
+      '<p>„Calculat corect" nu înseamnă și „complet": cifrele descriu momentele în care ai măsurat. Cât de bine acoperi ziua vezi la <b>Cât de solide sunt cifrele → Când măsori</b>.</p>')}
     ${qa('Cum scot raportul pentru doctor?',
       '<p><b>Mai mult → Raport pentru doctor</b>. Alegi perioada, iar raportul se deschide în fereastra de tipărire a telefonului, de unde îl poți <b>salva ca PDF</b> și trimite sau printa.</p>'+
       '<p>Prima pagină e un rezumat: cifrele mari, bara timpului în țintă, ultima analiză HbA1c și ziua tipică. Pe pagina a doua e o legendă care explică fiecare cifră, ca medicul să-l poată citi fără tine lângă el.</p>')}
@@ -7399,6 +7475,12 @@ function applyUpdate(){
    cu care omul a folosit ultima dată aplicația. La prima instalare nu se arată
    nimic: cine tocmai a intrat n-are ce compara. */
 const NOUTATI=[
+  {v:'v2.12', ce:[
+    'Mai mult → Diagnostic tehnic → „Verifică cifrele din Statistici": o a doua metodă de calcul, scrisă separat, reface din jurnalul tău toate cifrele din Statistici pe 7, 30 și 90 de zile, plus comparația cu laboratorul, și îți spune dacă se potrivesc cu ce vezi pe ecran.',
+    'În Statistici, la „Cât de solide sunt cifrele", apare „Când măsori": cum îți sunt împărțite măsurătorile pe ore. Dacă un interval aproape lipsește (de obicei noaptea), ți se spune, fiindcă media și HbA1c estimat nu-l prind.',
+    'La 7 zile, în locul zilei tipice (care cere mai multe măsurători decât are o săptămână) vezi fiecare glicemie pe ora ei, colorată după interval.',
+    'Ziua tipică numește momentele la fel ca restul aplicației: „la cină" (17–21) și „seara și noaptea" (după 21), în loc de „seara" și „noaptea".'
+  ]},
   {v:'v2.11.2', ce:[
     'Bara de jos stă pe loc la trecerea între ecrane: nu mai coboară și nu-și mai taie etichetele cât alunecă ecranul nou.'
   ]},
@@ -7944,5 +8026,185 @@ adunaJurnalul().then(porneste);
 
 </script>
 
+<script>
+/* ================= VERIFICAREA CIFRELOR (v2.12) =================
+   A doua metodă de calcul, scrisă separat de cea a ecranului de Statistici, după
+   aceleași reguli (cele din DOCUMENTATIE.md). Nu cheamă nicio funcție de calcul a
+   aplicației: are propriile medii, mediane, percentile, ferestre de zile și
+   repartizări. Citește doar jurnalul (S) și ce scrie pe ecran, apoi compară.
+
+   De ce în aplicație și nu doar în teste: testele verifică pe jurnalele de test,
+   la fiecare versiune. Asta verifică pe jurnalul tău, pe telefonul tău, oricând.
+   Nu modifică nimic din jurnal și nu trimite nimic nicăieri. */
+const VC={
+  ZI:86400000,
+  doi:n=>String(n).padStart(2,'0'),
+  cheie(ts){ const d=new Date(ts); return d.getFullYear()+'-'+VC.doi(d.getMonth()+1)+'-'+VC.doi(d.getDate()); },
+  // miezul nopții de acum `n` zile calendaristice (corect și peste schimbarea orei)
+  miez(ts, n){ const d=new Date(ts); d.setHours(0,0,0,0); d.setDate(d.getDate()-n); d.setHours(0,0,0,0); return d.getTime(); },
+  rot(x){ return Math.floor(x+0.5); },                           // la fel ca Math.round, pentru numere pozitive
+  unu(x){ const y=Math.round(x*10)/10; return String(y).replace('.',','); },
+  mediana(a){ if(!a.length) return 0; const b=a.slice().sort((x,y)=>x-y), k=b.length>>1; return b.length%2?b[k]:(b[k-1]+b[k])/2; },
+  medPoz(a){ const v=a.filter(x=>x>0); return v.length? String(Math.round(VC.mediana(v))) : '—'; },
+  procent(a,p){ const b=a.slice().sort((x,y)=>x-y), i=(b.length-1)*p, j=Math.floor(i), k=Math.ceil(i); return j===k?b[j]:b[j]+(b[k]-b[j])*(i-j); },
+  // procente care însumează 100: în jos peste tot, restul la cele mai mari zecimale
+  repartizare(nr){ const t=nr.reduce((a,b)=>a+b,0); if(!t) return nr.map(()=>0);
+    const ex=nr.map(n=>n*100/t), r=ex.map(Math.floor); let rest=100-r.reduce((a,b)=>a+b,0);
+    ex.map((x,i)=>[x-Math.floor(x),i]).sort((a,b)=>b[0]-a[0]).forEach(([,i])=>{ if(rest>0){ r[i]++; rest--; } }); return r; },
+  moment(ts){ const h=new Date(ts).getHours(); return h<11?0:h<17?1:h<21?2:3; },   // Dimineața, Prânz, Cină, Seara / noaptea
+
+  /* ---- ce ar trebui să scrie pe ecran, recalculat ---- */
+  asteptat(P, acum){
+    const s=S.settings, E=S.events.slice().sort((a,b)=>a.ts-b.ts), azi0=VC.miez(acum,0);
+    const cuAzi=E.some(e=>e.type==='gluc' && e.ts>=azi0);
+    const de=cuAzi?VC.miez(acum,P-1):VC.miez(acum,P), pana=cuAzi?Infinity:azi0;
+    const fer=E.filter(e=>e.ts>=de && e.ts<pana), gl=fer.filter(e=>e.type==='gluc'), v=gl.map(e=>e.gluc.v);
+    const o={};
+    if(!v.length) return {gol:true};
+    let sum=0; v.forEach(x=>sum+=x); const m=sum/v.length;
+    let sq=0; v.forEach(x=>sq+=(x-m)*(x-m)); const sd=Math.sqrt(sq/(v.length-1));
+    const zileGl=new Set(gl.map(e=>VC.cheie(e.ts))).size, zileTot=new Set(fer.map(e=>VC.cheie(e.ts))).size||1;
+    o['medie']=String(VC.rot(m)); o['HbA1c estimat']=VC.unu((m+46.7)/28.7); o['măsurători']=String(v.length);
+    o['pe zi cu date']=VC.unu(v.length/zileTot); o['variabilitate (CV)']=VC.unu(sd/m*100); o['deviație standard']=String(VC.rot(sd));
+    o['zile cu glicemii']=zileGl+' din '+P; o['măsurători pe zi (toată perioada)']=VC.unu(v.length/P);
+    // benzile
+    const jos=s.low, sus=s.high, imparteJos=jos>54, imparteSus=sus<250;
+    const nr=[imparteJos?v.filter(x=>x<54).length:0, 0, v.filter(x=>x>=jos&&x<=sus).length, 0, imparteSus?v.filter(x=>x>250).length:0];
+    nr[1]=v.filter(x=>x<jos).length-nr[0]; nr[3]=v.filter(x=>x>sus).length-nr[4];
+    const pc=VC.repartizare(nr), txt=(n,p)=>(p===0&&n>0)?'<1%':p+'%';
+    o['timp în țintă']=txt(nr[2],pc[2]);
+    if(imparteJos){ o['bandă sub 54']=txt(nr[0],pc[0]); o['bandă 54–'+(jos-1)]=txt(nr[1],pc[1]); } else o['bandă sub țintă']=txt(nr[0]+nr[1],pc[0]+pc[1]);
+    o['bandă în țintă']=txt(nr[2],pc[2]);
+    if(imparteSus){ o['bandă '+(sus+1)+'–250']=txt(nr[3],pc[3]); o['bandă peste 250']=txt(nr[4],pc[4]); } else o['bandă peste țintă']=txt(nr[3]+nr[4],pc[3]+pc[4]);
+    // episoadele de hipoglicemie: valori sub ținta de jos, la cel mult o oră una de alta = un episod
+    const ep=[]; gl.forEach(e=>{ const x=e.gluc.v; if(x>=jos) return; const u=ep[ep.length-1];
+      if(u && e.ts-u.sf<=3600000){ u.sf=e.ts; u.min=Math.min(u.min,x); } else ep.push({st:e.ts, sf:e.ts, min:x}); });
+    o['episoade sub '+jos]=String(ep.length);
+    if(imparteJos) o['din care sub 54']=String(ep.filter(x=>x.min<54).length);
+    o['noaptea (00–06)']=String(ep.filter(x=>new Date(x.st).getHours()<6).length);
+    o['cea mai mică']=String(Math.min(...v));
+    // mediile pe momente ale zilei
+    const mom=[[],[],[],[]]; gl.forEach(e=>mom[VC.moment(e.ts)].push(e.gluc.v));
+    ['Dim','Prânz','Cină','Seara'].forEach((n,i)=>{ const a=mom[i]; o['media '+n]=a.length?String(Math.round(a.reduce((x,y)=>x+y,0)/a.length)):''; });
+    // „Când măsori"
+    if(v.length>=10){ const IV=[[0,6],[6,11],[11,17],[17,21],[21,24]];
+      const cn=IV.map(([a,b])=>gl.filter(e=>{ const h=new Date(e.ts).getHours(); return h>=a&&h<b; }).length), cp=VC.repartizare(cn);
+      IV.forEach(([a,b],i)=>o['când măsori '+VC.doi(a)+'–'+VC.doi(b)]=(cn[i]&&!cp[i]?'<1':cp[i])+'%'); }
+    // zilele complete: insulină, mese, ICR, ISF
+    const c0=VC.miez(acum,P), cE=E.filter(e=>e.ts>=c0 && e.ts<azi0);
+    const zile=[...new Set(cE.map(e=>VC.cheie(e.ts)))];
+    const rap={}, baz={}, cor={}, hc={}, rapM=[{},{},{},{}], bolus=[];
+    cE.forEach(e=>{ const k=VC.cheie(e.ts);
+      if(e.type==='ins'){ const u=e.ins.u;
+        if(e.ins.kind==='bazala') baz[k]=(baz[k]||0)+u;
+        else { rap[k]=(rap[k]||0)+u; const mm=rapM[VC.moment(e.ts)]; mm[k]=(mm[k]||0)+u;
+          if(e.ins.kind==='corectie') cor[k]=(cor[k]||0)+1;
+          if(e.ins.kind==='bolus') bolus.push(u); } }
+      if(e.type==='meal') hc[k]=(hc[k]||0)+(e.meal.hc||0); });
+    const peZile=ob=>zile.map(k=>ob[k]||0);
+    ['dimineața','prânz','cină','seara'].forEach((n,i)=>o['rapidă '+n]=VC.medPoz(Object.values(rapM[i])));
+    o['rapidă pe zi']=VC.medPoz(peZile(rap)); o['bazală pe zi']=VC.medPoz(Object.values(baz));
+    o['corecții pe zi']=String(Math.round(VC.mediana(peZile(cor)))); o['carbohidrați pe zi']=VC.medPoz(peZile(hc));
+    o['zile complete']=String(zile.length||1); o['rapidă la masă']=VC.medPoz(bolus);
+    // ICR: fiecare masă cu bolusul nefolosit cel mai apropiat, la cel mult 25 de minute
+    const mese=cE.filter(e=>e.type==='meal'&&(e.meal.hc||0)>0), bol=cE.filter(e=>e.type==='ins'&&e.ins.kind==='bolus'), luat=new Array(bol.length).fill(false);
+    const icr=[[],[],[],[]];
+    mese.forEach(m=>{ let bi=-1, bd=Infinity;
+      bol.forEach((b,i)=>{ if(luat[i]) return; const d=Math.abs(b.ts-m.ts); if(d<bd){ bd=d; bi=i; } });
+      if(bi>=0 && bd<=25*60000){ luat[bi]=true; const u=bol[bi].ins.u;
+        if(u>0 && m.meal.hc>=5 && m.meal.hc<=200) icr[VC.moment(m.ts)].push(m.meal.hc/u); } });
+    ['dimineața','prânz','cină','seara'].forEach((n,i)=>{ const a=icr[i].filter(x=>x>0);
+      o['ICR '+n]=(a.length>=5?String(Math.round(VC.mediana(a))):'—')+(a.length?' · '+a.length:''); });
+    // ISF: corecții cu o glicemie în cele 30 min dinainte și una la 2–4 h după, fără masă sau altă insulină între
+    const glC=cE.filter(e=>e.type==='gluc'), isf=[];
+    cE.filter(e=>e.type==='ins'&&e.ins.kind==='corectie').forEach(c=>{
+      const ina=glC.filter(g=>c.ts-g.ts>=0 && c.ts-g.ts<=1800000), dupa=glC.filter(g=>g.ts-c.ts>=7200000 && g.ts-c.ts<=14400000);
+      if(!ina.length || !dupa.length) return;
+      const gi=ina.reduce((a,b)=>(c.ts-b.ts)<(c.ts-a.ts)?b:a), gd=dupa.reduce((a,b)=>b.ts<a.ts?b:a);
+      if(cE.some(e=>(e.type==='meal'&&e.ts>c.ts&&e.ts<gd.ts)||(e.type==='ins'&&e.ts>c.ts&&e.ts<=gd.ts))) return;
+      const sc=gi.gluc.v-gd.gluc.v; if(c.ins.u>0 && sc>0) isf.push(sc/c.ins.u); });
+    o['ISF estimat']=isf.length>=10?String(Math.round(VC.mediana(isf))):'—'; o['corecții folosibile']=String(isf.length);
+    // ziua tipică (doar datele graficului, la 30 și 90 de zile) și măsurătorile (la 7 zile)
+    if(P<=7) o['puncte în grafic']=String(v.length);
+    o._gl=gl.map(e=>({v:e.gluc.v, ts:e.ts}));
+    if(P>7){ const ore=gl.map(e=>{ const d=new Date(e.ts); return [d.getHours()+d.getMinutes()/60, e.gluc.v]; });
+      o._agp=[]; for(let i=0;i<=48;i++){ const h=i/2, w=ore.filter(([x])=>{ const d=Math.abs(x-h); return Math.min(d,24-d)<=1; }).map(([,y])=>y);
+        o._agp.push(w.length>=8?[w.length,VC.procent(w,.1),VC.procent(w,.25),VC.mediana(w),VC.procent(w,.75),VC.procent(w,.9)]:null); } }
+    return o;
+  },
+  // analizele de laborator: estimatul din cele 90 de zile care se încheie în ziua recoltării
+  laborator(){
+    return S.events.filter(e=>e.type==='lab'&&e.lab).sort((a,b)=>b.ts-a.ts).map(l=>{
+      const de=VC.miez(l.ts,89), pana=VC.miez(l.ts,-1);
+      const g=S.events.filter(e=>e.type==='gluc'&&e.ts>=de&&e.ts<pana);
+      const zile=new Set(g.map(e=>VC.cheie(e.ts))).size;
+      if(zile<45) return {ts:l.ts, txt:'fără estimare'};
+      const m=g.reduce((a,e)=>a+e.gluc.v,0)/g.length, est=Math.round((m+46.7)/28.7*10)/10, d=Math.round((l.lab.v-est)*10)/10;
+      return {ts:l.ts, txt:'estimat din jurnal '+VC.unu(est)+'% · diferență '+(d>0?'+'+VC.unu(d):d<0?'−'+VC.unu(-d):'0')};
+    });
+  },
+
+  /* ---- ce scrie pe ecran ---- */
+  citeste(){
+    const sb=document.getElementById('statsbody'), o={}, t=n=>(n?n.textContent:'').replace(/\s+/g,' ').trim();
+    sb.querySelectorAll('.stat').forEach(st=>{ const b=st.querySelector('b.num'), sp=st.querySelector(':scope > span'); if(!b||!sp) return;
+      const val=[...b.childNodes].filter(x=>x.nodeType===3).map(x=>x.nodeValue).join('').trim();
+      let k=t(sp); if(/^ICR /.test(k)){ const m=k.match(/^(ICR \S+)(?: · (\d+))?$/); o[m[1]]=val+(m[2]?' · '+m[2]:''); return; }
+      o[k]=val; });
+    const kpi=sb.querySelector('.tirkpi b'); if(kpi) o['timp în țintă']=t(kpi);
+    sb.querySelectorAll('.tirlegend > div').forEach(d=>{ const b=d.querySelector('b'); o['bandă '+t(d).replace(t(b),'').trim()]=t(b); });
+    const den=sb.querySelector('.dens');
+    if(den){ const x=t(den); let m=x.match(/Măsurători în (\d+) (?:de )?zile? din (\d+)/)||x.match(/Măsurători în o zi din (\d+)/);
+      if(m) o['zile cu glicemii']=(m.length===3?m[1]+' din '+m[2]:'1 din '+m[1]);
+      m=x.match(/([\d,]+) măsurători pe zi, raportat la toată perioada/); if(m) o['măsurători pe zi (toată perioada)']=m[1];
+      den.querySelectorAll('.cmcol').forEach(c=>{ o['când măsori '+t(c.querySelector('span'))]=t(c.querySelector('b')); }); }
+    const bare=[...sb.querySelectorAll('#mediiCard .bars .b i')].map(i=>t(i));
+    ['Dim','Prânz','Cină','Seara'].forEach((n,i)=>o['media '+n]=bare[i]!==undefined?bare[i]:'(lipsă)');
+    const mas=sb.querySelector('.mascard'); if(mas) o['puncte în grafic']=String(mas.querySelectorAll('svg circle').length);
+    o._lab=[...sb.querySelectorAll('.labrow .labe')].map(x=>t(x));
+    return o;
+  },
+
+  ruleaza(){
+    const acum=Date.now(), P0=PERIOD, rez=[], nume=k=>k.replace(/^bandă /,'timp în țintă, banda ').replace(/^media /,'media pe momente: ');
+    const prev={a:AGP_ANIM, n:NR_ANIM};
+    try{
+      for(const P of [7,30,90]){
+        PERIOD=P; STATS_PREV=null; AGP_ANIM=false; NR_ANIM=false; renderStats();
+        const ecr=VC.citeste(), ast=VC.asteptat(P, acum);
+        if(ast.gol){ rez.push({P, k:'glicemii în perioadă', e:'—', a:'niciuna', ok:true}); continue; }
+        Object.keys(ast).filter(k=>k[0]!=='_').forEach(k=>{ const e=ecr[k]===undefined?'(lipsă)':ecr[k];
+          rez.push({P, k:nume(k), e, a:ast[k], ok:e===ast[k]}); });
+        // datele graficului: funcția care desenează ziua tipică, primind aceleași glicemii, față de recalcul
+        if(ast._agp){ let ok=0, gr=[]; const app=agpBenzi(ast._gl).band;
+          ast._agp.forEach((a,i)=>{ const b=app[i]; const same = a===null ? !!b.empty : (!b.empty && b.n===a[0] && [b.lo,b.q1,b.md,b.q3,b.hi].every((x,j)=>Math.abs(x-a[j+1])<1e-6));
+            if(same) ok++; else gr.push(VC.doi(Math.floor(i/2))+':'+(i%2?'30':'00')); });
+          rez.push({P, k:'ziua tipică (49 de puncte ale graficului)', e:ok+' identice', a:'49', ok:ok===49, det:gr.slice(0,4).join(', ')}); }
+      }
+      const lab=VC.laborator(); PERIOD=90; STATS_PREV=null; renderStats(); const ecrLab=VC.citeste()._lab;
+      lab.forEach((l,i)=>{ const e=ecrLab[i]||'(lipsă)'; rez.push({P:'lab', k:'HbA1c de laborator din '+dNice(l.ts).replace(/^\S+, /,''), e, a:l.txt, ok:e===l.txt}); });
+    } finally {
+      PERIOD=P0; STATS_PREV=null; AGP_ANIM=prev.a; NR_ANIM=prev.n;
+      try{ renderStats(); }catch(e){}
+    }
+    return rez;
+  }
+};
+function shVerificaCifrele(){
+  openSheet2(`${antetInfo('diag', 'Verificarea cifrelor')}<div id="vcbody"><p class="muted">Se recalculează…</p></div>
+    <button class="btn btn-g" style="margin-top:12px" onclick="closeSheet2()">Închide</button>`);
+  setTimeout(()=>{
+    let rez; try{ rez=VC.ruleaza(); }catch(e){ const el=$('vcbody'); if(el) el.innerHTML=`<p>Verificarea nu s-a putut face: ${esc(String(e&&e.message||e))}</p>`; return; }
+    const rele=rez.filter(r=>!r.ok), per=P=>rez.filter(r=>r.P===P);
+    const el=$('vcbody'); if(!el) return;
+    const rand=r=>`<div class="dgrand"><span class="dgk">${esc(r.k)}</span><span class="dgv">${r.ok?`<span class="dgp ok">${DIAG_SEMN.ok}<span>${esc(r.e)}</span></span>`:`<span class="dgp rau">${DIAG_SEMN.rau}<span>pe ecran ${esc(r.e)} · recalculat ${esc(r.a)}${r.det?' ('+esc(r.det)+')':''}</span></span>`}</span></div>`;
+    el.innerHTML=`<div class="panou ${rele.length?'rau':'bine'} dgpanou"><div class="panoubk" style="margin:0"><span class="pbsemn" aria-hidden="true">${rele.length?'!':'✓'}</span><div class="pbtxt"><b>${rele.length?nUnit(rele.length,'cifre diferă','o cifră diferă'):'Toate cele '+rez.length+' de verificări se potrivesc'}</b><span>${rele.length?'din '+rez.length+' verificate. Trimite-mi o captură cu lista de mai jos.':'Cifrele din Statistici, refăcute cu o a doua metodă, din jurnalul de pe acest telefon.'}</span></div></div></div>
+      <p class="muted" style="margin:0 0 10px">O a doua metodă de calcul, scrisă separat de cea a ecranului, ia jurnalul de pe acest telefon și reface, pe 7, 30 și 90 de zile, toate cifrele din Statistici: media, HbA1c estimat, timpul în țintă, hipoglicemiile, insulina, mesele, ICR, ISF, datele graficelor și comparația cu laboratorul. Apoi le compară cu ce scrie pe ecran. Nu schimbă nimic în jurnal și nu trimite nimic nicăieri.</p>
+      ${rele.length?`<div class="dgcard"><div class="dgtitlu">Ce diferă</div>${rele.map(rand).join('')}</div>`:''}
+      ${[7,30,90].map(P=>`<details class="qagr"><summary><span class="qagt">${nUnit(P,'zile','o zi')}</span><span class="qagn">${per(P).filter(r=>r.ok).length} din ${per(P).length}</span><span class="qagv" aria-hidden="true"></span></summary><div class="qagc"><div class="dgcard">${per(P).map(rand).join('')}</div></div></details>`).join('')}
+      ${per('lab').length?`<details class="qagr"><summary><span class="qagt">Laborator</span><span class="qagn">${per('lab').filter(r=>r.ok).length} din ${per('lab').length}</span><span class="qagv" aria-hidden="true"></span></summary><div class="qagc"><div class="dgcard">${per('lab').map(rand).join('')}</div></div></details>`:''}`;
+  }, 30);
+}
+</script>
 </body>
 </html>
