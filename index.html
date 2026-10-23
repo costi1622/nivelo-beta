@@ -1104,6 +1104,65 @@ main{overflow-x:clip}
 .cmbar i{display:block; width:100%; background:var(--petrol); opacity:.75; border-radius:6px 6px 0 0}
 .cmcol b{display:block; font-size:calc(14px*var(--fs)); font-weight:800; margin-top:4px}
 .cmcol span{display:block; font-size:calc(11px*var(--fs)); color:var(--ink-soft)}
+
+/* ===== v2.12.1: cadranul, graficul zilei, bifa, bara de jos, ecranele goale ===== */
+#heroCard::after{content:""; position:absolute; inset:0; z-index:-1; pointer-events:none; opacity:0; transition:opacity .8s ease;
+  background:radial-gradient(130px 130px at 62px 62px, var(--zonc, transparent) 0%, transparent 100%)}
+#heroCard[data-zona]::after{opacity:calc(var(--zono,.2) * var(--zonv,1))}
+#heroCard[data-zona="jos"]{--zonc:var(--low)} #heroCard[data-zona="tinta"]{--zonc:var(--ok)}
+#heroCard[data-zona="sus"]{--zonc:var(--high)} #heroCard[data-zona="fsus"]{--zonc:var(--vhigh)}
+html[data-theme="dark"] #heroCard{--zono:.26}
+.sparkarie{opacity:.3; animation:sparkArie .6s ease-out .55s both}
+html[data-theme="dark"] .sparkarie{opacity:.36}
+@keyframes sparkArie{from{opacity:0}}
+.sparkpuls{transform-box:fill-box; transform-origin:center; opacity:0; animation:sparkPuls 1.1s ease-out 1.05s 3}
+@keyframes sparkPuls{0%{opacity:.75; transform:scale(1)} 100%{opacity:0; transform:scale(3.2)}}
+#toast .tbifa{display:inline-block; vertical-align:-4px; margin-right:7px; line-height:0}
+#toast .tbifa svg{display:block}
+#toast .tbifa path{stroke-dasharray:1; stroke-dashoffset:1}
+#toast.on .tbifa path{animation:tbifa .32s ease-out .12s forwards}
+#toast.on .tbifa circle{transform-box:fill-box; transform-origin:center; animation:tbifaCerc .24s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes tbifa{to{stroke-dashoffset:0}}
+@keyframes tbifaCerc{from{transform:scale(.4)}}
+/* bara de jos: o mișcare scurtă, a fiecărei iconițe, când devine activă (doar în bară, nu în copiile ei de pe plăcuțe) */
+@media (prefers-reduced-motion:no-preference){
+#tabs button.on[data-v="today"] .ico svg g > g{transform-box:view-box; transform-origin:12px 12px; animation:tabSoare .6s cubic-bezier(.3,.9,.4,1)}
+#tabs button.on[data-v="today"] .ico svg g > circle{transform-box:fill-box; transform-origin:center; animation:tabMiez .45s ease-out}
+@keyframes tabSoare{from{transform:rotate(-45deg)}}
+@keyframes tabMiez{40%{transform:scale(1.18)}}
+#tabs button.on[data-v="hist"] .ico svg path{transform-box:view-box; transform-origin:12px 12px}
+#tabs button.on[data-v="hist"] .ico svg path:last-child{animation:tabAc .6s cubic-bezier(.3,.9,.4,1)}
+#tabs button.on[data-v="hist"] .ico svg path:not(:last-child){animation:tabInapoi .6s cubic-bezier(.3,.9,.4,1)}
+@keyframes tabAc{from{transform:rotate(-300deg)}}
+@keyframes tabInapoi{from{transform:rotate(40deg)}}
+#tabs button.on[data-v="foods"] .ico svg{transform-origin:50% 85%; animation:tabBol .55s ease-out}
+@keyframes tabBol{25%{transform:rotate(-13deg)} 60%{transform:rotate(8deg)} 85%{transform:rotate(-3deg)}}
+#tabs button.on[data-v="stats"] .ico svg rect{transform-box:fill-box; transform-origin:50% 100%; animation:tabBara .45s cubic-bezier(.3,1.3,.5,1) backwards}
+#tabs button.on[data-v="stats"] .ico svg rect:nth-child(2){animation-delay:.07s} #tabs button.on[data-v="stats"] .ico svg rect:nth-child(3){animation-delay:.14s}
+@keyframes tabBara{from{transform:scaleY(.25)}}
+#tabs button.on[data-v="stats"] .ico svg path{stroke-dasharray:22; stroke-dashoffset:0; animation:tabLinie .5s ease-out .12s backwards}
+@keyframes tabLinie{from{stroke-dashoffset:22}}
+#tabs button.on[data-v="more"] .ico svg rect{transform-box:fill-box; transform-origin:center; animation:tabPatrat .4s cubic-bezier(.3,1.5,.5,1) backwards}
+#tabs button.on[data-v="more"] .ico svg rect:nth-child(3){animation-delay:.06s} #tabs button.on[data-v="more"] .ico svg rect:nth-child(4){animation-delay:.12s} #tabs button.on[data-v="more"] .ico svg rect:nth-child(2){animation-delay:.18s}
+@keyframes tabPatrat{from{transform:scale(.45)}}
+}
+/* ecranele goale */
+.empty .ei .ilus{position:relative; display:block; width:120px; height:92px; margin:0 auto 4px}
+.ilus .ilf{position:absolute; left:50%; top:46%; width:78px; height:78px; margin:-39px 0 0 -39px; border-radius:50%; background:color-mix(in srgb, var(--ic) 13%, transparent)}
+.ilus .ilp{position:absolute; left:50%; top:46%; transform:translate(-50%,-50%); line-height:0; animation:ilusPlac .5s cubic-bezier(.3,1.4,.5,1) both}
+.ilus .ilp .plac{margin:0}
+.ilus .ilu{position:absolute; left:50%; bottom:2px; width:44px; height:6px; margin-left:-22px; border-radius:50%; background:color-mix(in srgb, var(--ic) 22%, transparent); filter:blur(1px)}
+.ilus .ild{position:absolute; display:block; background:var(--ic); animation:ilusPop .4s cubic-bezier(.3,1.6,.5,1) both}
+.ilus .d1{left:12px; top:16px; width:9px; height:9px; border-radius:3px; transform:rotate(18deg); opacity:.45; animation-delay:.2s}
+.ilus .d2{right:14px; top:8px; width:7px; height:7px; border-radius:50%; opacity:.6; animation-delay:.28s}
+.ilus .d3{right:8px; top:52px; width:11px; height:11px; border-radius:50%; opacity:.25; animation-delay:.34s}
+.ilus .d4{left:20px; top:60px; width:6px; height:6px; border-radius:2px; transform:rotate(-12deg); opacity:.5; animation-delay:.4s}
+@keyframes ilusPlac{from{opacity:0; transform:translate(-50%,-38%) scale(.8)}}
+@keyframes ilusPop{from{opacity:0; scale:.2}}
+@media (prefers-reduced-motion:reduce){
+  .sparkarie, .sparkpuls, #toast.on .tbifa path, #toast.on .tbifa circle, .ilus .ilp, .ilus .ild{animation:none}
+  #toast .tbifa path{stroke-dashoffset:0} .sparkpuls{display:none}
+}
 </style>
 </head>
 <body>
@@ -1266,8 +1325,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       <button class="mrow" onclick="shUpdate()"><span class="ico" aria-hidden="true" style="--mc:#3E9E6B"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M19.4 12a7.4 7.4 0 0 1-12.8 5" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" opacity=".7"/><path d="M4.6 12a7.4 7.4 0 0 1 12.8-5" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round"/><path d="M18.6 3.4v4.4h-4.4" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.4 20.6v-4.4h4.4" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/></svg></span><span>Adu versiunea nouă<small>Dacă tocmai a apărut o actualizare și încă nu a ajuns la tine</small></span></button>
       <button class="mrow" onclick="shDiag()"><span class="ico" aria-hidden="true" style="--mc:#6B7A85"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M19.6 4.8a5 5 0 0 1-6.6 6.4l-6.6 6.6a2 2 0 1 1-2.8-2.8l6.6-6.6a5 5 0 0 1 6.4-6.6l-3 3 .6 2.4 2.4.6z" fill="#fff"/><circle cx="5" cy="19" r=".9" fill="currentColor"/></svg></span><span>Diagnostic tehnic<small>Starea instalării, util dacă ceva nu merge</small></span></button>
     </div>
-    <p class="muted" style="padding:0 6px">Nivelo v2.12 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
-      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v2.12%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
+    <p class="muted" style="padding:0 6px">Nivelo v2.12.1 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
+      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v2.12.1%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
   </section>
 </main>
 
@@ -1356,7 +1415,7 @@ var PORNIT = false, ULTIMA_EROARE = null;
 })();
 
 /* ================= STOCARE ================= */
-const APP_VER='v2.12';
+const APP_VER='v2.12.1';
 /* Android citește manifestul — numele, iconița, scurtăturile — o singură dată, la
    instalare, și îl păstrează așa până la reinstalare. Codul se actualizează singur,
    configurarea nu. De aceea ținem minte când s-a schimbat ultima dată configurarea:
@@ -1960,7 +2019,12 @@ function cuAsteptare(btn, eticheta, treaba){
     try{ treaba(); } finally { setTimeout(gata, 120); }
   }));
 }
-function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(t._x); t._x=setTimeout(()=>t.classList.remove('on'),1900); }
+/* v2.12.1: `bifa` = o salvare reușită; mesajul primește în față o bifă care se desenează.
+   Textul rămâne același (bifa e un desen, fără text), deci și cititorul de ecran spune la fel. */
+function toast(m, bifa){ const t=$('toast');
+  if(bifa){ t.innerHTML='<span class="tbifa" aria-hidden="true"><svg viewBox="0 0 20 20" width="18" height="18"><circle cx="10" cy="10" r="9" fill="var(--ok)"/><path d="M5.6 10.4l3 3 5.8-6.2" pathLength="1" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'; t.appendChild(document.createTextNode(m)); }
+  else t.textContent=m;
+  t.classList.add('on'); clearTimeout(t._x); t._x=setTimeout(()=>t.classList.remove('on'),1900); }
 function sortEv(){ DAYMAP=null; MASA_IDX=null; S.events.sort((a,b)=>a.ts-b.ts); }
 /* Intrarea tocmai notată se luminează o clipă în cronologie, ca să se vadă UNDE a
    ajuns. Într-un jurnal ordonat pe oră, o intrare de acum două ore apare la mijlocul
@@ -2813,7 +2877,7 @@ function okGluc(id){
   else { nid=uid(); S.events.push({id:nid, ts, type:'gluc', gluc:{v, src:chipVal('gsrc')}}); }
   marcheazaNou(nid);
   const deUnde=($('gv')&&$('gv').getBoundingClientRect)?$('gv').getBoundingClientRect():null;
-  sortEv(); const ok=save(); closeSheet(); renderToday(); toast('Glicemie salvată');
+  sortEv(); const ok=save(); closeSheet(); renderToday(); toast('Glicemie salvată', ok!==false);
   if(ok!==false){ vibreaza(VIB_SALVARE); zboaraInCadran(deUnde, v, nid); }
 }
 
@@ -2866,7 +2930,7 @@ function okIns(id){
   if(id){ const e=S.events.find(x=>x.id===id); e.ts=ts; e.ins=rec; }
   else { nid=uid(); S.events.push({id:nid, ts, type:'ins', ins:rec}); }
   marcheazaNou(nid);
-  sortEv(); const ok=save(); closeSheet(); renderToday(); toast('Insulină salvată');
+  sortEv(); const ok=save(); closeSheet(); renderToday(); toast('Insulină salvată', ok!==false);
   if(ok!==false) vibreaza(VIB_SALVARE);
 }
 
@@ -3008,7 +3072,7 @@ function okMeal(){
   if(M._edit){ const e=S.events.find(x=>x.id===M._edit); e.ts=ts; e.meal=rec; }
   else { nid=uid(); S.events.push({id:nid, ts, type:'meal', meal:rec}); }
   marcheazaNou(nid);
-  sortEv(); const ok=save(); closeSheet(); renderToday(); toast('Masă salvată');
+  sortEv(); const ok=save(); closeSheet(); renderToday(); toast('Masă salvată', ok!==false);
   if(ok!==false) vibreaza(VIB_SALVARE);
 }
 
@@ -3090,7 +3154,7 @@ function okNote(id){
     else e.note=rec.note; }
   else { nid=uid(); S.events.push({id:nid, ts, ...rec}); }
   marcheazaNou(nid);
-  sortEv(); const ok=save(); closeSheet(); renderToday(); toast('Salvat');
+  sortEv(); const ok=save(); closeSheet(); renderToday(); toast('Salvat', ok!==false);
   if(ok!==false) vibreaza(VIB_SALVARE);
 }
 
@@ -3217,8 +3281,15 @@ const EMPTY_ICONS={
   'ℹ️':'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#5B8FBF"/> <circle cx="12" cy="7.6" r="1.5" fill="#FFFFFF"/> <path d="M12 10.8v6.4" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/></svg>',
   '📶':'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.2" y="14.6" width="3.4" height="5.6" rx="1.1" fill="#9CB0BA"/> <rect x="8.4" y="11" width="3.4" height="9.2" rx="1.1" fill="#9CB0BA"/> <rect x="13.6" y="7.4" width="3.4" height="12.8" rx="1.1" fill="#C9D4DA"/> <rect x="18.8" y="3.8" width="3.4" height="16.4" rx="1.1" fill="#C9D4DA"/></svg>'
 };
+/* v2.12.1: ecranele goale au o mică ilustrație în stilul plăcuțelor: plăcuța pe un cerc
+   de culoarea ei, cu câteva forme mici în jur, care apar o dată, la intrare. */
+function ilustratie(k){
+  const pl=placuta(k,52); if(!pl) return '';
+  const cul=(pl.match(/--mc:([^;]+);/)||[])[1]||'var(--petrol)';
+  return `<span class="ilus" aria-hidden="true" style="--ic:${cul}"><i class="ilf"></i><i class="ild d1"></i><i class="ild d2"></i><i class="ild d3"></i><i class="ild d4"></i><span class="ilp">${pl}</span><i class="ilu"></i></span>`;
+}
 function emptyState(o){
-  const pl=PLACUTA_EMOJI[o.ic] ? placuta(PLACUTA_EMOJI[o.ic],52) : '';
+  const pl=PLACUTA_EMOJI[o.ic] ? ilustratie(PLACUTA_EMOJI[o.ic]) : '';
   return `<div class="card empty"><span class="ei">${pl||EMPTY_ICONS[o.ic]||o.ic}</span><b>${o.t}</b>
     <span class="hint">${o.d}</span>
     ${o.btn?`<button class="act" onclick="${o.btn.go}">${o.btn.t}</button>`:''}</div>`;
@@ -3539,9 +3610,14 @@ function rapAgoHtml(){
               : Math.floor(m/60)+'<small class="u">h</small>'+(m%60?' '+String(m%60).padStart(2,'0'):'');
 }
 function momentulAcum(){ const h=new Date().getHours(); return h<5?'sea':h<11?'dim':h<17?'pr':h<21?'cin':'sea'; }
+function zonaGlicemie(v){ const s=S.settings; return v<s.low?'jos':v<=s.high?'tinta':v<=250?'sus':'fsus'; }
 function actualizeazaVechimea(){
   const card=$('heroCard'); if(card) card.dataset.moment=momentulAcum();
   const e=ULTIMA_GL, hero=$('hero');
+  /* v2.12.1: lumina din spatele cadranului are culoarea intervalului ultimei glicemii și se
+     stinge odată cu arcul, pe măsură ce valoarea se învechește. */
+  if(card){ if(e){ card.dataset.zona=zonaGlicemie(e.gluc.v); card.style.setProperty('--zonv', vechimeOpac(e).toFixed(2)); }
+            else { delete card.dataset.zona; card.style.removeProperty('--zonv'); } }
   if(e && hero){
     const a=hero.querySelector('.arc'); if(a) a.style.opacity=vechimeOpac(e).toFixed(2);
     const ag=hero.querySelector('.ago');
@@ -3618,7 +3694,7 @@ function renderToday(){
   const glucs=S.events.filter(e=>e.type==='gluc');
   const last=glucs[glucs.length-1];
   let hero;
-  if(!last){ hero='<div class="empty" style="flex:1; padding:18px 8px"><span class="ei">◉</span><b>Încă nicio glicemie</b><span class="hint">Aici vei vedea ultima valoare, cât de demult a fost și în ce direcție merge.</span></div>'; }
+  if(!last){ hero='<div class="empty" style="flex:1; padding:18px 8px"><span class="ei">'+(ilustratie('i-gluc')||'◉')+'</span><b>Încă nicio glicemie</b><span class="hint">Aici vei vedea ultima valoare, cât de demult a fost și în ce direcție merge.</span></div>'; }
   else{
     const col=rangeColor(last.gluc.v);
     const ago = vechimeText(last);
@@ -3867,6 +3943,18 @@ function renderSpark(evs){
   const yLab=[s.low,s.high].map(v=>`<text x="${LP-4}" y="${(Y(v)+3).toFixed(1)}" font-size="8.5" fill="var(--ink-soft)" text-anchor="end">${v}</text>`
     +`<line x1="${LP}" y1="${Y(v).toFixed(1)}" x2="${W-P}" y2="${Y(v).toFixed(1)}" stroke="var(--petrol)" stroke-opacity=".28" stroke-width="1"/>`).join('');
   const line=pts.map((p,i)=>(i?'L':'M')+X(p.x).toFixed(1)+' '+Y(p.v).toFixed(1)).join(' ');
+  /* v2.12.1: sub linie, o umbră colorată după intervalul valorilor (aceleași culori ca
+     punctele), care se stinge spre baza graficului.
+     Ultimul punct pulsează de trei ori după ce s-a desenat linia, apoi se oprește. */
+  const yb=(H-BP).toFixed(1), x0=X(pts[0].x), x1=X(pts[pts.length-1].x), lat=Math.max(1,x1-x0);
+  // culoarea urmează valoarea liniei, de la stânga la dreapta (fiecare punct își dă culoarea în dreptul lui)
+  const opr=pts.map(p=>`<stop offset="${((X(p.x)-x0)/lat*100).toFixed(1)}%" stop-color="${rangeColor(p.v)}"/>`).join('');
+  const umbra=`<defs><linearGradient id="sparkUmbra" gradientUnits="userSpaceOnUse" x1="${x0.toFixed(1)}" y1="0" x2="${x1.toFixed(1)}" y2="0">${opr}</linearGradient>
+    <linearGradient id="sparkStinge" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="1"/><stop offset="1" stop-color="#fff" stop-opacity=".1"/></linearGradient>
+    <mask id="sparkMasca"><rect x="0" y="0" width="${W}" height="${H}" fill="url(#sparkStinge)"/></mask></defs>`;
+  const arie=`<path class="sparkarie" d="${line} L${X(pts[pts.length-1].x).toFixed(1)} ${yb} L${X(pts[0].x).toFixed(1)} ${yb} Z" fill="url(#sparkUmbra)" mask="url(#sparkMasca)"/>`;
+  const ult=pts[pts.length-1];
+  const puls=`<circle class="sparkpuls" cx="${X(ult.x).toFixed(1)}" cy="${Y(ult.v).toFixed(1)}" r="4" fill="none" stroke="${rangeColor(ult.v)}" stroke-width="2"/>`;
   /* `--i` dă fiecărui punct rândul lui: apar unul câte unul, în urma liniei care se
      trasează, nu toate odată la final. Întârzierea e proporțională cu poziția, deci
      merge la fel de bine cu trei puncte și cu treizeci. */
@@ -3883,8 +3971,8 @@ function renderSpark(evs){
   $('spark').innerHTML=`<div id="sparkw" class="sparkw" role="img" tabindex="0" aria-label="${esc('Graficul zilei. '+rez+' Cu săgețile stânga și dreapta treci prin măsurători.')}">
     <div class="sparktip" aria-live="polite"></div>
     <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-    ${band}${yLab}<line class="sparkcur" x1="0" y1="${P}" x2="0" y2="${H-BP}" stroke="var(--ink-soft)" stroke-width="1" stroke-dasharray="2 2.5"/>
-    <path class="sparkline" pathLength="1" d="${line}" fill="none" stroke="var(--ink-soft)" stroke-width="1.8" opacity=".6"/>${dots}
+    ${umbra}${band}${arie}${yLab}<line class="sparkcur" x1="0" y1="${P}" x2="0" y2="${H-BP}" stroke="var(--ink-soft)" stroke-width="1" stroke-dasharray="2 2.5"/>
+    <path class="sparkline" pathLength="1" d="${line}" fill="none" stroke="var(--ink-soft)" stroke-width="1.8" opacity=".6"/>${puls}${dots}
     <circle class="sparkhl" cx="0" cy="0" r="6.5" fill="var(--ok)" stroke="var(--card)" stroke-width="2.4"/>${ticks}</svg></div>
     <details class="sparksum"><summary>Graficul în cuvinte</summary>${rezL.map(t=>`<p>${esc(t)}</p>`).join('')}</details>`;
   try{ sparkLeaga(); }catch(e){}
@@ -4117,7 +4205,7 @@ function okFood(id, fromMeal){
   let f;
   if(id){ f=S.foods.find(x=>x.id===id); Object.assign(f,rec); }
   else{ f={id:uid(), uses:0, ...rec}; S.foods.push(f); }
-  save(); toast('Aliment salvat');
+  save(); toast('Aliment salvat', true);
   if(fromMeal){ shMealResume(f); } else { closeSheet(); renderFoods(); }
 }
 function shMealResume(f){
@@ -4336,7 +4424,7 @@ function okReteta(){
   if(save()===false) return;   // salvarea eșuată își arată singură avertismentul
   R=null;
   closeSheet(); renderFoods();
-  toast('Rețetă salvată: '+fmtHC(c.val)+' HC '+(c.mode==='per100'?'la 100 g':'pe porție'));
+  toast('Rețetă salvată: '+fmtHC(c.val)+' HC '+(c.mode==='per100'?'la 100 g':'pe porție'), true);
 }
 
 /* ── Trimiterea unei rețete pe telefonul celuilalt ──────────────────────────────
@@ -7475,6 +7563,13 @@ function applyUpdate(){
    cu care omul a folosit ultima dată aplicația. La prima instalare nu se arată
    nimic: cine tocmai a intrat n-are ce compara. */
 const NOUTATI=[
+  {v:'v2.12.1', ce:[
+    'Cardul de sus de pe Azi are în spatele cadranului o lumină în culoarea ultimei glicemii (în țintă, jos, sus), care se stinge pe măsură ce valoarea se învechește.',
+    'Graficul zilei are sub linie o umbră colorată după valori, iar ultima glicemie pulsează scurt după ce se desenează linia.',
+    'La salvare, mesajul de jos („Glicemie salvată"…) are în față o bifă care se desenează.',
+    'Iconițele din bara de jos fac o mișcare scurtă când alegi secțiunea: soarele se rotește, acul ceasului se învârte, bolul se înclină, barele cresc, pătratele apar pe rând.',
+    'Ecranele goale (căutare fără rezultat, bibliotecă goală, telefon nou) au o mică ilustrație în locul plăcuței simple.'
+  ]},
   {v:'v2.12', ce:[
     'Mai mult → Diagnostic tehnic → „Verifică cifrele din Statistici": o a doua metodă de calcul, scrisă separat, reface din jurnalul tău toate cifrele din Statistici pe 7, 30 și 90 de zile, plus comparația cu laboratorul, și îți spune dacă se potrivesc cu ce vezi pe ecran.',
     'În Statistici, la „Cât de solide sunt cifrele", apare „Când măsori": cum îți sunt împărțite măsurătorile pe ore. Dacă un interval aproape lipsește (de obicei noaptea), ți se spune, fiindcă media și HbA1c estimat nu-l prind.',
