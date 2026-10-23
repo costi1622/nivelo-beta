@@ -1163,6 +1163,38 @@ html[data-theme="dark"] .sparkarie{opacity:.36}
   .sparkarie, .sparkpuls, #toast.on .tbifa path, #toast.on .tbifa circle, .ilus .ilp, .ilus .ild{animation:none}
   #toast .tbifa path{stroke-dashoffset:0} .sparkpuls{display:none}
 }
+
+/* ===== v2.12.2: luna, plăcuțele care reacționează, noaptea la notare ===== */
+#tabs button[data-v="today"] .ico svg > g{transition:opacity .5s ease}
+#tabs button[data-v="today"].luna .ico svg > g:not(.lunad){opacity:0}
+#tabs button[data-v="today"].luna .ico svg > g.lunad{opacity:1}
+@media (prefers-reduced-motion:no-preference){
+  #tabs button.on.luna[data-v="today"] .ico svg > g.lunad{transform-box:view-box; transform-origin:12px 12px; animation:tabLuna .6s cubic-bezier(.3,.9,.4,1)}
+  @keyframes tabLuna{from{transform:rotate(-30deg)}}
+  /* butoanele de notare: fiecare desen face gestul lui la atingere */
+  #quick button.apasat .i-gluc svg path:nth-child(3){transform-box:fill-box; transform-origin:50% 100%; animation:qPicatura .45s cubic-bezier(.3,1.4,.5,1)}
+  #quick button.apasat .i-gluc svg path:nth-child(2){stroke-dasharray:30; animation:qArc .5s ease-out}
+  @keyframes qPicatura{0%{transform:translateY(-3.5px) scale(.85,1.15)} 60%{transform:translateY(.6px) scale(1.08,.9)}}
+  @keyframes qArc{from{stroke-dashoffset:30}}
+  #quick button.apasat .i-meal svg path:nth-child(3){transform-box:view-box; transform-origin:12px 12.4px; animation:qFelie .55s cubic-bezier(.3,.9,.4,1)}
+  #quick button.apasat .i-meal svg path:nth-child(4), #quick button.apasat .i-meal svg path:nth-child(5){animation:qTacam .4s cubic-bezier(.3,1.5,.5,1)}
+  #quick button.apasat .i-meal svg path:nth-child(5){animation-delay:.05s}
+  #quick button.apasat .i-meal svg .abur{animation:qAbur .65s ease-out}
+  @keyframes qFelie{from{transform:rotate(-200deg)}}
+  @keyframes qTacam{40%{transform:translateY(-2.2px)}}
+  @keyframes qAbur{0%{opacity:0; transform:translateY(2px)} 35%{opacity:.9} 100%{opacity:0; transform:translateY(-2px)}}
+  #quick button.apasat .i-ins svg g > rect:nth-child(4), #quick button.apasat .i-ins svg g > path:nth-child(5){animation:qPiston .45s cubic-bezier(.3,1.2,.5,1)}
+  @keyframes qPiston{45%{transform:translateX(2.2px)}}
+  #quick button.apasat .i-note svg path:nth-child(1), #quick button.apasat .i-note svg path:nth-child(2), #quick button.apasat .i-note svg path:nth-child(3){transform-box:view-box; transform-origin:12px 12px; animation:qPagina .45s cubic-bezier(.3,1.3,.5,1)}
+  #quick button.apasat .i-note svg path:nth-child(4){animation:qSemn .45s cubic-bezier(.3,1.5,.5,1) .08s backwards}
+  @keyframes qPagina{from{transform:scaleX(.35)}}
+  @keyframes qSemn{from{transform:translateY(-3px); opacity:0}}
+}
+/* fereastra de noapte: mai întunecat și în spate */
+/* fundalul din spate, mai întunecat; prin clasă pusă din cod, nu prin :has() — un selector
+   body:has(...) aici încetinea derularea Istoricului de ~5 ori (măsurat: 34 → 6 cadre/s) */
+#veil.noapte, #veil2.noapte{background:rgba(4,9,12,.72)}
+div[data-noapte]{color:var(--ink); color-scheme:dark}   /* și câmpurile native (ora, data) se deschid întunecat */
 </style>
 </head>
 <body>
@@ -1248,7 +1280,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     </div>
     <div id="quick">
       <button onclick="shGluc()"><span class="ico i-gluc" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M5.3 18.2a8.4 8.4 0 1 1 13.4 0" fill="none" stroke="#fff" stroke-opacity=".32" stroke-width="2.2" stroke-linecap="round"/><path d="M5.3 18.2a8.4 8.4 0 0 1 9.6-13.1" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><path d="M12 7.4c2.5 3 3.9 5 3.9 6.9a3.9 3.9 0 0 1-7.8 0c0-1.9 1.4-3.9 3.9-6.9z" fill="#fff"/><path d="M10.3 13.9c-.3.6-.4 1.3-.3 1.9" fill="none" stroke="#0E7C7B" stroke-opacity=".5" stroke-width="1.1" stroke-linecap="round"/></svg></span>Glicemie</button>
-      <button onclick="shMeal()"><span class="ico i-meal" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12.4" r="7.4" fill="#fff"/><circle cx="12" cy="12.4" r="5.1" fill="#C2703C" fill-opacity=".16"/><path d="M12 12.4V7.3a5.1 5.1 0 0 1 4.6 2.9z" fill="#C2703C" fill-opacity=".75"/><path d="M2.6 3.6v3.6a1.4 1.4 0 0 0 1.4 1.4v11M4 3.6v3.2M5.4 3.6v3.6a1.4 1.4 0 0 1-1.4 1.4" fill="none" stroke="#fff" stroke-width="1.15" stroke-linecap="round"/><path d="M21.2 3.6c-1.5.8-2 2.6-2 4.4v2.3h2v9.3" fill="none" stroke="#fff" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Masă</button>
+      <button onclick="shMeal()"><span class="ico i-meal" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12.4" r="7.4" fill="#fff"/><circle cx="12" cy="12.4" r="5.1" fill="#C2703C" fill-opacity=".16"/><path d="M12 12.4V7.3a5.1 5.1 0 0 1 4.6 2.9z" fill="#C2703C" fill-opacity=".75"/><path d="M2.6 3.6v3.6a1.4 1.4 0 0 0 1.4 1.4v11M4 3.6v3.2M5.4 3.6v3.6a1.4 1.4 0 0 1-1.4 1.4" fill="none" stroke="#fff" stroke-width="1.15" stroke-linecap="round"/><path d="M21.2 3.6c-1.5.8-2 2.6-2 4.4v2.3h2v9.3" fill="none" stroke="#fff" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path class="abur" d="M10.2 4.4c-.9-.8.7-1.5-.1-2.6M13.8 4.4c-.9-.8.7-1.5-.1-2.6" fill="none" stroke="#fff" stroke-width="1.1" stroke-linecap="round" opacity="0"/></svg></span>Masă</button>
       <button onclick="shIns()"><span class="ico i-ins" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24"><g transform="rotate(-40 12 12)"><rect x="2.4" y="8.9" width="14.4" height="6.2" rx="2.6" fill="#fff"/><rect x="9.4" y="10.1" width="5.2" height="3.8" rx=".9" fill="#3F5E8C" fill-opacity=".6"/><path d="M10.6 10.1v1.4M11.9 10.1v2M13.2 10.1v1.4" stroke="#fff" stroke-width=".7"/><rect x=".6" y="8.2" width="3" height="7.6" rx="1.3" fill="#fff"/><path d="M.9 10.1h2.4M.9 12h2.4M.9 13.9h2.4" stroke="#3F5E8C" stroke-opacity=".4" stroke-width=".6"/><path d="M16.8 10.2l2.4.9v1.8l-2.4.9z" fill="#fff" fill-opacity=".85"/><path d="M19.2 12h3.6" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/><rect x="4.6" y="9.9" width="3.4" height="1.1" rx=".5" fill="#3F5E8C" fill-opacity=".22"/></g></svg></span>Insulină</button>
       <button onclick="shNote()"><span class="ico i-note" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M3.2 5.6c2.9-1.2 5.9-1 8.8.8v13.2c-2.9-1.8-5.9-2-8.8-.8z" fill="#fff"/><path d="M20.8 5.6c-2.9-1.2-5.9-1-8.8.8v13.2c2.9-1.8 5.9-2 8.8-.8z" fill="#fff" fill-opacity=".78"/><path d="M5.3 9.1c1.6-.4 3.1-.2 4.6.5M5.3 11.9c1.6-.4 3.1-.2 4.6.5M5.3 14.7c1.6-.4 3.1-.2 4.6.5" stroke="#6B7A85" stroke-opacity=".45" stroke-width=".9" stroke-linecap="round"/><path d="M15.8 3.6h2.6v6.6l-1.3-1-1.3 1z" fill="#E2774F"/></svg></span>Altele</button>
     </div>
@@ -1325,13 +1357,13 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       <button class="mrow" onclick="shUpdate()"><span class="ico" aria-hidden="true" style="--mc:#3E9E6B"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M19.4 12a7.4 7.4 0 0 1-12.8 5" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" opacity=".7"/><path d="M4.6 12a7.4 7.4 0 0 1 12.8-5" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round"/><path d="M18.6 3.4v4.4h-4.4" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.4 20.6v-4.4h4.4" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/></svg></span><span>Adu versiunea nouă<small>Dacă tocmai a apărut o actualizare și încă nu a ajuns la tine</small></span></button>
       <button class="mrow" onclick="shDiag()"><span class="ico" aria-hidden="true" style="--mc:#6B7A85"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M19.6 4.8a5 5 0 0 1-6.6 6.4l-6.6 6.6a2 2 0 1 1-2.8-2.8l6.6-6.6a5 5 0 0 1 6.4-6.6l-3 3 .6 2.4 2.4.6z" fill="#fff"/><circle cx="5" cy="19" r=".9" fill="currentColor"/></svg></span><span>Diagnostic tehnic<small>Starea instalării, util dacă ceva nu merge</small></span></button>
     </div>
-    <p class="muted" style="padding:0 6px">Nivelo v2.12.1 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
-      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v2.12.1%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
+    <p class="muted" style="padding:0 6px">Nivelo v2.12.2 · Jurnal personal. Nu este un dispozitiv medical și nu oferă sfaturi medicale.<br>
+      <span style="font-size:calc(12px*var(--fs))">© 2026 Constantin Enache <span style="white-space:nowrap">· <a href="mailto:hello.nivelo@gmail.com?subject=Nivelo%20v2.12.2%20%E2%80%94%20" style="color:var(--petrol)">hello.nivelo@gmail.com</a></span></span></p>
   </section>
 </main>
 
 <nav id="tabs"><i id="tabmark" aria-hidden="true"></i>
-  <button class="on" data-v="today" onclick="go('today')"><span class="ico" aria-hidden="true"><svg width="21" height="21" viewBox="0 0 24 24"><g fill="currentColor"><circle cx="12" cy="12" r="4.6"/><g opacity=".55"><rect x="11" y="2.2" width="2" height="3.6" rx="1"/><rect x="11" y="18.2" width="2" height="3.6" rx="1"/><rect x="2.2" y="11" width="3.6" height="2" rx="1"/><rect x="18.2" y="11" width="3.6" height="2" rx="1"/><rect x="11" y="2.2" width="2" height="3.6" rx="1" transform="rotate(45 12 12)"/><rect x="11" y="18.2" width="2" height="3.6" rx="1" transform="rotate(45 12 12)"/><rect x="2.2" y="11" width="3.6" height="2" rx="1" transform="rotate(45 12 12)"/><rect x="18.2" y="11" width="3.6" height="2" rx="1" transform="rotate(45 12 12)"/></g></g></svg></span>Azi</button>
+  <button class="on" data-v="today" onclick="go('today')"><span class="ico" aria-hidden="true"><svg width="21" height="21" viewBox="0 0 24 24"><g fill="currentColor"><circle cx="12" cy="12" r="4.6"/><g opacity=".55"><rect x="11" y="2.2" width="2" height="3.6" rx="1"/><rect x="11" y="18.2" width="2" height="3.6" rx="1"/><rect x="2.2" y="11" width="3.6" height="2" rx="1"/><rect x="18.2" y="11" width="3.6" height="2" rx="1"/><rect x="11" y="2.2" width="2" height="3.6" rx="1" transform="rotate(45 12 12)"/><rect x="11" y="18.2" width="2" height="3.6" rx="1" transform="rotate(45 12 12)"/><rect x="2.2" y="11" width="3.6" height="2" rx="1" transform="rotate(45 12 12)"/><rect x="18.2" y="11" width="3.6" height="2" rx="1" transform="rotate(45 12 12)"/></g></g><g class="lunad" fill="currentColor" opacity="0"><path d="M14.6 4.2a8 8 0 1 0 5.6 13.6A6.6 6.6 0 0 1 14.6 4.2z"/><circle cx="18.6" cy="5.4" r="1.05" opacity=".6"/><circle cx="20.8" cy="9.4" r=".7" opacity=".45"/></g></svg></span>Azi</button>
   <button data-v="hist" onclick="go('hist')"><span class="ico" aria-hidden="true"><svg width="21" height="21" viewBox="0 0 24 24"><path d="M4.6 9.2A8 8 0 1 1 4.3 14" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" opacity=".55"/><path d="M2.6 5.4l1.9 4.3 4.4-1.6" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/><path d="M12 7.6v4.6l3.2 2" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Istoric</button>
   <button data-v="foods" onclick="go('foods')"><span class="ico" aria-hidden="true"><svg width="21" height="21" viewBox="0 0 24 24"><circle cx="8.6" cy="9.2" r="3.7" fill="currentColor" opacity=".6"/><path d="M8.6 5.6c0-1.2.4-2 1.2-2.6" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity=".6"/><circle cx="15.4" cy="9.6" r="3.3" fill="currentColor" opacity=".6"/><path d="M11.4 5.2c1.9-.9 3.9-.3 4.8 1.2-1.9.9-3.9.3-4.8-1.2z" fill="currentColor" opacity=".85"/><path d="M2.4 12h19.2c-.3 4.7-4 8.4-8.8 8.6h-1.6c-4.8-.2-8.5-3.9-8.8-8.6z" fill="currentColor"/></svg></span>Alimente</button>
   <button data-v="stats" onclick="go('stats')"><span class="ico" aria-hidden="true"><svg width="21" height="21" viewBox="0 0 24 24"><g fill="currentColor" opacity=".55"><rect x="3.6" y="13" width="4" height="7.6" rx="1.3"/><rect x="10" y="9.4" width="4" height="11.2" rx="1.3"/><rect x="16.4" y="11.4" width="4" height="9.2" rx="1.3"/></g><path d="M4.4 9.4l5.8-4.6 4 3.1 5.6-4.4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Statistici</button>
@@ -1415,7 +1447,7 @@ var PORNIT = false, ULTIMA_EROARE = null;
 })();
 
 /* ================= STOCARE ================= */
-const APP_VER='v2.12.1';
+const APP_VER='v2.12.2';
 /* Android citește manifestul — numele, iconița, scurtăturile — o singură dată, la
    instalare, și îl păstrează așa până la reinstalare. Codul se actualizează singur,
    configurarea nu. De aceea ținem minte când s-a schimbat ultima dată configurarea:
@@ -2213,7 +2245,9 @@ function momentBara(){
        // ca momentele din cronologie, cu o excepție: în cronologie orele dinainte de 05 țin de „Dimineața";
        // pentru culoarea barei, la 3 noaptea e noapte
        const m = h<5 ? 'noapte' : ({'Dimineața':'dim','Prânz':'pranz','Cină':'cina','Seara / noaptea':'noapte'}[daypart(Date.now())]||'pranz');
-       const t=$('topbar'); if(t && t.dataset.m!==m) t.dataset.m=m; }catch(e){}
+       const t=$('topbar'); if(t && t.dataset.m!==m) t.dataset.m=m;
+       // v2.12.2: iconița „Azi" din bara de jos e lună seara și noaptea (aceleași ore ca nuanța barei de sus)
+       const b=document.querySelector('#tabs button[data-v="today"]'); if(b) b.classList.toggle('luna', m==='noapte'); }catch(e){}
 }
 function go(v){
   const ordine=['today','hist','foods','stats','more'];
@@ -2308,7 +2342,7 @@ window.addEventListener('popstate', ()=>{
   if(anySheet()){ try{ history.pushState({nv:1},''); }catch(e){ HIST_ON=false; } }
   else HIST_ON=false;
 });
-function closeSheetUI(){ $('sheet').classList.remove('on'); $('veil').classList.remove('on'); syncLock(); }
+function closeSheetUI(){ const sh=$('sheet'); stringeFoaia(sh); sh.classList.remove('on'); $('veil').classList.remove('on'); syncLock(); }
 function closeSheet2UI(){ $('sheet2').classList.remove('on'); $('veil2').classList.remove('on'); syncLock(); }
 /* Fereastra e derulabilă, iar browserul ține minte cât ai derulat în ea. Dacă deschizi
    una lungă, cobori până la jumătate și o închizi, următoarea fereastră se deschidea
@@ -2378,6 +2412,10 @@ let ATINS={t:0, el:null};
 document.addEventListener('pointerdown', ev=>{
   const b=ev.target && ev.target.closest ? ev.target.closest('#quick button, .ev') : null;
   ATINS={t:performance.now(), el:b};
+  // v2.12.2: desenul de pe butonul de notare reacționează chiar la atingere (doar pe Azi, nu și în copiile lui)
+  if(b && b.parentNode && b.parentNode.id==='quick' && !miscareRedusa()){
+    b.classList.remove('apasat'); void b.offsetWidth; b.classList.add('apasat');
+    clearTimeout(b._apasat); b._apasat=setTimeout(()=>b.classList.remove('apasat'), 700); }
 }, true);
 const TIP_FOAIE={gluc:'i-gluc', meal:'i-meal', ins:'i-ins', note:'i-note'};
 function antetFoaie(tip, titlu){
@@ -2444,6 +2482,26 @@ function pregatesteFoaia(sh, opt){
        if(ai && !sh.dataset.tip){ sh.dataset.info=ai.dataset.info; sh.style.setProperty('--tipc', ai.dataset.cul); } else delete sh.dataset.info; }catch(e){}
   if(!sh.querySelector(':scope > .maner')) sh.insertAdjacentHTML('afterbegin','<div class="maner" aria-hidden="true"></div>');
   legaTragerea(sh, sh.id==='sheet2' ? closeSheet2 : closeSheet);
+  /* v2.12.2: între 00 și 06, ferestrele de notare (și cele deschise peste ele) se deschid în
+     varianta întunecată, chiar dacă tema e luminoasă: la 3 noaptea, un ecran alb orbește. */
+  const noapte = new Date().getHours()<6 && document.documentElement.dataset.theme!=='dark'
+    && (!!sh.dataset.tip || (sh.id==='sheet2' && !!$('sheet').dataset.noapte && $('sheet').classList.contains('on')));
+  if(noapte){ pregatesteNoaptea(); sh.dataset.noapte='1'; } else delete sh.dataset.noapte;
+  const vl=$(sh.id==='sheet2'?'veil2':'veil'); if(vl) vl.classList.toggle('noapte', noapte);
+}
+/* Varianta de noapte refolosește chiar regulile temei întunecate: la prima nevoie, fiecare
+   regulă `html[data-theme="dark"] X` primește o pereche `div[data-noapte] X`, cu aceeași
+   prioritate (un atribut + un element). Așa, orice ajustare viitoare a temei întunecate se
+   aplică singură și aici. */
+let NOAPTE_GATA=false;
+function pregatesteNoaptea(){
+  if(NOAPTE_GATA) return; NOAPTE_GATA=true;
+  try{ const st=document.createElement('style'); st.id='stilnoapte'; let css='';
+    [...document.styleSheets].forEach(f=>{ let reg; try{ reg=f.cssRules; }catch(e){ return; }
+      [...reg].forEach(r=>{ if(!r.selectorText || r.selectorText.indexOf('html[data-theme="dark"]')<0) return;
+        const sel=r.selectorText.split(',').map(x=>x.trim()).filter(x=>x.indexOf('html[data-theme="dark"]')===0).map(x=>'div[data-noapte]'+x.slice('html[data-theme="dark"]'.length));
+        if(sel.length) css+=sel.join(', ')+'{'+r.style.cssText+'}\n'; }); });
+    st.textContent=css; document.head.appendChild(st); }catch(e){}
 }
 /* Fereastra crește din locul atins. Doar pentru ferestrele de notare și doar dacă
    atingerea a fost chiar acum (sub 0,6 s) pe un buton de notare sau pe un card. */
@@ -2462,9 +2520,33 @@ function nasteFoaia(sh){
   ], {duration:340, easing:'cubic-bezier(.2,.85,.25,1)'});
   const gata=()=>{ sh.classList.remove('creste'); setTimeout(()=>sh.classList.remove('nascut'), 120); };
   a.onfinish=gata; a.oncancel=gata;
+  sh._din=el;            // v2.12.2: la închidere, se strânge înapoi aici
   ATINS={t:0, el:null};
   return true;
 }
+/* v2.12.2: fereastra care a crescut dintr-un buton (sau dintr-un card) se strânge înapoi în
+   el la închidere. Starea se schimbă imediat (clasa .on dispare, ca înainte), doar desenul
+   mai durează 0,26 s. Dacă butonul nu mai e în pagină sau nu se vede (de exemplu cardul s-a
+   redesenat după salvare), fereastra coboară ca de obicei. */
+function stringeFoaia(sh){
+  const el=sh._din; sh._din=null;
+  // trasă în jos cu degetul: coboară în continuarea gestului, nu se strânge în buton
+  if(!el || !document.contains(el) || miscareRedusa() || !sh.animate || !sh.classList.contains('on') || sh.classList.contains('trage') || performance.now()-(sh._tras||0)<400) return false;
+  const o=el.getBoundingClientRect(); if(!o.width || o.bottom<0 || o.top>innerHeight) return false;
+  const r=sh.getBoundingClientRect(); if(!r.width) return false;
+  const s=Math.max(.14, Math.min(.5, o.width/r.width));
+  const dx=(o.left+o.width/2)-(r.left+r.width/2), dy=(o.top+o.height/2)-(r.top+r.height/2);
+  sh.classList.add('creste'); sh.style.pointerEvents='none';
+  const a=sh.animate([
+    {transform:'none', opacity:1, borderRadius:'22px 22px 0 0'},
+    {transform:`translate(${dx.toFixed(1)}px,${dy.toFixed(1)}px) scale(${s.toFixed(3)})`, opacity:0, borderRadius:'26px'}
+  ], {duration:260, easing:'cubic-bezier(.4,0,.7,.2)', fill:'forwards'});
+  sh._inch=a;
+  const gata=()=>{ if(sh._inch!==a) return; sh._inch=null; a.cancel(); sh.style.pointerEvents=''; requestAnimationFrame(()=>sh.classList.remove('creste')); };
+  a.onfinish=gata;
+  return true;
+}
+function oprestestringerea(sh){ const a=sh && sh._inch; if(a){ sh._inch=null; try{ a.cancel(); }catch(e){} sh.style.pointerEvents=''; sh.classList.remove('creste'); } }
 function legaTragerea(sh, inchide){
   if(sh._trag) return; sh._trag=true;
   let y0=null, dy=0, t0=0, pid=null, mutat=false;
@@ -2488,7 +2570,7 @@ function legaTragerea(sh, inchide){
     const v=dy/Math.max(1, performance.now()-t0);
     const inch = mutat && (dy>110 || (dy>40 && v>0.55));
     y0=null; sh.classList.remove('trage'); sh.style.transform='';
-    if(inch){ vibreaza(VIB_GRAFIC); inchide(); }
+    if(inch){ vibreaza(VIB_GRAFIC); sh._tras=performance.now(); inchide(); }
   };
   sh.addEventListener('pointerup', gata); sh.addEventListener('pointercancel', gata);
   // după o tragere, clicul care urmează ridicării degetului nu trebuie să apese ceva
@@ -2525,12 +2607,12 @@ function legaTragerea(sh, inchide){
     t0y=null; tDec=null;
     if(dec!=='trage') return;
     sh.classList.remove('trage'); sh.style.transform='';
-    if(tDy>110 || (tDy>40 && v>0.55)){ vibreaza(VIB_GRAFIC); inchide(); }
+    if(tDy>110 || (tDy>40 && v>0.55)){ vibreaza(VIB_GRAFIC); sh._tras=performance.now(); inchide(); }
     setTimeout(()=>{ mutat=false; }, 350);
   };
   sh.addEventListener('touchend', tGata); sh.addEventListener('touchcancel', tGata);
 }
-function openSheet(html, opt){ const sh=$('sheet'); sh.innerHTML=html; pregatesteFoaia(sh, opt); sh.scrollTop=0; $('veil').classList.add('on'); syncLock(); syncHist(); legaEtichete(sh); preiaFocus(sh);
+function openSheet(html, opt){ const sh=$('sheet'); oprestestringerea(sh); sh._din=null; sh.innerHTML=html; pregatesteFoaia(sh, opt); sh.scrollTop=0; $('veil').classList.add('on'); syncLock(); syncHist(); legaEtichete(sh); preiaFocus(sh);
   if(!nasteFoaia(sh)) requestAnimationFrame(()=>{ sh.classList.add('on'); sh.scrollTop=0; }); }
 function closeSheet(){ closeSheetUI(); syncHist(); redaFocus($('sheet')); }
 function openSheet2(html){ const sh=$('sheet2'); sh.innerHTML=html; pregatesteFoaia(sh); sh.scrollTop=0; $('veil2').classList.add('on'); syncLock(); syncHist(); legaEtichete(sh); preiaFocus(sh); requestAnimationFrame(()=>{ sh.classList.add('on'); sh.scrollTop=0; }); }
@@ -2877,7 +2959,7 @@ function okGluc(id){
   else { nid=uid(); S.events.push({id:nid, ts, type:'gluc', gluc:{v, src:chipVal('gsrc')}}); }
   marcheazaNou(nid);
   const deUnde=($('gv')&&$('gv').getBoundingClientRect)?$('gv').getBoundingClientRect():null;
-  sortEv(); const ok=save(); closeSheet(); renderToday(); toast('Glicemie salvată', ok!==false);
+  sortEv(); const ok=save(); closeSheet(); AZI_ANIM=true; renderToday(); toast('Glicemie salvată', ok!==false);
   if(ok!==false){ vibreaza(VIB_SALVARE); zboaraInCadran(deUnde, v, nid); }
 }
 
@@ -2930,7 +3012,7 @@ function okIns(id){
   if(id){ const e=S.events.find(x=>x.id===id); e.ts=ts; e.ins=rec; }
   else { nid=uid(); S.events.push({id:nid, ts, type:'ins', ins:rec}); }
   marcheazaNou(nid);
-  sortEv(); const ok=save(); closeSheet(); renderToday(); toast('Insulină salvată', ok!==false);
+  sortEv(); const ok=save(); closeSheet(); AZI_ANIM=true; renderToday(); toast('Insulină salvată', ok!==false);
   if(ok!==false) vibreaza(VIB_SALVARE);
 }
 
@@ -3072,7 +3154,7 @@ function okMeal(){
   if(M._edit){ const e=S.events.find(x=>x.id===M._edit); e.ts=ts; e.meal=rec; }
   else { nid=uid(); S.events.push({id:nid, ts, type:'meal', meal:rec}); }
   marcheazaNou(nid);
-  sortEv(); const ok=save(); closeSheet(); renderToday(); toast('Masă salvată', ok!==false);
+  sortEv(); const ok=save(); closeSheet(); AZI_ANIM=true; renderToday(); toast('Masă salvată', ok!==false);
   if(ok!==false) vibreaza(VIB_SALVARE);
 }
 
@@ -3154,18 +3236,42 @@ function okNote(id){
     else e.note=rec.note; }
   else { nid=uid(); S.events.push({id:nid, ts, ...rec}); }
   marcheazaNou(nid);
-  sortEv(); const ok=save(); closeSheet(); renderToday(); toast('Salvat', ok!==false);
+  sortEv(); const ok=save(); closeSheet(); AZI_ANIM=true; renderToday(); toast('Salvat', ok!==false);
   if(ok!==false) vibreaza(VIB_SALVARE);
 }
 
 /* ================= ȘTERGERE / EDITARE ================= */
+/* v2.12.2: după o ștergere, cardurile de dedesubt urcă lin în locul celui plecat, în loc să
+   sară. Se notează unde era fiecare card (și fiecare titlu de moment al zilei) înainte de
+   redesenare, apoi fiecare pornește din locul vechi spre cel nou (0,26 s). Doar desen: lista
+   e deja cea nouă. */
+function pozitiiCronologie(){
+  const m=new Map();
+  ['timeline','histbody'].forEach(id=>{ const c=$(id); if(!c || !c.offsetParent) return; const nr={};
+    c.querySelectorAll('.ev[data-id], .daypart, .mealsum').forEach(el=>{
+      let k; if(el.dataset.id) k='ev:'+el.dataset.id; else { const t=el.className+'|'+el.textContent.trim(); nr[t]=(nr[t]||0)+1; k=t+'#'+nr[t]; }
+      m.set(id+'|'+k, el.getBoundingClientRect().top); }); });
+  return m;
+}
+function alunecaInLoc(poz){
+  if(!poz || !poz.size || miscareRedusa()) return;
+  ['timeline','histbody'].forEach(id=>{ const c=$(id); if(!c || !c.offsetParent) return; const nr={};
+    c.querySelectorAll('.ev[data-id], .daypart, .mealsum').forEach(el=>{
+      let k; if(el.dataset.id) k='ev:'+el.dataset.id; else { const t=el.className+'|'+el.textContent.trim(); nr[t]=(nr[t]||0)+1; k=t+'#'+nr[t]; }
+      const v=poz.get(id+'|'+k); if(v===undefined) return;
+      const d=v-el.getBoundingClientRect().top;
+      if(Math.abs(d)<1 || Math.abs(d)>400 || !el.animate) return;
+      el.animate([{transform:`translateY(${d.toFixed(1)}px)`},{transform:'none'}], {duration:260, easing:'cubic-bezier(.2,.8,.25,1)'}); }); });
+}
 function delEv(id){
   shConfirm('Vei putea anula imediat după, dacă te răzgândești.', ()=>{
     const sterge=()=>{
       const gone=S.events.filter(e=>e.id===id);
       S.events=S.events.filter(e=>e.id!==id); save();
       setUndo({op:'del', items:gone, label:'Intrare ștearsă', undone:'Intrarea a revenit'});
+      const poz=pozitiiCronologie();
       renderToday(); renderHist();
+      alunecaInLoc(poz);
     };
     /* Adăugarea era animată, ștergerea nu: cardul dispărea pur și simplu, iar dacă
        ștergeai din greșeală altceva decât credeai, nu apucai să vezi ce a plecat.
@@ -3783,6 +3889,7 @@ function renderToday(){
   const v3=hc?fmtHC(hc):'—';
   const v4=bol?fmtN(bol):'—';
   const v5=baz?fmtN(baz):'—';
+  const AZ_VECHI = AZI_ANIM ? [...$('mini3').querySelectorAll('b')].map(b=>b.textContent.trim()) : null; AZI_ANIM=false;
   $('mini3').innerHTML=`
     <div><b class="${cls(v1)}">${v1}</b><span>medie azi</span></div>
     <div><b class="${cls(v2)}">${v2}</b><span>în țintă azi</span></div>
@@ -3790,6 +3897,7 @@ function renderToday(){
     <div><b class="${cls(v4)}">${v4}</b><span>rapidă U</span></div>
     <div><b class="${cls(v5)}">${v5}</b><span>bazală U</span></div>
     <div><b class="${cls(rapAgo)}" id="rapago">${rapAgo}</b><span>ultima rapidă</span></div>`;
+  if(AZ_VECHI) aziAnimeaza(AZ_VECHI);
   renderSpark(evs);
   try{ $('noapte').innerHTML=noapteaHtml(); }catch(e){ $('noapte').innerHTML=''; }
   renderTimeline($('timeline'), evs);
@@ -5020,6 +5128,23 @@ function ziuaTipicaHtml(g){
    final exact același text. Pornește DOAR din butoanele de perioadă (`NR_ANIM`), deci orice
    altă randare (pornire, salvare, teste) are cifrele finale imediat. */
 var NR_ANIM=false; let NR_TOKEN=0;
+/* v2.12.2: aceeași rostogolire pentru cifrele de pe Azi, după o notare nouă. Se pornește doar
+   din salvări (`AZI_ANIM`); la final rămâne exact textul randat. „Ultima rapidă" (ore și
+   minute) nu se animă. */
+var AZI_ANIM=false; let AZI_TOKEN=0;
+function aziAnimeaza(vechi){
+  if(miscareRedusa() || typeof requestAnimationFrame!=='function') return;
+  const bs=[...$('mini3').querySelectorAll('b')].slice(0,5), tok=++AZI_TOKEN, lista=[];
+  bs.forEach((b,i)=>{ const n=[...b.childNodes].find(x=>x.nodeType===3); if(!n) return; const fin=n.nodeValue, a=nrCiteste(vechi[i]||''), z=nrCiteste(fin);
+    if(a && z && a.v!==z.v && a.pr===z.pr) lista.push({n, a, z, fin}); });
+  if(!lista.length) return;
+  const t0=performance.now(), D=450;
+  lista.forEach(o=>{ o.n.nodeValue=o.a.v.toFixed(o.z.zec).replace('.',',')+o.z.pr; });
+  const pas=now=>{ if(tok!==AZI_TOKEN) return; const x=Math.min(1,(now-t0)/D), e=1-Math.pow(1-x,3);
+    lista.forEach(o=>{ if(!o.n.isConnected) return; o.n.nodeValue = x>=1 ? o.fin : (o.a.v+(o.z.v-o.a.v)*e).toFixed(o.z.zec).replace('.',',')+o.z.pr; });
+    if(x<1) requestAnimationFrame(pas); };
+  requestAnimationFrame(pas);
+}
 function nrCheie(b){ const st=b.closest('.stat'); if(st){ const sp=st.querySelector('span'); return 'stat:'+(sp?sp.textContent:''); }
   if(b.closest('.tirkpi')) return 'kpi'; const lg=b.closest('.tirlegend > div'); if(lg) return 'leg:'+lg.textContent.replace(/[\d,<%&lt;\s]+$/,'').replace(/\s+/g,' ').trim(); return null; }
 function nrCiteste(t){ const m=String(t).trim().match(/^(-?\d+(?:,\d+)?)(%?)$/); if(!m) return null; return {v:parseFloat(m[1].replace(',','.')), zec:(m[1].split(',')[1]||'').length, pr:m[2]}; }
@@ -7563,6 +7688,14 @@ function applyUpdate(){
    cu care omul a folosit ultima dată aplicația. La prima instalare nu se arată
    nimic: cine tocmai a intrat n-are ce compara. */
 const NOUTATI=[
+  {v:'v2.12.2', ce:[
+    'Seara și noaptea, iconița „Azi" din bara de jos devine lună.',
+    'Desenele de pe butoanele de notare răspund la atingere: picătura cade, felia din farfurie se rotește și iese aburul, pistonul seringii împinge, cartea se deschide.',
+    'Ferestrele de notare, care cresc din butonul apăsat, se strâng înapoi în el la închidere.',
+    'La ștergerea unei intrări, cele de dedesubt urcă lin în locul ei, în loc să sară.',
+    'Pe Azi, cifrele de sus (medie, în țintă, HC, insulină) se rostogolesc la valoarea nouă după fiecare notare.',
+    'Între 00 și 06, ferestrele de notare se deschid întunecate, chiar dacă tema e luminoasă, ca să nu te orbească noaptea.'
+  ]},
   {v:'v2.12.1', ce:[
     'Cardul de sus de pe Azi are în spatele cadranului o lumină în culoarea ultimei glicemii (în țintă, jos, sus), care se stinge pe măsură ce valoarea se învechește.',
     'Graficul zilei are sub linie o umbră colorată după valori, iar ultima glicemie pulsează scurt după ce se desenează linia.',
